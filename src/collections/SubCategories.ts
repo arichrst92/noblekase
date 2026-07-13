@@ -46,10 +46,10 @@ export const SubCategories: CollectionConfig = {
     },
     {
       name: "filterConfig",
-      type: "json",
+      type: "textarea",
       admin: {
         description:
-          "Konfigurasi filter spesifik untuk sub-kategori ini. Contoh: { 'daya': ['20W', '65W', '100W'], 'fitur': ['GaN', 'Multi-port'] }",
+          "Konfigurasi filter (format JSON) untuk sub-kategori ini. Contoh: {\"daya\": [\"20W\",\"65W\",\"100W\"], \"fitur\": [\"GaN\",\"Multi-port\"]}. Disimpan sebagai teks; di-parse saat filter dinamis dibangun (Sprint 3).",
       },
     },
     {
