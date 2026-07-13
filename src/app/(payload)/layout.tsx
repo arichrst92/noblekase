@@ -1,30 +1,34 @@
 /**
- * Payload Layout — root layout untuk Payload admin panel
- *
- * Tidak boleh include frontend styling—Payload akan inject styling sendiri.
+ * Payload Layout — root layout untuk admin panel.
+ * WAJIB memakai RootLayout dari Payload agar seluruh context provider admin
+ * (config, theme, dll) terpasang di sisi client. Jangan diganti <html> manual.
  */
 
-import { CSSProperties } from "react";
+import type { ServerFunctionClient } from "payload";
+import config from "@payload-config";
+import "@payloadcms/next/css";
+import { RootLayout, handleServerFunctions } from "@payloadcms/next/layouts";
+import React from "react";
 
-export const metadata = {
-  description: "Noblekase CMS Admin Panel",
-  title: "Noblekase CMS",
-};
+import { importMap } from "./admin/importMap.js";
 
-const layoutStyle: CSSProperties = {
-  height: "100%",
-  margin: 0,
-  padding: 0,
-};
-
-export default function PayloadLayout({
-  children,
-}: {
+type Args = {
   children: React.ReactNode;
-}) {
-  return (
-    <html lang="id" style={layoutStyle}>
-      <body style={layoutStyle}>{children}</body>
-    </html>
-  );
-}
+};
+
+const serverFunction: ServerFunctionClient = async function (args) {
+  "use server";
+  return handleServerFunctions({
+    ...args,
+    config,
+    importMap,
+  });
+};
+
+const Layout = ({ children }: Args) => (
+  <RootLayout config={config} importMap={importMap} serverFunction={serverFunction}>
+    {children}
+  </RootLayout>
+);
+
+export default Layout;
