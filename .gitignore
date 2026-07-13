@@ -18,8 +18,9 @@ dist/
 src/payload-types.ts
 src/app/(payload)/admin/importMap.js
 
-# Uploads (local dev)
-uploads/
+# Uploads (local filesystem storage) — simpan folder, abaikan isinya
+uploads/*
+!uploads/.gitkeep
 public/media/
 
 # Logs

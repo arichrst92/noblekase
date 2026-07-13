@@ -1,0 +1,2 @@
+# Folder ini menyimpan file upload (local filesystem storage via Payload staticDir).
+# Isi folder diabaikan git; file ini hanya menjaga folder tetap ada saat clone.
