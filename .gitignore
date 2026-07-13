@@ -1,0 +1,60 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Payload generated files
+src/payload-types.ts
+src/app/(payload)/admin/importMap.js
+
+# Uploads (local dev)
+uploads/
+public/media/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Docker volumes
+postgres_data/
+redis_data/
+caddy_data/
+caddy_config/
+
+# Backups
+backups/
+*.dump
+*.tar.gz
+
+# Secrets
+secrets/
+*.pem
+*.key
+
+# Misc
+.turbo/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts

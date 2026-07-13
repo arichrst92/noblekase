@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 900" width="1920" height="900">
+    <rect width="1920" height="900" fill="#EDE6D9"/>
+    
+    <g opacity="0.22">
+        <!-- desk horizon line -->
+        <line x1="0" y1="612.0" x2="1920" y2="612.0" stroke="#2A2A2A" stroke-width="0.5"/>
+        <!-- notebook -->
+        <rect x="288.0" y="495.00000000000006" width="480.0" height="108.0" fill="none" stroke="#2A2A2A" stroke-width="0.8"/>
+        <!-- mug -->
+        <ellipse cx="1190.4" cy="540.0" rx="115.19999999999999" ry="28.799999999999997" fill="none" stroke="#2A2A2A" stroke-width="0.7"/>
+        <path d="M 1075.2 540.0 L 1094.3999999999999 612.0 L 1286.4 612.0 L 1305.6000000000001 540.0"
+              fill="none" stroke="#2A2A2A" stroke-width="0.7"/>
+        <!-- phone / device -->
+        <rect x="1382.3999999999999" y="468.0" width="153.6" height="135.0" rx="3"
+              fill="none" stroke="#8B6F47" stroke-width="0.8"/>
+    </g>
+    <text x="960.0" y="406.2" text-anchor="middle"
+            font-family="Inter, system-ui, sans-serif" font-size="11"
+            fill="#8B6F47" letter-spacing="3" font-weight="500">EDISI 01 / MEI 2026</text><text x="960.0" y="455.0" text-anchor="middle"
+                font-family="Georgia, serif" font-size="36"
+                fill="#2A2A2A" font-style="italic">Untuk hari yang tidak pernah berhenti.</text><text x="960.0" y="492.8" text-anchor="middle"
+            font-family="Inter, system-ui, sans-serif" font-size="12"
+            fill="#A89580" letter-spacing="0.5">Aksesori sederhana, untuk rutinitas yang berarti.</text>
+    
+        <g transform="translate(1880, 40)">
+            <line x1="-30" y1="0" x2="0" y2="0" stroke="#2A2A2A" stroke-width="0.5" opacity="0.5"/>
+            <text x="-35" y="4" text-anchor="end" font-family="Georgia, serif"
+                  font-size="10" fill="#2A2A2A" opacity="0.6" letter-spacing="1.5">N° 01</text>
+        </g>
+    
+        <g transform="translate(40, 860)" opacity="0.4">
+            <line x1="0" y1="0" x2="20" y2="0" stroke="#2A2A2A" stroke-width="0.5"/>
+            <line x1="0" y1="0" x2="0" y2="-20" stroke="#2A2A2A" stroke-width="0.5"/>
+        </g>
+    
+    <text x="1880" y="870" text-anchor="end" font-family="Georgia, serif"
+          font-size="11" fill="#2A2A2A" opacity="0.5" letter-spacing="2">NOBLEKASE</text>
+</svg>

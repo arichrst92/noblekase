@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" width="800" height="200">
+    <rect width="800" height="200" fill="#1F2937"/>
+    <!-- N monogram -->
+    <g transform="translate(320.0, 60.0)">
+        <rect x="0" y="0" width="14" height="80" fill="#EDE6D9"/>
+        <rect x="62" y="0" width="14" height="80" fill="#EDE6D9"/>
+        <line x1="14" y1="0" x2="62" y2="80" stroke="#EDE6D9" stroke-width="14"/>
+    </g>
+    <!-- wordmark -->
+    <text x="410.0" y="105.0" font-family="Georgia, serif" font-size="42" fill="#EDE6D9"
+          font-weight="400" letter-spacing="2">noblekase</text>
+    <line x1="320.0" y1="130.0" x2="620.0" y2="130.0" stroke="#D4B483" stroke-width="0.6"/>
+    <text x="470.0" y="150.0" text-anchor="middle" font-family="Inter, sans-serif"
+          font-size="10" fill="#EDE6D9" opacity="0.6" letter-spacing="4">EST. 2024</text>
+</svg>

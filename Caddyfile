@@ -1,0 +1,87 @@
+# =====================================
+# Noblekase — Caddyfile (Production)
+# Dibuat oleh: PT Solusi Inovasi Bangsa (https://ide.asia)
+# =====================================
+#
+# Auto-SSL via Let's Encrypt (cukup punya valid domain pointing ke VPS).
+# Ganti 'noblekase.com' dengan domain Anda.
+# =====================================
+
+{
+    # Global options
+    email admin@noblekase.com
+    # Uncomment untuk staging Let's Encrypt (saat testing):
+    # acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+# Redirect www -> apex
+www.noblekase.com {
+    redir https://noblekase.com{uri} permanent
+}
+
+noblekase.com {
+    encode zstd gzip
+
+    # ===== Security Headers =====
+    header {
+        # HSTS — force HTTPS untuk 1 tahun, include subdomains, eligible untuk preload
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+
+        # Prevent MIME sniffing
+        X-Content-Type-Options "nosniff"
+
+        # Disable iframe embedding
+        X-Frame-Options "DENY"
+
+        # Restrict referrer
+        Referrer-Policy "strict-origin-when-cross-origin"
+
+        # Disable unnecessary browser features
+        Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=()"
+
+        # Remove server signature
+        -Server
+
+        # Cross-origin policies (relaxed untuk allow embed marketplace links)
+        Cross-Origin-Opener-Policy "same-origin"
+    }
+
+    # ===== Rate Limiting =====
+    # Note: Caddy v2 rate-limit butuh module github.com/mholt/caddy-ratelimit
+    # Atau pakai Redis-based rate limit di Next.js middleware
+
+    # ===== Static assets caching =====
+    @static {
+        path /_next/static/* /favicon.ico /robots.txt /sitemap*.xml
+    }
+    header @static Cache-Control "public, max-age=31536000, immutable"
+
+    # ===== Image cache =====
+    @images {
+        path /_next/image* /uploads/*
+    }
+    header @images Cache-Control "public, max-age=2592000"
+
+    # ===== Reverse Proxy ke Next.js app (yang juga serve Payload) =====
+    reverse_proxy app:3000 {
+        # Pass real IP & forwarded protocol untuk rate limit + analytics
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+
+        # Health check
+        health_uri /api/health
+        health_interval 30s
+        health_timeout 5s
+    }
+
+    # ===== Logging =====
+    log {
+        output file /var/log/caddy/access.log {
+            roll_size 100mb
+            roll_keep 5
+        }
+        format console
+        level INFO
+    }
+}

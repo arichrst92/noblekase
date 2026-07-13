@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="800" height="1000">
+    <rect width="800" height="1000" fill="#F5F1EA"/>
+    <g transform="translate(0, -220.0)">
+    <g transform="translate(350.0, 470.0)" opacity="0.35">
+        <!-- charger body -->
+        <rect x="0" y="20" width="100" height="60" rx="14" fill="none" stroke="#1F2937" stroke-width="1.2"/>
+        <!-- prongs -->
+        <rect x="38" y="0" width="6" height="22" fill="#1F2937"/>
+        <rect x="56" y="0" width="6" height="22" fill="#1F2937"/>
+        <!-- usb-c port -->
+        <rect x="42" y="64" width="16" height="6" rx="3" fill="#9CA39C"/>
+        <!-- brand line -->
+        <line x1="20" y1="50" x2="80" y2="50" stroke="#B8860B" stroke-width="0.5" opacity="0.6"/>
+    </g></g>
+    <text x="400.0" y="736.2" text-anchor="middle"
+            font-family="Inter, system-ui, sans-serif" font-size="11"
+            fill="#B8860B" letter-spacing="3" font-weight="500">CHARGER 65W</text><text x="400.0" y="785.0" text-anchor="middle"
+                font-family="Georgia, serif" font-size="36"
+                fill="#1F2937" font-style="italic">Pulse Duo</text>
+    
+    
+        <g transform="translate(40, 960)" opacity="0.4">
+            <line x1="0" y1="0" x2="20" y2="0" stroke="#1F2937" stroke-width="0.5"/>
+            <line x1="0" y1="0" x2="0" y2="-20" stroke="#1F2937" stroke-width="0.5"/>
+        </g>
+    
+    <text x="760" y="970" text-anchor="end" font-family="Georgia, serif"
+          font-size="11" fill="#1F2937" opacity="0.5" letter-spacing="2">NOBLEKASE</text>
+</svg>

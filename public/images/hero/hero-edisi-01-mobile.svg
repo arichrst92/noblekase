@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 1000" width="750" height="1000">
+    <rect width="750" height="1000" fill="#EDE6D9"/>
+    <g transform="translate(0, -220.0)">
+    <g opacity="0.18">
+        <circle cx="187.5" cy="700.0" r="90.0" fill="#2A2A2A"/>
+        <line x1="412.50000000000006" y1="300.0" x2="637.5" y2="300.0" stroke="#2A2A2A" stroke-width="0.5"/>
+        <rect x="450.0" y="450.0" width="150.0" height="350.0" fill="none"
+              stroke="#8B6F47" stroke-width="0.6"/>
+    </g></g>
+    <text x="375.0" y="694.8000000000001" text-anchor="middle"
+            font-family="Inter, system-ui, sans-serif" font-size="11"
+            fill="#8B6F47" letter-spacing="3" font-weight="500">EDISI 01</text><text text-anchor="middle"
+                font-family="Georgia, serif" font-size="36"
+                fill="#2A2A2A" font-style="italic" y="743.6"><tspan x="375.0" dy="0">Untuk hari</tspan><tspan x="375.0" dy="41.4">yang tidak</tspan><tspan x="375.0" dy="41.4">berhenti.</tspan></text><text x="375.0" y="864.1999999999999" text-anchor="middle"
+            font-family="Inter, system-ui, sans-serif" font-size="12"
+            fill="#A89580" letter-spacing="0.5">Mei 2026</text>
+    
+        <g transform="translate(710, 40)">
+            <line x1="-30" y1="0" x2="0" y2="0" stroke="#2A2A2A" stroke-width="0.5" opacity="0.5"/>
+            <text x="-35" y="4" text-anchor="end" font-family="Georgia, serif"
+                  font-size="10" fill="#2A2A2A" opacity="0.6" letter-spacing="1.5">N° 01</text>
+        </g>
+    
+        <g transform="translate(40, 960)" opacity="0.4">
+            <line x1="0" y1="0" x2="20" y2="0" stroke="#2A2A2A" stroke-width="0.5"/>
+            <line x1="0" y1="0" x2="0" y2="-20" stroke="#2A2A2A" stroke-width="0.5"/>
+        </g>
+    
+    <text x="710" y="970" text-anchor="end" font-family="Georgia, serif"
+          font-size="11" fill="#2A2A2A" opacity="0.5" letter-spacing="2">NOBLEKASE</text>
+</svg>

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" width="1200" height="700">
+    <rect width="1200" height="700" fill="#F5F1EA"/>
+    
+    <g opacity="0.22">
+        <!-- desk horizon line -->
+        <line x1="0" y1="476.00000000000006" x2="1200" y2="476.00000000000006" stroke="#1F2937" stroke-width="0.5"/>
+        <!-- notebook -->
+        <rect x="180.0" y="385.00000000000006" width="300.0" height="84.0" fill="none" stroke="#1F2937" stroke-width="0.8"/>
+        <!-- mug -->
+        <ellipse cx="744.0" cy="420.0" rx="72.0" ry="18.0" fill="none" stroke="#1F2937" stroke-width="0.7"/>
+        <path d="M 672.0000000000001 420.0 L 683.9999999999999 476.00000000000006 L 804.0 476.00000000000006 L 816.0000000000001 420.0"
+              fill="none" stroke="#1F2937" stroke-width="0.7"/>
+        <!-- phone / device -->
+        <rect x="864.0" y="364.0" width="96.0" height="105.0" rx="3"
+              fill="none" stroke="#B8860B" stroke-width="0.8"/>
+    </g>
+    <text x="600.0" y="306.2" text-anchor="middle"
+            font-family="Inter, system-ui, sans-serif" font-size="11"
+            fill="#B8860B" letter-spacing="3" font-weight="500">GAMBAR 2</text><text x="600.0" y="355.0" text-anchor="middle"
+                font-family="Georgia, serif" font-size="36"
+                fill="#1F2937" font-style="italic">Di dalam tas, terlihat seperti ini.</text>
+    
+    
+        <g transform="translate(40, 660)" opacity="0.4">
+            <line x1="0" y1="0" x2="20" y2="0" stroke="#1F2937" stroke-width="0.5"/>
+            <line x1="0" y1="0" x2="0" y2="-20" stroke="#1F2937" stroke-width="0.5"/>
+        </g>
+    
+    <text x="1160" y="670" text-anchor="end" font-family="Georgia, serif"
+          font-size="11" fill="#1F2937" opacity="0.5" letter-spacing="2">NOBLEKASE</text>
+</svg>

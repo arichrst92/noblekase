@@ -1,0 +1,75 @@
+# =====================================
+# Noblekase — Docker Compose Variant: IP + Port (no domain)
+# =====================================
+# Untuk deployment awal di http://72.60.74.202:6000
+# (sebelum domain pointing & SSL via Caddy)
+#
+# Usage:
+#   docker compose -f docker-compose.iponly.yml up -d
+#
+# Saat domain sudah ready, switch ke docker-compose.yml (with Caddy + SSL)
+# =====================================
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: noblekase-app:latest
+    container_name: noblekase-app
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URI: postgres://${POSTGRES_USER:-noblekase}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-noblekase}
+      REDIS_URL: redis://redis:6379
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+    ports:
+      # Expose app port directly to public 6000
+      - "6000:3000"
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - noblekase
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: noblekase-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-noblekase}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-noblekase}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-noblekase}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - noblekase
+
+  redis:
+    image: redis:7-alpine
+    container_name: noblekase-redis
+    restart: unless-stopped
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - noblekase
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  noblekase:
+    driver: bridge

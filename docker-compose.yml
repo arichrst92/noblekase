@@ -1,0 +1,106 @@
+# =====================================
+# Noblekase — Docker Compose (Production)
+# Dibuat oleh: PT Solusi Inovasi Bangsa (https://ide.asia)
+# =====================================
+#
+# Setup di VPS:
+#   1. Copy .env.example menjadi .env, isi semua values
+#   2. Pastikan Caddyfile dan ./scripts/backup.sh ada
+#   3. docker compose up -d
+#
+# Service:
+#   - caddy        :80, :443  Reverse proxy + auto SSL
+#   - app          :3000     Next.js + Payload (internal only, di-proxy via Caddy)
+#   - postgres     :5432     PostgreSQL 16 (internal only)
+#   - redis        :6379     Redis 7 cache (internal only)
+# =====================================
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: noblekase-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    networks:
+      - noblekase
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: noblekase-app:latest
+    container_name: noblekase-app
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URI: postgres://${POSTGRES_USER:-noblekase}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-noblekase}
+      REDIS_URL: redis://redis:6379
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - noblekase
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: noblekase-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-noblekase}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-noblekase}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-noblekase}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - noblekase
+
+  redis:
+    image: redis:7-alpine
+    container_name: noblekase-redis
+    restart: unless-stopped
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - noblekase
+
+  # Optional: Uptime Kuma untuk self-hosted monitoring
+  # uptime:
+  #   image: louislam/uptime-kuma:1
+  #   container_name: noblekase-uptime
+  #   restart: unless-stopped
+  #   ports:
+  #     - "127.0.0.1:3001:3001"
+  #   volumes:
+  #     - uptime_data:/app/data
+  #   networks:
+  #     - noblekase
+
+volumes:
+  caddy_data:
+  caddy_config:
+  postgres_data:
+  redis_data:
+  # uptime_data:
+
+networks:
+  noblekase:
+    driver: bridge

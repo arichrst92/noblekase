@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" width="1400" height="900">
+    <rect width="1400" height="900" fill="#DCD5CB"/>
+    
+    <g opacity="0.22">
+        <!-- desk horizon line -->
+        <line x1="0" y1="612.0" x2="1400" y2="612.0" stroke="#3A3530" stroke-width="0.5"/>
+        <!-- notebook -->
+        <rect x="210.0" y="495.00000000000006" width="350.0" height="108.0" fill="none" stroke="#3A3530" stroke-width="0.8"/>
+        <!-- mug -->
+        <ellipse cx="868.0" cy="540.0" rx="84.0" ry="21.0" fill="none" stroke="#3A3530" stroke-width="0.7"/>
+        <path d="M 784.0000000000001 540.0 L 797.9999999999999 612.0 L 938.0 612.0 L 952.0000000000001 540.0"
+              fill="none" stroke="#3A3530" stroke-width="0.7"/>
+        <!-- phone / device -->
+        <rect x="1008.0" y="468.0" width="112.0" height="135.0" rx="3"
+              fill="none" stroke="#7A6B58" stroke-width="0.8"/>
+    </g>
+    <text x="700.0" y="406.2" text-anchor="middle"
+            font-family="Inter, system-ui, sans-serif" font-size="11"
+            fill="#7A6B58" letter-spacing="3" font-weight="500">DI KAFE</text><text x="700.0" y="455.0" text-anchor="middle"
+                font-family="Georgia, serif" font-size="36"
+                fill="#3A3530" font-style="italic">Kerja jauh dari rumah</text>
+    
+    
+        <g transform="translate(40, 860)" opacity="0.4">
+            <line x1="0" y1="0" x2="20" y2="0" stroke="#3A3530" stroke-width="0.5"/>
+            <line x1="0" y1="0" x2="0" y2="-20" stroke="#3A3530" stroke-width="0.5"/>
+        </g>
+    
+    <text x="1360" y="870" text-anchor="end" font-family="Georgia, serif"
+          font-size="11" fill="#3A3530" opacity="0.5" letter-spacing="2">NOBLEKASE</text>
+</svg>

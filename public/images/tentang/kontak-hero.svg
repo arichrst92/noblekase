@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 600" width="1600" height="600">
+    <rect width="1600" height="600" fill="#F8F4ED"/>
+    
+    <g opacity="0.18">
+        <circle cx="400.0" cy="420.0" r="72.0" fill="#2A2A2A"/>
+        <line x1="880.0000000000001" y1="180.0" x2="1360.0" y2="180.0" stroke="#2A2A2A" stroke-width="0.5"/>
+        <rect x="960.0" y="270.0" width="320.0" height="210.0" fill="none"
+              stroke="#8B6F47" stroke-width="0.6"/>
+    </g>
+    <text x="800.0" y="256.2" text-anchor="middle"
+            font-family="Inter, system-ui, sans-serif" font-size="11"
+            fill="#8B6F47" letter-spacing="3" font-weight="500">KONTAK</text><text x="800.0" y="305.0" text-anchor="middle"
+                font-family="Georgia, serif" font-size="36"
+                fill="#2A2A2A" font-style="italic">Mari ngobrol.</text><text x="800.0" y="342.8" text-anchor="middle"
+            font-family="Inter, system-ui, sans-serif" font-size="12"
+            fill="#B8AEA0" letter-spacing="0.5">WhatsApp · Instagram · TikTok · Email</text>
+    
+    
+        <g transform="translate(40, 560)" opacity="0.4">
+            <line x1="0" y1="0" x2="20" y2="0" stroke="#2A2A2A" stroke-width="0.5"/>
+            <line x1="0" y1="0" x2="0" y2="-20" stroke="#2A2A2A" stroke-width="0.5"/>
+        </g>
+    
+    <text x="1560" y="570" text-anchor="end" font-family="Georgia, serif"
+          font-size="11" fill="#2A2A2A" opacity="0.5" letter-spacing="2">NOBLEKASE</text>
+</svg>

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" width="1400" height="900">
+    <rect width="1400" height="900" fill="#1F2937"/>
+    
+    <g opacity="0.18">
+        <circle cx="350.0" cy="630.0" r="108.0" fill="#EDE6D9"/>
+        <line x1="770.0000000000001" y1="270.0" x2="1190.0" y2="270.0" stroke="#EDE6D9" stroke-width="0.5"/>
+        <rect x="840.0" y="405.0" width="280.0" height="315.0" fill="none"
+              stroke="#D4B483" stroke-width="0.6"/>
+    </g>
+    <text x="700.0" y="364.8" text-anchor="middle"
+            font-family="Inter, system-ui, sans-serif" font-size="11"
+            fill="#D4B483" letter-spacing="3" font-weight="500">TENTANG NOBLEKASE</text><text text-anchor="middle"
+                font-family="Georgia, serif" font-size="36"
+                fill="#EDE6D9" font-style="italic" y="413.6"><tspan x="700.0" dy="0">Sederhana,</tspan><tspan x="700.0" dy="41.4">konsisten,</tspan><tspan x="700.0" dy="41.4">untuk semua.</tspan></text><text x="700.0" y="534.2" text-anchor="middle"
+            font-family="Inter, system-ui, sans-serif" font-size="12"
+            fill="#6B7280" letter-spacing="0.5">Sejak 2024.</text>
+    
+        <g transform="translate(1360, 40)">
+            <line x1="-30" y1="0" x2="0" y2="0" stroke="#EDE6D9" stroke-width="0.5" opacity="0.5"/>
+            <text x="-35" y="4" text-anchor="end" font-family="Georgia, serif"
+                  font-size="10" fill="#EDE6D9" opacity="0.6" letter-spacing="1.5">EST. 2024</text>
+        </g>
+    
+        <g transform="translate(40, 860)" opacity="0.4">
+            <line x1="0" y1="0" x2="20" y2="0" stroke="#EDE6D9" stroke-width="0.5"/>
+            <line x1="0" y1="0" x2="0" y2="-20" stroke="#EDE6D9" stroke-width="0.5"/>
+        </g>
+    
+    <text x="1360" y="870" text-anchor="end" font-family="Georgia, serif"
+          font-size="11" fill="#EDE6D9" opacity="0.5" letter-spacing="2">NOBLEKASE</text>
+</svg>

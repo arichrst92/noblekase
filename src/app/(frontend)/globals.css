@@ -1,0 +1,84 @@
+/**
+ * Global styles untuk frontend customer site Noblekase
+ *
+ * Brand colors di-inject via CSS variables dan Tailwind config.
+ * Typography: Fraunces (serif) + Inter (sans).
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-bg-base: 250 248 244;        /* #FAF8F4 */
+    --color-bg-warm: 242 237 227;        /* #F2EDE3 */
+    --color-bg-cream: 236 229 215;       /* #ECE5D7 */
+    --color-ink-primary: 31 31 31;       /* #1F1F1F */
+    --color-ink-secondary: 107 104 98;   /* #6B6862 */
+    --color-ink-tertiary: 160 155 145;   /* #A09B91 */
+    --color-accent: 160 82 45;           /* #A0522D */
+    --color-accent-light: 212 168 138;   /* #D4A88A */
+    --color-border-light: 232 226 214;   /* #E8E2D6 */
+    --color-border-mid: 212 206 192;     /* #D4CEC0 */
+  }
+
+  * {
+    @apply border-border-light;
+  }
+
+  html {
+    @apply scroll-smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-bg-base text-ink-primary font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  ::selection {
+    @apply bg-accent text-bg-base;
+  }
+}
+
+@layer components {
+  /* Eyebrow text — small uppercase label di atas headline */
+  .eyebrow {
+    @apply text-[11px] uppercase tracking-widest text-ink-tertiary font-medium;
+  }
+
+  /* Container dengan padding konsisten */
+  .container-prose {
+    @apply max-w-[1180px] mx-auto px-6 md:px-10;
+  }
+
+  /* Floating rounded navbar — sticky top */
+  .floating-nav {
+    @apply bg-bg-base border border-border-mid rounded-full shadow-soft;
+  }
+
+  /* Section eyebrow + headline pattern */
+  .section-header .eyebrow {
+    @apply block mb-2;
+  }
+
+  /* Reveal animation utility (untuk GSAP target) */
+  .reveal {
+    @apply opacity-0 translate-y-3;
+  }
+  .reveal.is-visible {
+    @apply opacity-100 translate-y-0 transition-all duration-700 ease-out;
+  }
+}
+
+@layer utilities {
+  /* Hover scale for product cards */
+  .hover-zoom {
+    @apply transition-transform duration-500 ease-out;
+  }
+  .hover-zoom:hover {
+    @apply scale-[1.02];
+  }
+}
