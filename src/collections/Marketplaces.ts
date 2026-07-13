@@ -5,6 +5,7 @@
 
 import type { CollectionConfig } from "payload";
 import { isAdminOrEditor, isPublishedOrAdmin } from "@/lib/access";
+import { imgHint } from "@/lib/imageGuidance";
 
 export const Marketplaces: CollectionConfig = {
   slug: "marketplaces",
@@ -39,7 +40,9 @@ export const Marketplaces: CollectionConfig = {
       type: "upload",
       relationTo: "media",
       admin: {
-        description: "Logo marketplace (SVG/PNG, ~32x32px).",
+        description:
+          "Logo marketplace. Rekomendasi: 64×64px (rasio 1:1), SVG atau PNG transparan. " +
+          "Gunakan logo resmi marketplace (jangan di-generate AI).",
       },
     },
     {

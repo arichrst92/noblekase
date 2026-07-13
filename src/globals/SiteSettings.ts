@@ -5,6 +5,7 @@
 
 import type { GlobalConfig } from "payload";
 import { isAdminOrEditor, isSuperAdmin } from "@/lib/access";
+import { imgHint } from "@/lib/imageGuidance";
 
 export const SiteSettings: GlobalConfig = {
   slug: "site-settings",
@@ -38,11 +39,19 @@ export const SiteSettings: GlobalConfig = {
               name: "logo",
               type: "upload",
               relationTo: "media",
+              admin: {
+                description:
+                  "Logo brand (dipakai di header & footer). Rekomendasi: tinggi 80px, PNG/SVG transparan, " +
+                  "wordmark 'Noblekase'. Sebaiknya file brand asli, bukan AI-generated.",
+              },
             },
             {
               name: "favicon",
               type: "upload",
               relationTo: "media",
+              admin: {
+                description: "Favicon (tab browser). Rekomendasi: 512×512px (rasio 1:1), PNG transparan, monogram 'N'.",
+              },
             },
           ],
         },
@@ -108,6 +117,15 @@ export const SiteSettings: GlobalConfig = {
               name: "defaultOgImage",
               type: "upload",
               relationTo: "media",
+              admin: {
+                description: imgHint({
+                  slot: "Gambar share sosial default (fallback Open Graph seluruh situs)",
+                  size: "1200×630",
+                  ratio: "1.91:1",
+                  prompt:
+                    "a branded social share banner with Noblekase phone accessories arranged neatly and space for the wordmark",
+                }),
+              },
             },
             {
               name: "googleSiteVerification",
@@ -123,6 +141,27 @@ export const SiteSettings: GlobalConfig = {
               name: "chatbotEnabled",
               type: "checkbox",
               defaultValue: true,
+            },
+            {
+              name: "chatbotTitle",
+              type: "text",
+              localized: true,
+              defaultValue: "AI Assistant Noblekase",
+              admin: { description: "Judul di header panel chat." },
+            },
+            {
+              name: "chatbotStatusText",
+              type: "text",
+              localized: true,
+              defaultValue: "Online · 24/7",
+              admin: { description: "Teks status kecil di header chat." },
+            },
+            {
+              name: "chatbotInputPlaceholder",
+              type: "text",
+              localized: true,
+              defaultValue: "Ketik pertanyaan...",
+              admin: { description: "Placeholder kolom input chat." },
             },
             {
               name: "chatbotGreetingId",

@@ -5,6 +5,7 @@
 
 import type { CollectionConfig } from "payload";
 import { isAdminOrEditor, isPublishedOrAdmin } from "@/lib/access";
+import { imgHint } from "@/lib/imageGuidance";
 
 export const Categories: CollectionConfig = {
   slug: "categories",
@@ -49,7 +50,13 @@ export const Categories: CollectionConfig = {
       type: "upload",
       relationTo: "media",
       admin: {
-        description: "Gambar untuk kartu kategori di Beranda.",
+        description: imgHint({
+          slot: "Gambar kartu kategori di Beranda & header halaman kategori",
+          size: "800×600",
+          ratio: "4:3",
+          prompt:
+            "a tidy flat-lay of phone accessories representing this category on a warm cream surface",
+        }),
       },
     },
     {
@@ -94,6 +101,14 @@ export const Categories: CollectionConfig = {
           name: "ogImage",
           type: "upload",
           relationTo: "media",
+          admin: {
+            description: imgHint({
+              slot: "Gambar share sosial (Open Graph) kategori ini",
+              size: "1200×630",
+              ratio: "1.91:1",
+              prompt: "a hero banner of this category's phone accessories with brand wordmark space",
+            }),
+          },
         },
       ],
     },

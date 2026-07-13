@@ -31,6 +31,13 @@ import { FAQCategories } from "@/collections/FAQCategories";
 import { SiteSettings } from "@/globals/SiteSettings";
 import { Header } from "@/globals/Header";
 import { Footer } from "@/globals/Footer";
+// Globals — konten per halaman
+import { PageHome } from "@/globals/pages/PageHome";
+import { PageProducts } from "@/globals/pages/PageProducts";
+import { PageJournal } from "@/globals/pages/PageJournal";
+import { PageProductDetail } from "@/globals/pages/PageProductDetail";
+import { PageArticleDetail } from "@/globals/pages/PageArticleDetail";
+import { PageSupport } from "@/globals/pages/PageSupport";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -88,7 +95,17 @@ export default buildConfig({
     FAQItems,
   ],
 
-  globals: [SiteSettings, Header, Footer],
+  globals: [
+    SiteSettings,
+    Header,
+    Footer,
+    PageHome,
+    PageProducts,
+    PageJournal,
+    PageProductDetail,
+    PageArticleDetail,
+    PageSupport,
+  ],
 
   editor: lexicalEditor({}),
 

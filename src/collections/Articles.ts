@@ -5,6 +5,7 @@
 
 import type { CollectionConfig } from "payload";
 import { isAdminOrEditor, isPublishedOrAdmin } from "@/lib/access";
+import { imgHint } from "@/lib/imageGuidance";
 
 export const Articles: CollectionConfig = {
   slug: "articles",
@@ -55,6 +56,15 @@ export const Articles: CollectionConfig = {
       type: "upload",
       relationTo: "media",
       required: true,
+      admin: {
+        description: imgHint({
+          slot: "Gambar cover & hero artikel (kartu listing + header detail)",
+          size: "1600×900",
+          ratio: "16:9",
+          prompt:
+            "an editorial cover image illustrating this article's topic about phone accessories or everyday tech",
+        }),
+      },
     },
     {
       name: "body",
@@ -136,7 +146,19 @@ export const Articles: CollectionConfig = {
       fields: [
         { name: "title", type: "text", localized: true },
         { name: "description", type: "textarea", localized: true },
-        { name: "ogImage", type: "upload", relationTo: "media" },
+        {
+          name: "ogImage",
+          type: "upload",
+          relationTo: "media",
+          admin: {
+            description: imgHint({
+              slot: "Gambar share sosial (Open Graph) artikel",
+              size: "1200×630",
+              ratio: "1.91:1",
+              prompt: "a wide social share banner illustrating this article topic with space for a title",
+            }),
+          },
+        },
       ],
     },
   ],

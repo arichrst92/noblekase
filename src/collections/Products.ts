@@ -5,6 +5,7 @@
 
 import type { CollectionConfig } from "payload";
 import { isAdminOrEditor, isPublishedOrAdmin } from "@/lib/access";
+import { imgHint } from "@/lib/imageGuidance";
 
 export const Products: CollectionConfig = {
   slug: "products",
@@ -106,7 +107,15 @@ export const Products: CollectionConfig = {
               name: "storyImage",
               type: "upload",
               relationTo: "media",
-              admin: { description: "Foto lifestyle untuk section story." },
+              admin: {
+                description: imgHint({
+                  slot: "Foto lifestyle untuk section cerita produk",
+                  size: "900×1200",
+                  ratio: "3:4",
+                  prompt:
+                    "this phone accessory in a real everyday context (desk, cafe, travel bag), lived-in and natural",
+                }),
+              },
             },
           ],
         },
@@ -120,7 +129,15 @@ export const Products: CollectionConfig = {
               type: "upload",
               relationTo: "media",
               required: true,
-              admin: { description: "Foto utama produk (ditampilkan paling pertama)." },
+              admin: {
+                description: imgHint({
+                  slot: "Foto utama produk (kartu & galeri detail, tampil pertama)",
+                  size: "800×800",
+                  ratio: "1:1",
+                  prompt:
+                    "a clean product photo of this phone accessory centered on a warm cream background, soft shadow",
+                }),
+              },
             },
             {
               name: "gallery",
@@ -132,6 +149,15 @@ export const Products: CollectionConfig = {
                   type: "upload",
                   relationTo: "media",
                   required: true,
+                  admin: {
+                    description: imgHint({
+                      slot: "Foto galeri produk (gallery 1:1, lifestyle 3:4, atau detail close-up)",
+                      size: "800×800 (gallery) / 900×1200 (lifestyle)",
+                      ratio: "1:1 atau 3:4",
+                      prompt:
+                        "an additional angle or detail close-up of this phone accessory, consistent lighting with the main photo",
+                    }),
+                  },
                 },
                 {
                   name: "type",
@@ -291,6 +317,14 @@ export const Products: CollectionConfig = {
                   name: "ogImage",
                   type: "upload",
                   relationTo: "media",
+                  admin: {
+                    description: imgHint({
+                      slot: "Gambar share sosial (Open Graph) produk ini",
+                      size: "1200×630",
+                      ratio: "1.91:1",
+                      prompt: "this phone accessory as a wide social share banner with room for text",
+                    }),
+                  },
                 },
               ],
             },

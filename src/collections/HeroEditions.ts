@@ -5,6 +5,7 @@
 
 import type { CollectionConfig } from "payload";
 import { isAdminOrEditor, isAuthenticated } from "@/lib/access";
+import { imgHint } from "@/lib/imageGuidance";
 
 export const HeroEditions: CollectionConfig = {
   slug: "hero-editions",
@@ -48,6 +49,15 @@ export const HeroEditions: CollectionConfig = {
       type: "upload",
       relationTo: "media",
       required: true,
+      admin: {
+        description: imgHint({
+          slot: "Gambar hero utama Beranda (desktop; crop otomatis untuk mobile via titik fokus)",
+          size: "1600×900",
+          ratio: "16:9",
+          prompt:
+            "a wide editorial hero scene of phone accessories in a warm everyday setting (morning desk, sunlit), plenty of empty space on one side for headline text",
+        }),
+      },
     },
     {
       name: "ctaLabel",
