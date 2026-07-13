@@ -341,7 +341,9 @@ const seed = async () => {
   process.exit(0);
 };
 
-seed().catch((err) => {
+try {
+  await seed();
+} catch (err) {
   console.error("❌ Seed gagal:", err);
   process.exit(1);
-});
+}

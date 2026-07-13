@@ -65,7 +65,9 @@ const run = async () => {
   process.exit(0);
 };
 
-run().catch((err) => {
+try {
+  await run();
+} catch (err) {
   console.error("❌ Gagal membuat admin:", err);
   process.exit(1);
-});
+}
