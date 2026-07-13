@@ -10,8 +10,8 @@
  *   5. Dari Journal (3 latest articles)
  *   6. Dapatkan Di (marketplace CTA)
  *
- * Data source: sample-data.ts (showcase phase).
- * Phase 2: migrate ke Payload CMS fetch.
+ * Data source: Payload CMS (hero, kategori, featured).
+ * Journal teaser masih sample-data — akan dipindah di Sprint 2.
  */
 
 import { HeroSection } from "@/components/sections/HeroSection";
@@ -22,19 +22,15 @@ import { JournalTeaser } from "@/components/sections/JournalTeaser";
 import { MarketplaceCTA } from "@/components/sections/MarketplaceCTA";
 import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
 
-import {
-  heroEdition,
-  categories,
-  products,
-  articles,
-  featuredCollection,
-  getProductBySlug,
-} from "@/lib/sample-data";
+import { getActiveHero, getCategories, getActiveFeatured } from "@/lib/queries";
+import { articles } from "@/lib/sample-data"; // journal teaser — dipindah ke CMS di Sprint 2
 
-export default function HomePage() {
-  const main = getProductBySlug(featuredCollection.mainProductSlug);
-  const sec1 = getProductBySlug(featuredCollection.secondaryProductSlugs[0]);
-  const sec2 = getProductBySlug(featuredCollection.secondaryProductSlugs[1]);
+export default async function HomePage() {
+  const [hero, categories, featured] = await Promise.all([
+    getActiveHero(),
+    getCategories(),
+    getActiveFeatured(),
+  ]);
 
   // Beranda journal: 3 artikel terbaru
   const teaserArticles = articles.slice(0, 3).map((a) => ({
@@ -50,13 +46,13 @@ export default function HomePage() {
       <RevealOnScroll />
 
       <HeroSection
-        eyebrow={heroEdition.eyebrow}
-        headline={heroEdition.headline}
-        subheadline={heroEdition.subheadline}
-        imageUrl={heroEdition.imageUrlDesktop}
-        imageAlt="Noblekase Edisi Mei 2026"
-        ctaLabel={heroEdition.ctaLabel}
-        ctaUrl={heroEdition.ctaUrl}
+        eyebrow={hero?.eyebrow}
+        headline={hero?.headline}
+        subheadline={hero?.subheadline}
+        imageUrl={hero?.imageUrl}
+        imageAlt={hero?.imageAlt}
+        ctaLabel={hero?.ctaLabel}
+        ctaUrl={hero?.ctaUrl}
       />
 
       <CategoryGrid
@@ -68,20 +64,13 @@ export default function HomePage() {
         }))}
       />
 
-      {main && sec1 && sec2 && (
+      {featured && (
         <FeaturedCollection
-          eyebrow={featuredCollection.eyebrow}
-          headline={featuredCollection.headline}
-          subheadline={featuredCollection.subheadline}
-          mainProduct={{
-            name: main.name,
-            slug: main.slug,
-            imageUrl: main.imageUrl,
-          }}
-          secondaryProducts={[
-            { name: sec1.name, slug: sec1.slug, imageUrl: sec1.imageUrl },
-            { name: sec2.name, slug: sec2.slug, imageUrl: sec2.imageUrl },
-          ]}
+          eyebrow={featured.eyebrow}
+          headline={featured.headline}
+          subheadline={featured.subheadline}
+          mainProduct={featured.mainProduct}
+          secondaryProducts={featured.secondaryProducts}
         />
       )}
 

@@ -335,6 +335,17 @@ export const Products: CollectionConfig = {
 
     // === SIDEBAR ===
     {
+      name: "relatedProducts",
+      type: "relationship",
+      relationTo: "products",
+      hasMany: true,
+      maxRows: 6,
+      admin: {
+        position: "sidebar",
+        description: "Produk terkait di halaman detail. Kosongkan = otomatis ambil dari kategori yang sama.",
+      },
+    },
+    {
       name: "order",
       type: "number",
       defaultValue: 0,

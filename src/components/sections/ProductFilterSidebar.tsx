@@ -6,17 +6,24 @@
  */
 
 import Link from "next/link";
-import { categories } from "@/lib/sample-data";
 import { cn } from "@/lib/cn";
+
+interface FilterCategory {
+  slug: string;
+  name: string;
+  productCount: number;
+}
 
 interface ProductFilterSidebarProps {
   activeCategory?: string;
   totalCount: number;
+  categories?: FilterCategory[];
 }
 
 export function ProductFilterSidebar({
   activeCategory,
   totalCount,
+  categories = [],
 }: ProductFilterSidebarProps) {
   return (
     <aside className="md:sticky md:top-28 md:self-start">

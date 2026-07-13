@@ -11,24 +11,29 @@ import { notFound } from "next/navigation";
 import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
 import { ProductCard } from "@/components/cards/ProductCard";
 import {
-  products,
+  getProducts,
   getProductBySlug,
   getRelatedProducts,
-} from "@/lib/sample-data";
+} from "@/lib/queries";
 
 interface ProductDetailProps {
   params: Promise<{ slug: string }>;
 }
 
 export async function generateStaticParams() {
-  return products.map((p) => ({ slug: p.slug }));
+  try {
+    const products = await getProducts();
+    return products.map((p) => ({ slug: p.slug }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({
   params,
 }: ProductDetailProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await getProductBySlug(slug);
   if (!product) return { title: "Produk tidak ditemukan" };
   return {
     title: product.name,
@@ -45,10 +50,10 @@ export default async function ProductDetailPage({
   params,
 }: ProductDetailProps) {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await getProductBySlug(slug);
   if (!product) notFound();
 
-  const related = getRelatedProducts(product.related);
+  const related = await getRelatedProducts(product);
 
   return (
     <>

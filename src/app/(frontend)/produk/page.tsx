@@ -7,7 +7,7 @@ import Image from "next/image";
 import { ProductCard } from "@/components/cards/ProductCard";
 import { ProductFilterSidebar } from "@/components/sections/ProductFilterSidebar";
 import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
-import { products } from "@/lib/sample-data";
+import { getProducts, getCategories } from "@/lib/queries";
 
 export const metadata: Metadata = {
   title: "Produk",
@@ -15,7 +15,9 @@ export const metadata: Metadata = {
     "Jelajahi koleksi aksesoris Noblekase: charger GaN, kabel, holder, audio, dan casing.",
 };
 
-export default function ProductListingPage() {
+export default async function ProductListingPage() {
+  const [products, categories] = await Promise.all([getProducts(), getCategories()]);
+
   return (
     <>
       <RevealOnScroll />
@@ -53,7 +55,7 @@ export default function ProductListingPage() {
       <section className="py-12 md:py-16">
         <div className="container-prose">
           <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-8 md:gap-10">
-            <ProductFilterSidebar totalCount={products.length} />
+            <ProductFilterSidebar totalCount={products.length} categories={categories} />
 
             <div>
               <div className="flex items-center justify-between mb-5 md:mb-6">

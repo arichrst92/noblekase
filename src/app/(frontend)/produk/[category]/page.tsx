@@ -11,25 +11,29 @@ import { ProductCard } from "@/components/cards/ProductCard";
 import { ProductFilterSidebar } from "@/components/sections/ProductFilterSidebar";
 import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
 import {
-  categories,
+  getCategories,
   getCategoryBySlug,
-  getProductsByCategory,
-  products,
-} from "@/lib/sample-data";
+  getProductsByCategorySlug,
+} from "@/lib/queries";
 
 interface CategoryPageProps {
   params: Promise<{ category: string }>;
 }
 
 export async function generateStaticParams() {
-  return categories.map((c) => ({ category: c.slug }));
+  try {
+    const categories = await getCategories();
+    return categories.map((c) => ({ category: c.slug }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({
   params,
 }: CategoryPageProps): Promise<Metadata> {
   const { category } = await params;
-  const cat = getCategoryBySlug(category);
+  const cat = await getCategoryBySlug(category);
   if (!cat) return { title: "Kategori tidak ditemukan" };
   return {
     title: `${cat.name}`,
@@ -39,10 +43,14 @@ export async function generateMetadata({
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { category } = await params;
-  const cat = getCategoryBySlug(category);
+  const [cat, categories] = await Promise.all([
+    getCategoryBySlug(category),
+    getCategories(),
+  ]);
   if (!cat) notFound();
 
-  const items = getProductsByCategory(category);
+  const items = await getProductsByCategorySlug(category);
+  const totalCount = categories.reduce((sum, c) => sum + c.productCount, 0);
 
   return (
     <>
@@ -79,7 +87,8 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-8 md:gap-10">
             <ProductFilterSidebar
               activeCategory={category}
-              totalCount={products.length}
+              totalCount={totalCount}
+              categories={categories}
             />
 
             <div>
