@@ -31,6 +31,7 @@ import { FAQCategories } from "@/collections/FAQCategories";
 import { SiteSettings } from "@/globals/SiteSettings";
 import { Header } from "@/globals/Header";
 import { Footer } from "@/globals/Footer";
+import { Integrations } from "@/globals/Integrations";
 // Globals — konten per halaman
 import { PageHome } from "@/globals/pages/PageHome";
 import { PageProducts } from "@/globals/pages/PageProducts";
@@ -97,6 +98,7 @@ export default buildConfig({
 
   globals: [
     SiteSettings,
+    Integrations,
     Header,
     Footer,
     PageHome,

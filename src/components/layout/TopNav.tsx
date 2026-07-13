@@ -28,9 +28,10 @@ const defaultNavItems: NavItem[] = [
 interface TopNavProps {
   navItems?: NavItem[];
   brand?: string;
+  logoUrl?: string;
 }
 
-export function TopNav({ navItems, brand = "NOBLEKASE" }: TopNavProps) {
+export function TopNav({ navItems, brand = "NOBLEKASE", logoUrl }: TopNavProps) {
   const items = navItems && navItems.length ? navItems : defaultNavItems;
   const [scrolled, setScrolled] = useState(false);
 
@@ -57,11 +58,19 @@ export function TopNav({ navItems, brand = "NOBLEKASE" }: TopNavProps) {
           <Menu className="w-4 h-4 text-ink-primary" />
         </button>
 
-        <Link
-          href="/"
-          className="font-serif font-medium tracking-[0.15em] text-[13px] md:text-sm text-ink-primary"
-        >
-          {brand}
+        <Link href="/" className="flex items-center" aria-label={brand}>
+          {logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={logoUrl}
+              alt={brand}
+              className="h-6 md:h-7 w-auto object-contain"
+            />
+          ) : (
+            <span className="font-serif font-medium tracking-[0.15em] text-[13px] md:text-sm text-ink-primary">
+              {brand}
+            </span>
+          )}
         </Link>
 
         {/* Desktop: nav links */}

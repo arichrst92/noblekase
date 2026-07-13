@@ -17,8 +17,10 @@ import {
   getHeaderNav,
   getFooterData,
   getSiteSettings,
+  getIntegrations,
   resolveMediaUrl,
 } from "@/lib/queries";
+import { Analytics } from "@/components/analytics/Analytics";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -53,11 +55,19 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function FrontendLayout({ children }: { children: React.ReactNode }) {
-  const [header, footer, settings] = await Promise.all([
+  const [header, footer, settings, integrations] = await Promise.all([
     getHeaderNav(),
     getFooterData(),
     getSiteSettings(),
+    getIntegrations(),
   ]);
+
+  // Logo: pakai upload CMS bila ada, jika tidak fallback ke file statis.
+  const logoUrl = resolveMediaUrl(settings?.logo) || "/images/noblekase-logo.png";
+
+  // Google Analytics 4: dari CMS, fallback ke env.
+  const gaId = integrations?.gaMeasurementId || process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+  const gaEnabled = !!gaId && !gaId.includes("XXXX");
 
   return (
     <html lang="id">
@@ -72,7 +82,9 @@ export default async function FrontendLayout({ children }: { children: React.Rea
         />
       </head>
       <body className="min-h-screen flex flex-col font-sans">
-        <TopNav navItems={header.navItems} brand={settings?.siteName} />
+        {gaEnabled && <Analytics measurementId={gaId!} />}
+
+        <TopNav navItems={header.navItems} brand={settings?.siteName} logoUrl={logoUrl} />
 
         <main className="flex-1 pb-24 md:pb-0">{children}</main>
 

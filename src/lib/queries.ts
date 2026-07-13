@@ -383,6 +383,11 @@ export async function getSiteSettings(): Promise<any> {
   return getGlobalData("site-settings");
 }
 
+/** Global Integrations (API keys). Server-only — jangan kirim field rahasia ke client. */
+export async function getIntegrations(): Promise<any> {
+  return getGlobalData("integrations");
+}
+
 // ------------------------------------------------------------------
 // Pages (block-based) & Support & FAQ
 // ------------------------------------------------------------------
