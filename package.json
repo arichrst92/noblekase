@@ -16,7 +16,8 @@
     "migrate": "payload migrate",
     "migrate:create": "payload migrate:create",
     "migrate:fresh": "payload migrate:fresh",
-    "seed": "cross-env NODE_OPTIONS=--no-deprecation payload run src/scripts/seed.ts"
+    "seed": "cross-env NODE_OPTIONS=--no-deprecation payload run src/scripts/seed.ts",
+    "seed:content": "cross-env NODE_OPTIONS=--no-deprecation payload run src/scripts/seedContent.ts"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "^3.0.0",

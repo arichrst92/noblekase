@@ -1,70 +1,31 @@
 /**
  * /dukungan — Halaman kontak & dukungan.
- * Per keputusan: NO contact form. Hanya social + WhatsApp + FAQ singkat.
+ * Konten dari global PageSupport (hero, kanal, jam operasional) + koleksi FAQItems.
  */
 
 import type { Metadata } from "next";
 import Image from "next/image";
 import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
+import { RichText } from "@/components/richtext/RichText";
+import { getGlobalData, getFaqItems, resolveMediaUrl } from "@/lib/queries";
 
-export const metadata: Metadata = {
-  title: "Dukungan",
-  description:
-    "Hubungi tim Noblekase via WhatsApp, Instagram, atau email. Lihat FAQ untuk pertanyaan umum.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await getGlobalData("page-support");
+  return {
+    title: "Dukungan",
+    description:
+      s?.heroIntro ??
+      "Hubungi tim Noblekase via WhatsApp, Instagram, atau email. Lihat FAQ untuk pertanyaan umum.",
+  };
+}
 
-const channels = [
-  {
-    name: "WhatsApp",
-    detail: "Respons paling cepat (~15 menit jam kerja)",
-    url: "https://wa.me/6281234567890?text=Halo%20Noblekase",
-    cta: "Chat WhatsApp",
-    primary: true,
-  },
-  {
-    name: "Instagram",
-    detail: "@noblekase — DM kami untuk pertanyaan & feedback",
-    url: "https://instagram.com/noblekase",
-    cta: "Buka Instagram",
-  },
-  {
-    name: "TikTok",
-    detail: "@noblekase — video, behind the scenes",
-    url: "https://tiktok.com/@noblekase",
-    cta: "Buka TikTok",
-  },
-  {
-    name: "Email",
-    detail: "halo@noblekase.com — untuk kerjasama & B2B",
-    url: "mailto:halo@noblekase.com",
-    cta: "Kirim Email",
-  },
-];
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-const faqs = [
-  {
-    q: "Apakah Noblekase menjual langsung dari website?",
-    a: "Belum. Saat ini kami menyalurkan semua produk melalui marketplace (Tokopedia, Shopee, TikTok Shop, Lazada). Klik tombol marketplace di halaman produk untuk pembelian.",
-  },
-  {
-    q: "Berapa lama pengiriman?",
-    a: "Pengiriman ditangani oleh masing-masing marketplace. Untuk pesanan via Shopee Express atau Tokopedia Now! biasanya 1-2 hari di kota besar.",
-  },
-  {
-    q: "Bagaimana kebijakan garansi?",
-    a: "Setiap produk Noblekase memiliki garansi 12 bulan untuk cacat manufaktur. Klaim garansi diproses melalui marketplace tempat pembelian dengan menyertakan invoice.",
-  },
-  {
-    q: "Apakah ada outlet fisik?",
-    a: "Belum. Kami fokus pada distribusi online untuk menjaga harga kompetitif. Untuk pengalaman langsung, beberapa produk tersedia di display partner co-working tertentu.",
-  },
-  {
-    q: "Bagaimana kerjasama bisnis / B2B?",
-    a: "Untuk korporat order, gift bulk, atau kolaborasi konten — kontak halo@noblekase.com dengan subject 'B2B Inquiry'.",
-  },
-];
+export default async function DukunganPage() {
+  const [s, faqs] = await Promise.all([getGlobalData("page-support"), getFaqItems()]);
+  const heroImg = resolveMediaUrl(s?.heroImage, "landscape");
+  const channels: any[] = s?.channels ?? [];
 
-export default function DukunganPage() {
   return (
     <>
       <RevealOnScroll />
@@ -74,24 +35,30 @@ export default function DukunganPage() {
         <div className="container-prose">
           <div className="grid grid-cols-1 md:grid-cols-[1.2fr_1fr] gap-8 md:gap-12 items-center">
             <div className="reveal">
-              <div className="eyebrow mb-3">Dukungan</div>
+              <div className="eyebrow mb-3">{s?.heroEyebrow ?? "Dukungan"}</div>
               <h1 className="font-serif text-3xl md:text-5xl font-medium leading-tight mb-5 tracking-tight">
-                Bantu kami menjawab Anda
+                {s?.heroHeadline ?? "Bantu kami menjawab Anda"}
               </h1>
               <p className="text-base md:text-lg text-ink-secondary leading-relaxed">
-                Tim kecil yang membaca semua pesan. Cara tercepat lewat
-                WhatsApp di jam kerja, atau DM Instagram kapan saja.
+                {s?.heroIntro ??
+                  "Tim kecil yang membaca semua pesan. Cara tercepat lewat WhatsApp di jam kerja, atau DM Instagram kapan saja."}
               </p>
             </div>
             <div className="reveal aspect-[4/3] bg-bg-base border border-border-mid rounded-lg overflow-hidden relative">
-              <Image
-                src="/images/tentang/kontak-hero.svg"
-                alt="Kontak Noblekase"
-                fill
-                priority
-                sizes="(max-width: 768px) 100vw, 40vw"
-                className="object-cover"
-              />
+              {heroImg ? (
+                <Image
+                  src={heroImg}
+                  alt={s?.heroHeadline ?? "Kontak Noblekase"}
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 100vw, 40vw"
+                  className="object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-ink-tertiary text-sm">
+                  image
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -100,81 +67,78 @@ export default function DukunganPage() {
       {/* Channels */}
       <section className="py-12 md:py-16">
         <div className="container-prose">
-          <div className="reveal eyebrow mb-2">Kanal</div>
+          <div className="reveal eyebrow mb-2">{s?.channelsEyebrow ?? "Kanal"}</div>
           <h2 className="reveal font-serif text-2xl md:text-3xl font-medium mb-8">
-            Pilih cara yang paling nyaman
+            {s?.channelsHeadline ?? "Pilih cara yang paling nyaman"}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-            {channels.map((ch, i) => (
-              <a
-                key={ch.name}
-                href={ch.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`reveal border rounded-lg p-5 md:p-6 transition-colors ${
-                  ch.primary
-                    ? "border-ink-primary bg-ink-primary text-bg-base hover:bg-accent"
-                    : "border-border-light hover:border-ink-primary hover:bg-bg-warm"
-                }`}
-                style={{ transitionDelay: `${i * 60}ms` }}
-              >
-                <div className="text-[10px] tracking-widest uppercase opacity-70 mb-2">
-                  {ch.name}
-                </div>
-                <div
-                  className={`font-serif text-lg md:text-xl font-medium mb-1 ${
-                    ch.primary ? "" : ""
+            {channels.map((ch, i) => {
+              const primary = i === 0;
+              return (
+                <a
+                  key={i}
+                  href={ch.url || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`reveal border rounded-lg p-5 md:p-6 transition-colors ${
+                    primary
+                      ? "border-ink-primary bg-ink-primary text-bg-base hover:bg-accent"
+                      : "border-border-light hover:border-ink-primary hover:bg-bg-warm"
                   }`}
+                  style={{ transitionDelay: `${i * 60}ms` }}
                 >
-                  {ch.cta} →
-                </div>
-                <div
-                  className={`text-sm ${
-                    ch.primary ? "text-bg-base/80" : "text-ink-secondary"
-                  }`}
-                >
-                  {ch.detail}
-                </div>
-              </a>
-            ))}
+                  <div className="text-[10px] tracking-widest uppercase opacity-70 mb-2">
+                    {ch.title}
+                  </div>
+                  <div className="font-serif text-lg md:text-xl font-medium mb-1">
+                    {ch.buttonLabel ?? ch.title} →
+                  </div>
+                  <div className={`text-sm ${primary ? "text-bg-base/80" : "text-ink-secondary"}`}>
+                    {ch.description}
+                  </div>
+                </a>
+              );
+            })}
           </div>
 
-          <p className="text-[12px] text-ink-tertiary mt-6 text-center">
-            Jam operasional: Senin–Jumat 09.00–17.00 WIB · Sabtu 10.00–14.00
-          </p>
+          {s?.operatingHours && (
+            <p className="text-[12px] text-ink-tertiary mt-6 text-center">{s.operatingHours}</p>
+          )}
         </div>
       </section>
 
       {/* FAQ */}
-      <section className="bg-bg-cream py-16 md:py-20 border-t border-border-light">
-        <div className="container-prose max-w-3xl">
-          <div className="reveal eyebrow mb-2">FAQ</div>
-          <h2 className="reveal font-serif text-2xl md:text-3xl font-medium mb-8">
-            Pertanyaan yang sering ditanyakan
-          </h2>
-          <div className="space-y-1">
-            {faqs.map((faq, i) => (
-              <details
-                key={i}
-                className="reveal group border-b border-border-light py-4"
-                style={{ transitionDelay: `${i * 40}ms` }}
-              >
-                <summary className="list-none flex items-start justify-between gap-4 cursor-pointer">
-                  <h3 className="font-serif text-base md:text-lg font-medium group-hover:text-accent transition-colors">
-                    {faq.q}
-                  </h3>
-                  <span className="text-ink-tertiary group-open:rotate-45 transition-transform mt-1">
-                    +
-                  </span>
-                </summary>
-                <p className="mt-3 text-base text-ink-secondary leading-relaxed">
-                  {faq.a}
-                </p>
-              </details>
-            ))}
+      {faqs.length > 0 && (
+        <section className="bg-bg-cream py-16 md:py-20 border-t border-border-light">
+          <div className="container-prose max-w-3xl">
+            <div className="reveal eyebrow mb-2">{s?.faqEyebrow ?? "FAQ"}</div>
+            <h2 className="reveal font-serif text-2xl md:text-3xl font-medium mb-8">
+              {s?.faqHeadline ?? "Pertanyaan yang sering ditanyakan"}
+            </h2>
+            <div className="space-y-1">
+              {faqs.map((faq, i) => (
+                <details
+                  key={i}
+                  className="reveal group border-b border-border-light py-4"
+                  style={{ transitionDelay: `${i * 40}ms` }}
+                >
+                  <summary className="list-none flex items-start justify-between gap-4 cursor-pointer">
+                    <h3 className="font-serif text-base md:text-lg font-medium group-hover:text-accent transition-colors">
+                      {faq.question}
+                    </h3>
+                    <span className="text-ink-tertiary group-open:rotate-45 transition-transform mt-1">
+                      +
+                    </span>
+                  </summary>
+                  <div className="mt-3 text-base text-ink-secondary leading-relaxed [&_p]:mb-3 [&_p:last-child]:mb-0">
+                    <RichText data={faq.answer} />
+                  </div>
+                </details>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </>
   );
 }

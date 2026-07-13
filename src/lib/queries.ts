@@ -14,6 +14,11 @@ import type {
   SampleMarketplace,
 } from "@/lib/sample-data";
 
+/** Resolve URL media — diekspor untuk dipakai renderer richText (upload node). */
+export function resolveMediaUrl(m: unknown, size?: string): string {
+  return mediaUrl(m, size);
+}
+
 // ------------------------------------------------------------------
 // Helpers
 // ------------------------------------------------------------------
@@ -254,4 +259,158 @@ export async function getActiveFeatured(): Promise<FeaturedData | null> {
     mainProduct: main,
     secondaryProducts,
   };
+}
+
+// ------------------------------------------------------------------
+// Journal (Articles)
+// ------------------------------------------------------------------
+
+export interface JournalArticle {
+  slug: string;
+  title: string;
+  excerpt: string;
+  category: string;
+  readingTime: number;
+  publishedAt: string;
+  coverUrl: string;
+  heroUrl: string;
+  body: unknown; // Lexical richText JSON
+}
+
+function mapArticle(a: any): JournalArticle {
+  const cat = a.category && typeof a.category === "object" ? a.category : null;
+  const hero = mediaUrl(a.heroImage, "wide");
+  return {
+    slug: a.slug,
+    title: a.title,
+    excerpt: a.intro ?? "",
+    category: cat?.name ?? "",
+    readingTime: a.readingTime ?? 0,
+    publishedAt: a.publishedAt ?? a.createdAt ?? "",
+    coverUrl: hero,
+    heroUrl: hero,
+    body: a.body ?? null,
+  };
+}
+
+export async function getArticles(): Promise<JournalArticle[]> {
+  const payload = await getPayloadClient();
+  const res = await payload.find({
+    collection: "articles",
+    where: { status: { equals: "published" } },
+    depth: 1,
+    limit: 100,
+    sort: "-publishedAt",
+  });
+  return res.docs.map(mapArticle);
+}
+
+export async function getArticleBySlug(slug: string): Promise<JournalArticle | null> {
+  const payload = await getPayloadClient();
+  const res = await payload.find({
+    collection: "articles",
+    where: { slug: { equals: slug }, status: { equals: "published" } },
+    depth: 1,
+    limit: 1,
+  });
+  return res.docs[0] ? mapArticle(res.docs[0]) : null;
+}
+
+export async function getRelatedArticles(article: JournalArticle): Promise<JournalArticle[]> {
+  const all = await getArticles();
+  return all
+    .filter((a) => a.slug !== article.slug && a.category === article.category)
+    .slice(0, 3);
+}
+
+// ------------------------------------------------------------------
+// Globals (generic + typed helpers)
+// ------------------------------------------------------------------
+
+/** Ambil isi global; kembalikan null bila belum ada / error. */
+export async function getGlobalData(slug: string): Promise<any> {
+  try {
+    const payload = await getPayloadClient();
+    return await payload.findGlobal({ slug: slug as any, depth: 1 });
+  } catch {
+    return null;
+  }
+}
+
+export interface NavItem {
+  label: string;
+  url: string;
+}
+export interface MobileNavItem extends NavItem {
+  icon?: string;
+  isCenterLogo?: boolean;
+}
+
+export async function getHeaderNav(): Promise<{ navItems: NavItem[]; mobileBottomNav: MobileNavItem[] }> {
+  const g = await getGlobalData("header");
+  return {
+    navItems: (g?.navItems ?? []).map((n: any) => ({ label: n.label, url: n.url })),
+    mobileBottomNav: (g?.mobileBottomNav ?? []).map((n: any) => ({
+      label: n.label ?? "",
+      url: n.url ?? "#",
+      icon: n.icon ?? undefined,
+      isCenterLogo: !!n.isCenterLogo,
+    })),
+  };
+}
+
+export interface FooterData {
+  tagline: string;
+  columns: { title: string; links: NavItem[] }[];
+  copyrightText: string;
+  legalLinks: NavItem[];
+}
+
+export async function getFooterData(): Promise<FooterData> {
+  const g = await getGlobalData("footer");
+  return {
+    tagline: g?.tagline ?? "",
+    columns: (g?.columns ?? []).map((c: any) => ({
+      title: c.title,
+      links: (c.links ?? []).map((l: any) => ({ label: l.label, url: l.url })),
+    })),
+    copyrightText: g?.copyrightText ?? "© 2026 Noblekase",
+    legalLinks: (g?.legalLinks ?? []).map((l: any) => ({ label: l.label, url: l.url })),
+  };
+}
+
+export async function getSiteSettings(): Promise<any> {
+  return getGlobalData("site-settings");
+}
+
+// ------------------------------------------------------------------
+// Pages (block-based) & Support & FAQ
+// ------------------------------------------------------------------
+
+export async function getPageBySlug(slug: string): Promise<any> {
+  const payload = await getPayloadClient();
+  const res = await payload.find({
+    collection: "pages",
+    where: { slug: { equals: slug }, status: { equals: "published" } },
+    depth: 1,
+    limit: 1,
+  });
+  return res.docs[0] ?? null;
+}
+
+export interface FaqItem {
+  question: string;
+  answer: unknown; // richText
+}
+
+export async function getFaqItems(): Promise<FaqItem[]> {
+  const payload = await getPayloadClient();
+  const res = await payload.find({
+    collection: "faq-items",
+    where: { status: { equals: "published" } },
+    depth: 0,
+    limit: 200,
+    sort: "order",
+  });
+  return res.docs.map((i: any) => ({ question: i.question, answer: i.answer }));
 }

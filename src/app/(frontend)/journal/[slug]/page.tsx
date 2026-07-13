@@ -8,21 +8,32 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
-import { articles, getArticleBySlug } from "@/lib/sample-data";
+import { RichText } from "@/components/richtext/RichText";
+import {
+  getArticles,
+  getArticleBySlug,
+  getRelatedArticles,
+  getGlobalData,
+} from "@/lib/queries";
 
 interface ArticlePageProps {
   params: Promise<{ slug: string }>;
 }
 
 export async function generateStaticParams() {
-  return articles.map((a) => ({ slug: a.slug }));
+  try {
+    const articles = await getArticles();
+    return articles.map((a) => ({ slug: a.slug }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({
   params,
 }: ArticlePageProps): Promise<Metadata> {
   const { slug } = await params;
-  const article = getArticleBySlug(slug);
+  const article = await getArticleBySlug(slug);
   if (!article) return { title: "Artikel tidak ditemukan" };
   return {
     title: article.title,
@@ -45,12 +56,17 @@ const dateFormat = new Intl.DateTimeFormat("id-ID", {
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params;
-  const article = getArticleBySlug(slug);
+  const [article, t] = await Promise.all([
+    getArticleBySlug(slug),
+    getGlobalData("page-article-detail"),
+  ]);
   if (!article) notFound();
 
-  const related = articles
-    .filter((a) => a.slug !== article.slug && a.category === article.category)
-    .slice(0, 3);
+  const related = await getRelatedArticles(article);
+  const relatedHeadline = (t?.relatedHeadlineTemplate ?? "Cerita lain dari {category}").replace(
+    "{category}",
+    article.category,
+  );
 
   return (
     <>
@@ -62,11 +78,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           {/* Breadcrumb */}
           <nav className="text-[12px] text-ink-tertiary mb-6 flex items-center gap-1.5">
             <Link href="/" className="hover:text-ink-primary">
-              Beranda
+              {t?.breadcrumbHome ?? "Beranda"}
             </Link>
             <span>/</span>
             <Link href="/journal" className="hover:text-ink-primary">
-              Journal
+              {t?.breadcrumbJournal ?? "Journal"}
             </Link>
             <span>/</span>
             <span className="text-ink-secondary line-clamp-1">
@@ -99,53 +115,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </div>
 
           {/* Body */}
-          <div className="prose-body reveal">
-            {article.body.map((block, i) => {
-              if (block.type === "p")
-                return (
-                  <p
-                    key={i}
-                    className="text-base md:text-lg text-ink-primary leading-relaxed mb-5"
-                  >
-                    {block.text}
-                  </p>
-                );
-              if (block.type === "h2")
-                return (
-                  <h2
-                    key={i}
-                    className="font-serif text-xl md:text-2xl font-medium mt-10 mb-4"
-                  >
-                    {block.text}
-                  </h2>
-                );
-              if (block.type === "quote")
-                return (
-                  <blockquote
-                    key={i}
-                    className="border-l-2 border-ink-primary pl-5 py-2 my-7 font-serif italic text-lg md:text-xl text-ink-primary"
-                  >
-                    {block.text}
-                  </blockquote>
-                );
-              if (block.type === "img" && block.src)
-                return (
-                  <figure
-                    key={i}
-                    className="my-8 aspect-[16/9] bg-bg-warm border border-border-light rounded-md overflow-hidden relative"
-                  >
-                    <Image
-                      src={block.src}
-                      alt=""
-                      fill
-                      sizes="720px"
-                      className="object-cover"
-                    />
-                  </figure>
-                );
-              return null;
-            })}
-          </div>
+          <RichText data={article.body} className="prose-body reveal" />
 
           {/* Share */}
           <div className="mt-12 pt-6 border-t border-border-light flex items-center justify-between">
@@ -153,10 +123,10 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               href="/journal"
               className="text-sm text-ink-secondary hover:text-ink-primary"
             >
-              ← Kembali ke Journal
+              {t?.backLabel ?? "← Kembali ke Journal"}
             </Link>
             <span className="text-[11px] uppercase tracking-widest text-ink-tertiary">
-              Bagikan: WA · Tw · IG
+              {t?.shareLabel ?? "Bagikan:"} WA · Tw · IG
             </span>
           </div>
         </div>
@@ -166,9 +136,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       {related.length > 0 && (
         <section className="bg-bg-cream py-16 md:py-20 border-t border-border-light">
           <div className="container-prose">
-            <div className="reveal eyebrow mb-2">Artikel terkait</div>
+            <div className="reveal eyebrow mb-2">{t?.relatedEyebrow ?? "Artikel terkait"}</div>
             <h2 className="reveal font-serif text-2xl md:text-3xl font-medium mb-8">
-              Cerita lain dari {article.category}
+              {relatedHeadline}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
               {related.map((a, i) => (

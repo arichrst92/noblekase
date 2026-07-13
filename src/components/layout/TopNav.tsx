@@ -12,7 +12,12 @@ import { useEffect, useState } from "react";
 import { Search, Menu } from "lucide-react";
 import { cn } from "@/lib/cn";
 
-const navItems = [
+interface NavItem {
+  label: string;
+  url: string;
+}
+
+const defaultNavItems: NavItem[] = [
   { label: "Beranda", url: "/" },
   { label: "Produk", url: "/produk" },
   { label: "Tentang", url: "/tentang" },
@@ -20,7 +25,13 @@ const navItems = [
   { label: "Dukungan", url: "/dukungan" },
 ];
 
-export function TopNav() {
+interface TopNavProps {
+  navItems?: NavItem[];
+  brand?: string;
+}
+
+export function TopNav({ navItems, brand = "NOBLEKASE" }: TopNavProps) {
+  const items = navItems && navItems.length ? navItems : defaultNavItems;
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -50,12 +61,12 @@ export function TopNav() {
           href="/"
           className="font-serif font-medium tracking-[0.15em] text-[13px] md:text-sm text-ink-primary"
         >
-          NOBLEKASE
+          {brand}
         </Link>
 
         {/* Desktop: nav links */}
         <ul className="hidden md:flex items-center gap-4 text-[12px] text-ink-secondary">
-          {navItems.map((item) => (
+          {items.map((item) => (
             <li key={item.url}>
               <Link
                 href={item.url}

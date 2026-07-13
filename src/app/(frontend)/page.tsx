@@ -22,14 +22,14 @@ import { JournalTeaser } from "@/components/sections/JournalTeaser";
 import { MarketplaceCTA } from "@/components/sections/MarketplaceCTA";
 import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
 
-import { getActiveHero, getCategories, getActiveFeatured } from "@/lib/queries";
-import { articles } from "@/lib/sample-data"; // journal teaser — dipindah ke CMS di Sprint 2
+import { getActiveHero, getCategories, getActiveFeatured, getArticles } from "@/lib/queries";
 
 export default async function HomePage() {
-  const [hero, categories, featured] = await Promise.all([
+  const [hero, categories, featured, articles] = await Promise.all([
     getActiveHero(),
     getCategories(),
     getActiveFeatured(),
+    getArticles(),
   ]);
 
   // Beranda journal: 3 artikel terbaru

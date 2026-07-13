@@ -7,7 +7,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
-import { articles } from "@/lib/sample-data";
+import { getArticles, getGlobalData } from "@/lib/queries";
 
 export const metadata: Metadata = {
   title: "Journal",
@@ -15,8 +15,14 @@ export const metadata: Metadata = {
     "Cerita, panduan, dan inspirasi dari Noblekase — seputar aksesoris HP dan keseharian.",
 };
 
-export default function JournalPage() {
+export default async function JournalPage() {
+  const [articles, t] = await Promise.all([getArticles(), getGlobalData("page-journal")]);
   const [featured, ...rest] = articles;
+
+  const countText = (t?.countTemplate ?? "{count} cerita").replace(
+    "{count}",
+    String(articles.length),
+  );
 
   return (
     <>
@@ -26,13 +32,13 @@ export default function JournalPage() {
       <section className="bg-bg-cream pt-32 md:pt-40 pb-10 md:pb-14 border-b border-border-light">
         <div className="container-prose">
           <div className="reveal max-w-2xl">
-            <div className="eyebrow mb-3">Journal</div>
+            <div className="eyebrow mb-3">{t?.eyebrow ?? "Journal"}</div>
             <h1 className="font-serif text-3xl md:text-5xl font-medium leading-tight mb-4 tracking-tight">
-              Cerita & panduan dari Noblekase
+              {t?.headline ?? "Cerita & panduan dari Noblekase"}
             </h1>
             <p className="text-base text-ink-secondary leading-relaxed">
-              Mengupas pelan-pelan: cara memilih charger yang pas, alasan kami
-              memilih kertas FSC, dan cerita di balik setiap edisi.
+              {t?.intro ??
+                "Mengupas pelan-pelan: cara memilih charger yang pas, alasan kami memilih kertas FSC, dan cerita di balik setiap edisi."}
             </p>
           </div>
         </div>
@@ -58,7 +64,7 @@ export default function JournalPage() {
               </div>
               <div>
                 <div className="text-[10px] tracking-widest uppercase text-ink-tertiary mb-3">
-                  Sorotan · {featured.category} · {featured.readingTime} mnt
+                  {t?.highlightLabel ?? "Sorotan"} · {featured.category} · {featured.readingTime} mnt
                 </div>
                 <h2 className="font-serif text-2xl md:text-3xl font-medium leading-tight mb-3 group-hover:text-accent transition-colors">
                   {featured.title}
@@ -67,7 +73,7 @@ export default function JournalPage() {
                   {featured.excerpt}
                 </p>
                 <span className="text-sm font-medium text-ink-primary">
-                  Baca selengkapnya →
+                  {t?.readMoreLabel ?? "Baca selengkapnya →"}
                 </span>
               </div>
             </Link>
@@ -78,9 +84,9 @@ export default function JournalPage() {
       {/* Rest */}
       <section className="py-12 md:py-16">
         <div className="container-prose">
-          <div className="reveal eyebrow mb-2">Semua Artikel</div>
+          <div className="reveal eyebrow mb-2">{t?.allArticlesEyebrow ?? "Semua Artikel"}</div>
           <h2 className="reveal font-serif text-2xl md:text-3xl font-medium mb-8">
-            {articles.length} cerita
+            {countText}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {rest.map((a, i) => (
