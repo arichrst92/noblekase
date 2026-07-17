@@ -30,11 +30,6 @@ const nextConfig: NextConfig = {
   // Multi-language: i18n handled via next-intl middleware (App Router compatible)
   redirects: async () => [
     {
-      source: "/admin",
-      destination: "/admin/login",
-      permanent: false,
-    },
-    {
       // Footer ada link /kontak — redirect ke /dukungan (page yang sebenarnya)
       source: "/kontak",
       destination: "/dukungan",

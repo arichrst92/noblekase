@@ -75,10 +75,14 @@ export const Users: CollectionConfig = {
   hooks: {
     afterLogin: [
       async ({ user, req }) => {
+        // Penting: teruskan `req` agar update ikut transaksi login yang sama.
+        // Tanpa `req`, update memakai transaksi baru dan deadlock dengan
+        // transaksi login (login stuck / menggantung).
         await req.payload.update({
           collection: "users",
           id: user.id,
           data: { lastLogin: new Date().toISOString() },
+          req,
         });
       },
     ],
