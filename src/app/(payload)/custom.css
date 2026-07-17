@@ -1,0 +1,31 @@
+/**
+ * custom.css — Noblekase admin persona (editorial-minimalist).
+ * Dibuat oleh: PT Solusi Inovasi Bangsa (https://ide.asia)
+ *
+ * Menghangatkan tema light Payload ke palet cream + aksen burnt sienna,
+ * mengikuti brand website. Tema dark dibiarkan default agar tetap nyaman.
+ */
+
+/* Warm cream — hanya tema light supaya tema dark tidak rusak */
+html[data-theme="light"] {
+  --color-base-0: #faf8f4; /* background utama */
+  --color-base-50: #f3efe7; /* elevation halus (kartu, input) */
+  --color-base-100: #ece6da;
+}
+
+/* Aksen brand: burnt sienna untuk tombol utama (Create/Save/Login) */
+.btn--style-primary {
+  background-color: #a0522d;
+  border-color: #a0522d;
+}
+.btn--style-primary:hover,
+.btn--style-primary:focus-visible {
+  background-color: #8f4926;
+  border-color: #8f4926;
+}
+
+/* Logo login diberi ruang napas */
+.login__brand,
+.create-first-user__brand {
+  margin-bottom: 1.25rem;
+}

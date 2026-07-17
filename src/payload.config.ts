@@ -61,6 +61,12 @@ export default buildConfig({
       title: "Noblekase CMS",
       titleSuffix: " · Noblekase",
     },
+    components: {
+      graphics: {
+        Logo: "@/components/admin/Logo#Logo",
+        Icon: "@/components/admin/Icon#Icon",
+      },
+    },
     livePreview: {
       breakpoints: [
         { label: "Mobile", name: "mobile", width: 375, height: 667 },

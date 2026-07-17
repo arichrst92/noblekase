@@ -1,0 +1,17 @@
+/**
+ * Icon — logo kecil Noblekase di navbar/header admin.
+ * Dibuat oleh: PT Solusi Inovasi Bangsa (https://ide.asia)
+ */
+
+import React from "react";
+
+export const Icon = () => (
+  // eslint-disable-next-line @next/next/no-img-element
+  <img
+    src="/images/noblekase-logo.png"
+    alt="Noblekase"
+    style={{ height: 24, width: "auto", objectFit: "contain" }}
+  />
+);
+
+export default Icon;

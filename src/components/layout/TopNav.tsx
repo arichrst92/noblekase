@@ -64,7 +64,7 @@ export function TopNav({ navItems, brand = "NOBLEKASE", logoUrl }: TopNavProps) 
             <img
               src={logoUrl}
               alt={brand}
-              className="h-6 md:h-7 w-auto object-contain"
+              className="h-9 md:h-11 w-auto object-contain"
             />
           ) : (
             <span className="font-serif font-medium tracking-[0.15em] text-[13px] md:text-sm text-ink-primary">

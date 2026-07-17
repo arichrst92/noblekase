@@ -11,6 +11,7 @@ import { RootLayout, handleServerFunctions } from "@payloadcms/next/layouts";
 import React from "react";
 
 import { importMap } from "./admin/importMap.js";
+import "./custom.css"; // override brand persona (setelah CSS Payload)
 
 type Args = {
   children: React.ReactNode;
