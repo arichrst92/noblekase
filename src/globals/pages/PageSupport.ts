@@ -62,7 +62,7 @@ export const PageSupport: GlobalConfig = {
             { icon: "message-circle", title: "WhatsApp", description: "Respons paling cepat (~15 menit jam kerja)", buttonLabel: "Chat WhatsApp", url: "" },
             { icon: "instagram", title: "Instagram", description: "@noblekase — DM kami untuk pertanyaan & feedback", buttonLabel: "Buka Instagram", url: "" },
             { icon: "music", title: "TikTok", description: "@noblekase — video, behind the scenes", buttonLabel: "Buka TikTok", url: "" },
-            { icon: "mail", title: "Email", description: "halo@noblekase.com — untuk kerjasama & B2B", buttonLabel: "Kirim Email", url: "" },
+            { icon: "mail", title: "Email", description: "halo@noblekase.co.id — untuk kerjasama & B2B", buttonLabel: "Kirim Email", url: "" },
           ],
         },
         {

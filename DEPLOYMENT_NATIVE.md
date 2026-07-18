@@ -349,7 +349,7 @@ Downtime: ~0 detik untuk `pm2 reload` (graceful). Untuk skema yang lebih agresif
 
 ## Migrasi ke Domain + HTTPS (Nanti)
 
-Saat `noblekase.com` sudah pointing ke `72.60.74.202`:
+Saat `noblekase.co.id` sudah pointing ke `72.60.74.202`:
 
 ```bash
 # Install Caddy native (auto SSL via Let's Encrypt)
@@ -360,14 +360,14 @@ apt-get update && apt-get install -y caddy
 
 # Caddyfile minimal (reverse proxy ke PM2 port 8080)
 cat > /etc/caddy/Caddyfile <<EOF
-noblekase.com, www.noblekase.com {
+noblekase.co.id, www.noblekase.co.id {
     encode gzip zstd
     reverse_proxy 127.0.0.1:8080
 }
 EOF
 
-# Update .env: ganti SITE_URL ke https://noblekase.com
-sed -i 's|http://72.60.74.202:8080|https://noblekase.com|g' /opt/noblekase/.env
+# Update .env: ganti SITE_URL ke https://noblekase.co.id
+sed -i 's|http://72.60.74.202:8080|https://noblekase.co.id|g' /opt/noblekase/.env
 
 # Buka 80/443, tutup 8080 dari publik
 ufw allow 80/tcp

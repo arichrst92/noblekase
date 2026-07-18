@@ -4,22 +4,24 @@
 # =====================================
 #
 # Auto-SSL via Let's Encrypt (cukup punya valid domain pointing ke VPS).
-# Ganti 'noblekase.com' dengan domain Anda.
+# Domain produksi: noblekase.co.id (apex + www).
+# Pastikan A record apex DAN www sama-sama menunjuk ke IP VPS sebelum start —
+# Caddy meminta sertifikat saat boot dan akan gagal bila DNS belum resolve.
 # =====================================
 
 {
     # Global options
-    email admin@noblekase.com
+    email admin@noblekase.co.id
     # Uncomment untuk staging Let's Encrypt (saat testing):
     # acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
 }
 
 # Redirect www -> apex
-www.noblekase.com {
-    redir https://noblekase.com{uri} permanent
+www.noblekase.co.id {
+    redir https://noblekase.co.id{uri} permanent
 }
 
-noblekase.com {
+noblekase.co.id {
     encode zstd gzip
 
     # ===== Security Headers =====
@@ -46,6 +48,12 @@ noblekase.com {
         Cross-Origin-Opener-Policy "same-origin"
     }
 
+    # ===== Dua bahasa =====
+    # Tidak ada aturan khusus yang dibutuhkan di sini: pemetaan /en dan
+    # rewrite bahasa default ditangani src/middleware.ts di dalam aplikasi.
+    # Sengaja dicatat supaya tidak ada yang menambahkan redirect /en di Caddy
+    # yang justru akan bentrok dengan middleware.
+
     # ===== Rate Limiting =====
     # Note: Caddy v2 rate-limit butuh module github.com/mholt/caddy-ratelimit
     # Atau pakai Redis-based rate limit di Next.js middleware
@@ -57,10 +65,21 @@ noblekase.com {
     header @static Cache-Control "public, max-age=31536000, immutable"
 
     # ===== Image cache =====
+    # Berkas upload disajikan Payload di /api/media/file/*, BUKAN di /uploads —
+    # /uploads hanyalah lokasi berkas di disk (staticDir), bukan rute publik.
+    # Pola lama /uploads/* tidak pernah cocok sehingga gambar CMS sama sekali
+    # tidak ter-cache.
     @images {
-        path /_next/image* /uploads/*
+        path /_next/image* /api/media/file/*
     }
     header @images Cache-Control "public, max-age=2592000"
+
+    # ===== Panel admin: jangan pernah di-cache =====
+    # Halaman admin bersifat per-pengguna dan sebagian memuat data sesi.
+    @admin {
+        path /admin*
+    }
+    header @admin Cache-Control "no-store"
 
     # ===== Reverse Proxy ke Next.js app (yang juga serve Payload) =====
     reverse_proxy app:3000 {

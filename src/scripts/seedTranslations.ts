@@ -528,7 +528,7 @@ const faqEN: { id: string; question: string; answer: string }[] = [
     id: "Bagaimana kerjasama bisnis / B2B?",
     question: "How do partnerships and B2B work?",
     answer:
-      "For corporate orders, bulk gifting, or content collaborations — email halo@noblekase.com with the subject 'B2B Inquiry'.",
+      "For corporate orders, bulk gifting, or content collaborations — email halo@noblekase.co.id with the subject 'B2B Inquiry'.",
   },
 ];
 
@@ -803,7 +803,7 @@ const supportChannelEN: Record<
   },
   mail: {
     title: "Email",
-    description: "halo@noblekase.com — for partnerships & B2B",
+    description: "halo@noblekase.co.id — for partnerships & B2B",
     buttonLabel: "Send an email",
   },
 };

@@ -66,7 +66,7 @@ export const SiteSettings: GlobalConfig = {
             {
               name: "email",
               type: "email",
-              defaultValue: "halo@noblekase.com",
+              defaultValue: "halo@noblekase.co.id",
             },
             {
               name: "social",

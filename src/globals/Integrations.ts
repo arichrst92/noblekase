@@ -50,8 +50,8 @@ export const Integrations: GlobalConfig = {
               type: "text",
               admin: { description: "API key Resend (resend.com/api-keys) untuk email transaksional. RAHASIA." },
             },
-            { name: "emailFrom", type: "email", defaultValue: "noreply@noblekase.com" },
-            { name: "emailReplyTo", type: "email", defaultValue: "halo@noblekase.com" },
+            { name: "emailFrom", type: "email", defaultValue: "noreply@noblekase.co.id" },
+            { name: "emailReplyTo", type: "email", defaultValue: "halo@noblekase.co.id" },
           ],
         },
         {
@@ -65,7 +65,7 @@ export const Integrations: GlobalConfig = {
             {
               name: "searchConsoleProperty",
               type: "text",
-              admin: { description: "URL properti Search Console, mis. https://noblekase.com/" },
+              admin: { description: "URL properti Search Console, mis. https://noblekase.co.id/" },
             },
             {
               name: "indexingServiceAccountJson",

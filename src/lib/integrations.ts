@@ -38,8 +38,8 @@ export async function resolveIntegrations(): Promise<ResolvedIntegrations> {
     groqModelMarketIntel:
       pick(g.groqModelMarketIntel, process.env.GROQ_MODEL_MARKET_INTEL) ?? "llama-3.3-70b-versatile",
     resendApiKey: pick(g.resendApiKey, process.env.RESEND_API_KEY),
-    emailFrom: pick(g.emailFrom, process.env.EMAIL_FROM) ?? "noreply@noblekase.com",
-    emailReplyTo: pick(g.emailReplyTo, process.env.EMAIL_REPLY_TO) ?? "halo@noblekase.com",
+    emailFrom: pick(g.emailFrom, process.env.EMAIL_FROM) ?? "noreply@noblekase.co.id",
+    emailReplyTo: pick(g.emailReplyTo, process.env.EMAIL_REPLY_TO) ?? "halo@noblekase.co.id",
     gaMeasurementId: pick(g.gaMeasurementId, process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID),
     searchConsoleProperty: pick(g.searchConsoleProperty, process.env.GOOGLE_SEARCH_CONSOLE_PROPERTY),
     indexingServiceAccountJson: pick(g.indexingServiceAccountJson, undefined),

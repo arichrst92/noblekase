@@ -48,7 +48,7 @@ const dirname = path.dirname(filename);
 // otherwise gunakan default Payload (no email - cukup untuk development).
 const emailConfig = process.env.RESEND_API_KEY
   ? resendAdapter({
-      defaultFromAddress: process.env.EMAIL_FROM || "noreply@noblekase.com",
+      defaultFromAddress: process.env.EMAIL_FROM || "noreply@noblekase.co.id",
       defaultFromName: "Noblekase",
       apiKey: process.env.RESEND_API_KEY,
     })

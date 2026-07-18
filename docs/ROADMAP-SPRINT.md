@@ -160,13 +160,31 @@
 **Goal:** Live di server. **→ Milestone M5**
 **Depends on:** Sprint 7
 
-- [ ] Build produksi (`pnpm build`) bersih tanpa error
-- [ ] Deploy via Docker (`Dockerfile`, `docker-compose.yml`) atau native (`deploy-native.sh`, PM2 `ecosystem.config.cjs`)
-- [ ] Caddy reverse proxy + HTTPS (`Caddyfile`)
-- [ ] **Volume/mount persisten untuk folder upload lokal** (jangan sampai hilang saat re-deploy container)
-- [ ] Setup env produksi (semua key asli: GROQ, Resend, Google)
+**Jalur yang dipilih:** Docker Compose.
+
+Konfigurasi (selesai):
+
+- [x] Build standalone diaktifkan lewat `BUILD_STANDALONE` — sebelumnya Dockerfile dan `next.config.ts` saling bertentangan
+- [x] `NEXT_PUBLIC_*` diteruskan sebagai build arg (Next menanamkannya saat build, bukan saat runtime)
+- [x] `docker-compose.yml`: healthcheck app, batas ukuran log, volume log Caddy, catatan persistensi
+- [x] `docker-compose.iponly.yml`: port 6000 → 8080 (6000 diblokir browser sebagai unsafe port)
+- [x] Caddyfile: cache gambar diarahkan ke `/api/media/file/*` (pola `/uploads/*` lama tidak pernah cocok), `no-store` untuk `/admin`
+- [x] `.env.example`: pemisahan `POSTGRES_*` vs `DATABASE_URI`, blok akun admin pertama
+- [x] `DEPLOYMENT.md` ditulis ulang untuk alur Docker
+- [x] `docs/UAT-CHECKLIST.md` — uji end-to-end dua bahasa + smoke test + rollback
+
+Eksekusi (menunggu server):
+
+- [ ] **Buat migrasi baru** — koleksi `Slides` dan perubahan lain setelah 13 Juli belum masuk migrasi; database produksi baru akan kekurangan tabel
+- [ ] `pnpm build` bersih tanpa error
+- [ ] Provision VPS, `docker compose up -d --build`
+- [ ] Seed: `seed` → `seed:content` → `seed:translations`, lalu `create:admin`
+- [ ] Domain + HTTPS via Caddy
+- [ ] Verifikasi persistensi upload setelah rebuild container
+- [ ] Isi env produksi (GROQ, Resend, Google) — atau lewat CMS → API Keys
 - [ ] Google Search Console + submit sitemap
-- [ ] **UAT**: uji end-to-end semua halaman, search, chatbot, admin di staging
+- [ ] **UAT** sesuai `docs/UAT-CHECKLIST.md` di staging
+- [ ] Uji restore backup ke database kosong
 - [ ] Smoke test pasca-deploy + monitoring uptime
 - [ ] Go-live 🚀
 

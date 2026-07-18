@@ -194,7 +194,7 @@ cp .env.example .env
 # Edit .env dengan production values
 
 # Edit Caddyfile untuk domain Anda
-sed -i 's/noblekase.com/yourdomain.com/g' Caddyfile
+sed -i 's/noblekase.co.id/yourdomain.com/g' Caddyfile
 
 # Build & run
 docker compose up -d --build

@@ -270,7 +270,7 @@ const seed = async () => {
       },
       {
         q: "Bagaimana kerjasama bisnis / B2B?",
-        a: "Untuk korporat order, gift bulk, atau kolaborasi konten — kontak halo@noblekase.com dengan subject 'B2B Inquiry'.",
+        a: "Untuk korporat order, gift bulk, atau kolaborasi konten — kontak halo@noblekase.co.id dengan subject 'B2B Inquiry'.",
       },
     ];
     let order = 0;
@@ -315,9 +315,9 @@ const seed = async () => {
         {
           icon: "mail",
           title: "Email",
-          description: "halo@noblekase.com — untuk kerjasama & B2B",
+          description: "halo@noblekase.co.id — untuk kerjasama & B2B",
           buttonLabel: "Kirim Email",
-          url: "mailto:halo@noblekase.com",
+          url: "mailto:halo@noblekase.co.id",
         },
       ],
     },

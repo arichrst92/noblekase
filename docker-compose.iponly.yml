@@ -1,7 +1,7 @@
 # =====================================
 # Noblekase — Docker Compose Variant: IP + Port (no domain)
 # =====================================
-# Untuk deployment awal di http://72.60.74.202:6000
+# Untuk deployment awal di http://72.60.74.202:8080
 # (sebelum domain pointing & SSL via Caddy)
 #
 # Usage:
@@ -15,6 +15,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      # Diteruskan ke tahap builder. Next menanamkan NEXT_PUBLIC_* ke bundle
+      # saat build, jadi menaruhnya di env_file saja tidak berpengaruh.
+      # Compose mengambil nilainya dari .env di folder ini.
+      args:
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
+        NEXT_PUBLIC_GA_MEASUREMENT_ID: ${NEXT_PUBLIC_GA_MEASUREMENT_ID:-}
     image: noblekase-app:latest
     container_name: noblekase-app
     restart: unless-stopped
@@ -25,8 +31,13 @@ services:
       PORT: 3000
       HOSTNAME: 0.0.0.0
     ports:
-      # Expose app port directly to public 6000
-      - "6000:3000"
+      # Port 8080, BUKAN 6000.
+      #
+      # Chrome dan Firefox memblokir port 6000 sebagai unsafe port (dipakai
+      # X11) dan menolak memuat halaman dengan ERR_UNSAFE_PORT. Selain itu
+      # next.config.ts hanya mengizinkan http://72.60.74.202:8080 di
+      # images.remotePatterns, jadi gambar akan gagal dimuat di port lain.
+      - "8080:3000"
     volumes:
       - ./uploads:/app/uploads
     depends_on:

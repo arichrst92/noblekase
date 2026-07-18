@@ -216,8 +216,8 @@ GROQ_MODEL_MARKET_INTEL=llama-3.3-70b-versatile
 GROQ_MODEL_BLOG=llama-3.3-70b-versatile
 AI_BUDGET_CAP_USD=30
 RESEND_API_KEY=
-EMAIL_FROM=noreply@noblekase.com
-EMAIL_REPLY_TO=halo@noblekase.com
+EMAIL_FROM=noreply@noblekase.co.id
+EMAIL_REPLY_TO=halo@noblekase.co.id
 NEXT_PUBLIC_GA_MEASUREMENT_ID=
 
 # RATE LIMITING
