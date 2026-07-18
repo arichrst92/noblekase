@@ -40,6 +40,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "noblekase.co.id" },
       // IP-based deployment (initial deploy sebelum domain pointing)
       { protocol: "http", hostname: "72.60.74.202", port: "8080" },
+      // Staging: noble.ide.asia (via nginx existing di 178.128.54.19)
+      { protocol: "https", hostname: "noble.ide.asia" },
       // Localhost untuk development
       { protocol: "http", hostname: "localhost" },
     ],
