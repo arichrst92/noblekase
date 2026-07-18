@@ -46,13 +46,19 @@ export function HeroCarousel({
   const touchX = useRef<number | null>(null);
   const count = slides.length;
 
-  const go = useCallback((i: number) => setIndex(((i % count) + count) % count), [count]);
+  const go = useCallback(
+    (i: number) => setIndex(((i % count) + count) % count),
+    [count],
+  );
   const next = useCallback(() => go(index + 1), [go, index]);
   const prev = useCallback(() => go(index - 1), [go, index]);
 
   useEffect(() => {
     if (count <= 1 || paused) return;
-    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
       return;
     const t = setTimeout(next, INTERVAL);
     return () => clearTimeout(t);
@@ -81,7 +87,9 @@ export function HeroCarousel({
       >
         {slides.map((s, i) => {
           const light = s.textTheme === "light";
-          const hasText = Boolean(s.eyebrow || s.headline || s.subheadline || s.ctaLabel);
+          const hasText = Boolean(
+            s.eyebrow || s.headline || s.subheadline || s.ctaLabel,
+          );
           return (
             <div
               key={s.id}
@@ -89,10 +97,17 @@ export function HeroCarousel({
               aria-hidden={i !== index}
               role="group"
               aria-roledescription="slide"
-              aria-label={tr("carousel.slideOfTemplate", { index: i + 1, total: count })}
+              aria-label={tr("carousel.slideOfTemplate", {
+                index: i + 1,
+                total: count,
+              })}
             >
               <Link
-                href={s.ctaUrl.startsWith("/") ? localePath(locale, s.ctaUrl) : s.ctaUrl}
+                href={
+                  s.ctaUrl.startsWith("/")
+                    ? localePath(locale, s.ctaUrl)
+                    : s.ctaUrl
+                }
                 tabIndex={i === index ? 0 : -1}
                 className="block"
               >
@@ -124,13 +139,21 @@ export function HeroCarousel({
                     <div
                       className={cn(
                         "absolute inset-0",
+                        /*
+                          Mobile pakai peredup RATA yang lebih pekat; gradasi
+                          baru dipakai dari md ke atas. Di layar sempit teks
+                          memakai hampir seluruh lebar, jadi ujung gradasi yang
+                          bening jatuh tepat di bawah teks dan menyulitkan baca.
+                          `md:bg-transparent` mereset warna latar agar tidak
+                          menumpuk dengan gradasi (dua properti berbeda).
+                        */
                         light
                           ? s.textAlign === "left"
-                            ? "bg-gradient-to-r from-black/65 via-black/35 to-transparent"
-                            : "bg-black/40"
+                            ? "bg-black/60 md:bg-transparent md:bg-gradient-to-r md:from-black/65 md:via-black/35 md:to-transparent"
+                            : "bg-black/60 md:bg-black/40"
                           : s.textAlign === "left"
-                            ? "bg-gradient-to-r from-white/75 via-white/40 to-transparent"
-                            : "bg-white/45",
+                            ? "bg-white/80 md:bg-transparent md:bg-gradient-to-r md:from-white/75 md:via-white/40 md:to-transparent"
+                            : "bg-white/80 md:bg-white/45",
                       )}
                     />
                   )}
@@ -214,7 +237,9 @@ export function HeroCarousel({
                 aria-current={i === index}
                 className={cn(
                   "h-2 rounded-full transition-all",
-                  i === index ? "w-8 bg-accent" : "w-2 bg-white/60 hover:bg-white/90",
+                  i === index
+                    ? "w-8 bg-accent"
+                    : "w-2 bg-white/60 hover:bg-white/90",
                 )}
               />
             ))}

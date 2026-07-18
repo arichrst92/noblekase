@@ -87,17 +87,31 @@ export function PageHeroBanner({
           />
         )}
 
+        {/*
+          Scrim dua perlakuan.
+
+          Mobile: peredup RATA menutupi seluruh gambar, dan lebih pekat.
+          Gradasi hanya bekerja bila teks punya sisi tetap untuk ditempati —
+          di layar sempit teks memakai hampir seluruh lebar, jadi ujung
+          gradasi yang bening justru jatuh tepat di bawah teks dan membuatnya
+          sulit dibaca.
+
+          md ke atas: kembali ke gradasi supaya foto produk tetap terlihat di
+          sisi yang tidak dipakai teks. `md:bg-transparent` wajib ada karena
+          warna latar dan gradasi adalah dua properti berbeda — tanpa reset
+          itu keduanya menumpuk dan gambarnya jadi terlalu gelap.
+        */}
         {scrim && (
           <div
             className={cn(
               "absolute inset-0",
               light
                 ? alignRight
-                  ? "bg-gradient-to-l from-black/75 via-black/45 to-black/10"
-                  : "bg-gradient-to-r from-black/75 via-black/45 to-black/10"
+                  ? "bg-black/65 md:bg-transparent md:bg-gradient-to-l md:from-black/75 md:via-black/45 md:to-black/10"
+                  : "bg-black/65 md:bg-transparent md:bg-gradient-to-r md:from-black/75 md:via-black/45 md:to-black/10"
                 : alignRight
-                  ? "bg-gradient-to-l from-white/85 via-white/50 to-white/10"
-                  : "bg-gradient-to-r from-white/85 via-white/50 to-white/10",
+                  ? "bg-white/80 md:bg-transparent md:bg-gradient-to-l md:from-white/85 md:via-white/50 md:to-white/10"
+                  : "bg-white/80 md:bg-transparent md:bg-gradient-to-r md:from-white/85 md:via-white/50 md:to-white/10",
             )}
           />
         )}
