@@ -1,14 +1,20 @@
 /**
  * Frontend Layout — wraps all customer-facing pages
+ * Dibuat oleh: PT Solusi Inovasi Bangsa (https://ide.asia)
  *
  * Fonts: di-load via <link> tags ke Google Fonts (di browser user),
  * bukan via next/font/google (yang download saat build dan gagal di
  * Docker build container karena DNS isolation).
  *
  * Includes: floating top nav, footer, mobile bottom nav, chatbot bubble.
+ *
+ * Dua bahasa: segmen [locale] menentukan bahasa seluruh subtree. Nilainya
+ * dioper ke setiap query CMS (agar Payload mengembalikan field terjemahan)
+ * dan ke komponen layout (agar teks UI serta prefix tautan ikut menyesuaikan).
  */
 
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { TopNav } from "@/components/layout/TopNav";
 import { Footer } from "@/components/layout/Footer";
 import { BottomNavMobile } from "@/components/layout/BottomNavMobile";
@@ -22,15 +28,33 @@ import {
 } from "@/lib/queries";
 import { Analytics } from "@/components/analytics/Analytics";
 import { SiteJsonLd } from "@/components/seo/JsonLd";
+import {
+  htmlLang,
+  isLocale,
+  locales,
+  ogLocale,
+  t,
+  type Locale,
+} from "@/lib/i18n";
+import { languageAlternates } from "@/lib/seo";
 import "./globals.css";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const s = await getSiteSettings();
+interface LocaleParams {
+  params: Promise<{ locale: string }>;
+}
+
+/** Prerender kedua bahasa; locale lain jatuh ke notFound(). */
+export function generateStaticParams() {
+  return locales.map((locale) => ({ locale }));
+}
+
+export async function generateMetadata({ params }: LocaleParams): Promise<Metadata> {
+  const { locale: raw } = await params;
+  const locale: Locale = isLocale(raw) ? raw : "id";
+  const s = await getSiteSettings(locale);
   const siteName = s?.siteName ?? "Noblekase";
-  const tagline = s?.tagline ?? "Aksesoris yang menemani hari-hari setiap orang";
-  const description =
-    s?.defaultMetaDescription ??
-    "Brand aksesoris HP yang mengedepankan kualitas konsisten dan desain editorial untuk semua kalangan.";
+  const tagline = s?.tagline ?? t(locale, "site.taglineFallback");
+  const description = s?.defaultMetaDescription ?? t(locale, "site.metaDescriptionFallback");
   const ogImage = resolveMediaUrl(s?.defaultOgImage, "og");
   return {
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
@@ -41,7 +65,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description,
     openGraph: {
       siteName,
-      locale: "id_ID",
+      locale: ogLocale[locale],
       type: "website",
       ...(ogImage ? { images: [{ url: ogImage }] } : {}),
     },
@@ -49,18 +73,23 @@ export async function generateMetadata(): Promise<Metadata> {
     ...(s?.googleSiteVerification
       ? { verification: { google: s.googleSiteVerification } }
       : {}),
-    alternates: {
-      languages: { id: "/id", en: "/en" },
-    },
+    alternates: { languages: languageAlternates("/") },
   };
 }
 
-export default async function FrontendLayout({ children }: { children: React.ReactNode }) {
+export default async function FrontendLayout({
+  children,
+  params,
+}: LocaleParams & { children: React.ReactNode }) {
+  const { locale: raw } = await params;
+  if (!isLocale(raw)) notFound();
+  const locale: Locale = raw;
+
   const [header, footer, settings, integrations] = await Promise.all([
-    getHeaderNav(),
-    getFooterData(),
-    getSiteSettings(),
-    getIntegrations(),
+    getHeaderNav(locale),
+    getFooterData(locale),
+    getSiteSettings(locale),
+    getIntegrations(locale),
   ]);
 
   // Logo: pakai upload CMS bila ada, jika tidak fallback ke file statis.
@@ -71,7 +100,7 @@ export default async function FrontendLayout({ children }: { children: React.Rea
   const gaEnabled = !!gaId && !gaId.includes("XXXX");
 
   return (
-    <html lang="id">
+    <html lang={htmlLang[locale]}>
       <head>
         {/* Preconnect untuk performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -86,6 +115,7 @@ export default async function FrontendLayout({ children }: { children: React.Rea
         {gaEnabled && <Analytics measurementId={gaId!} />}
 
         <SiteJsonLd
+          locale={locale}
           siteName={settings?.siteName ?? "Noblekase"}
           logoUrl={logoUrl}
           socialUrls={(settings?.social ?? [])
@@ -93,7 +123,12 @@ export default async function FrontendLayout({ children }: { children: React.Rea
             .filter(Boolean)}
         />
 
-        <TopNav navItems={header.navItems} brand={settings?.siteName} logoUrl={logoUrl} />
+        <TopNav
+          navItems={header.navItems}
+          brand={settings?.siteName}
+          logoUrl={logoUrl}
+          locale={locale}
+        />
 
         <main className="flex-1 pb-24 md:pb-0">{children}</main>
 
@@ -104,17 +139,27 @@ export default async function FrontendLayout({ children }: { children: React.Rea
           columns={footer.columns}
           copyrightText={footer.copyrightText}
           legalLinks={footer.legalLinks}
+          locale={locale}
         />
 
-        <BottomNavMobile items={header.mobileBottomNav} />
+        <BottomNavMobile items={header.mobileBottomNav} locale={locale} />
 
         <ChatbotBubble
           enabled={settings?.chatbotEnabled !== false}
           title={settings?.chatbotTitle ?? undefined}
           statusText={settings?.chatbotStatusText ?? undefined}
           placeholder={settings?.chatbotInputPlaceholder ?? undefined}
-          greeting={settings?.chatbotGreetingId ?? undefined}
+          /* Site Settings menyimpan sapaan chatbot sebagai dua field terpisah
+             (chatbotGreetingId / chatbotGreetingEn), bukan satu field
+             localized seperti field chatbot lainnya. Jadi pemilihannya
+             dilakukan manual di sini — tanpa ini pembaca versi Inggris
+             disapa dalam Bahasa Indonesia. */
+          greeting={
+            (locale === "en" ? settings?.chatbotGreetingEn : settings?.chatbotGreetingId) ??
+            undefined
+          }
           autoTriggerSeconds={Number(settings?.chatbotAutoTriggerSeconds ?? 0)}
+          locale={locale}
         />
       </body>
     </html>

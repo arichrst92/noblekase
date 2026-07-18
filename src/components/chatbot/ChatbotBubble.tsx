@@ -13,6 +13,13 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { MessageCircle, X, Send } from "lucide-react";
 import { cn } from "@/lib/cn";
+import {
+  defaultLocale,
+  localePath,
+  stripLocale,
+  translator,
+  type Locale,
+} from "@/lib/i18n";
 
 interface Message {
   role: "user" | "assistant";
@@ -26,16 +33,23 @@ export interface ChatbotConfig {
   placeholder?: string;
   greeting?: string;
   autoTriggerSeconds?: number;
+  locale?: Locale;
 }
 
 export function ChatbotBubble({
   enabled = true,
-  title = "AI Assistant Noblekase",
-  statusText = "Online · 24/7",
-  placeholder = "Ketik pertanyaan...",
-  greeting = "Halo! Ada yang bisa saya bantu seputar produk Noblekase?",
+  title,
+  statusText,
+  placeholder,
+  greeting,
   autoTriggerSeconds = 0,
+  locale = defaultLocale,
 }: ChatbotConfig) {
+  const tr = translator(locale);
+  const titleText = title ?? tr("chatbot.title");
+  const statusTextValue = statusText ?? tr("chatbot.status");
+  const placeholderText = placeholder ?? tr("chatbot.placeholder");
+  const greetingText = greeting ?? tr("chatbot.greeting");
   const [open, setOpen] = useState(false);
   const [bounce, setBounce] = useState(false);
   const [input, setInput] = useState("");
@@ -47,7 +61,8 @@ export function ChatbotBubble({
   // Auto-bounce sekali di halaman detail produk
   useEffect(() => {
     if (!enabled || open || autoTriggerSeconds <= 0) return;
-    if (!pathname?.startsWith("/produk/detail/")) return;
+    // Prefix locale dilepas dulu supaya /en/produk/detail/... ikut terdeteksi.
+    if (!stripLocale(pathname ?? "/").path.startsWith("/produk/detail/")) return;
     if (sessionStorage.getItem("nk-chat-bounced")) return;
     const t = setTimeout(() => {
       setBounce(true);
@@ -78,7 +93,7 @@ export function ChatbotBubble({
       const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: next }),
+        body: JSON.stringify({ messages: next, locale }),
       });
 
       if (!res.body) {
@@ -99,19 +114,26 @@ export function ChatbotBubble({
     } catch {
       setMessages((m) => [
         ...m.slice(0, -1),
-        { role: "assistant", content: "Maaf, koneksi bermasalah. Coba lagi sebentar lagi." },
+        { role: "assistant", content: tr("chatbot.connectionError") },
       ]);
     } finally {
       setStreaming(false);
     }
   }
 
-  /** Ubah tautan internal di jawaban menjadi link yang bisa diklik. */
+  /**
+   * Ubah tautan internal di jawaban menjadi link yang bisa diklik.
+   * Path diberi prefix locale, tapi teks yang tampil tetap path aslinya.
+   */
   function renderContent(text: string) {
     const parts = text.split(/(\/[a-z0-9/-]+)/gi);
     return parts.map((part, i) =>
       /^\/(produk|journal|tentang|dukungan|cari)/i.test(part) ? (
-        <a key={i} href={part} className="underline underline-offset-2 hover:opacity-80">
+        <a
+          key={i}
+          href={localePath(locale, part)}
+          className="underline underline-offset-2 hover:opacity-80"
+        >
           {part}
         </a>
       ) : (
@@ -124,7 +146,7 @@ export function ChatbotBubble({
     <>
       <div ref={scrollRef} className="flex-1 p-4 overflow-y-auto space-y-3">
         <div className="bg-bg-warm rounded-2xl rounded-bl-sm px-3.5 py-2.5 max-w-[85%] text-sm">
-          {greeting}
+          {greetingText}
         </div>
         {messages.map((m, i) => (
           <div
@@ -147,14 +169,14 @@ export function ChatbotBubble({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send()}
-          placeholder={placeholder}
-          aria-label="Pesan untuk asisten"
+          placeholder={placeholderText}
+          aria-label={tr("chatbot.inputAriaLabel")}
           className="flex-1 px-3 py-2 text-sm border border-border-light rounded-full focus:outline-none focus:border-ink-primary"
         />
         <button
           onClick={send}
           disabled={streaming || !input.trim()}
-          aria-label="Kirim"
+          aria-label={tr("chatbot.send")}
           className="w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center disabled:opacity-40 hover:bg-ink-primary transition-colors"
         >
           <Send className="w-4 h-4" />
@@ -166,12 +188,12 @@ export function ChatbotBubble({
   const header = (
     <div className="bg-ink-primary text-bg-base px-4 py-3 flex items-center justify-between">
       <div>
-        <div className="text-[11px] opacity-70">{statusText}</div>
-        <div className="text-sm font-medium">{title}</div>
+        <div className="text-[11px] opacity-70">{statusTextValue}</div>
+        <div className="text-sm font-medium">{titleText}</div>
       </div>
       <button
         onClick={() => setOpen(false)}
-        aria-label="Tutup"
+        aria-label={tr("chatbot.closeChat")}
         className="p-1 opacity-80 hover:opacity-100"
       >
         <X className="w-4 h-4" />
@@ -190,7 +212,7 @@ export function ChatbotBubble({
           "hover:scale-105 active:scale-95 transition-transform",
           bounce && "animate-bounce",
         )}
-        aria-label={open ? "Tutup chat" : "Buka chat dengan asisten"}
+        aria-label={open ? tr("chatbot.closeChat") : tr("chatbot.openChat")}
       >
         {open ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
       </button>
@@ -209,7 +231,7 @@ export function ChatbotBubble({
           <button
             className="absolute inset-0 bg-ink-primary/40"
             onClick={() => setOpen(false)}
-            aria-label="Tutup chat"
+            aria-label={tr("chatbot.closeChat")}
           />
           <div className="absolute bottom-0 left-0 right-0 h-[78vh] flex flex-col bg-bg-base rounded-t-2xl overflow-hidden">
             {header}

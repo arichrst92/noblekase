@@ -5,6 +5,7 @@
 
 import { SmartImage as Image } from "@/components/media/SmartImage";
 import Link from "next/link";
+import { defaultLocale, localePath, translator, type Locale } from "@/lib/i18n";
 
 interface FeaturedProduct {
   name: string;
@@ -17,16 +18,29 @@ interface FeaturedCollectionProps {
   headline?: string;
   subheadline?: string;
   mainProduct: FeaturedProduct;
-  secondaryProducts: [FeaturedProduct, FeaturedProduct];
+  /**
+   * Idealnya dua produk pendamping, tapi tipenya sengaja array biasa:
+   * jumlah item datang dari CMS dan editor bisa saja mengisi kurang dari dua.
+   * Tuple ketat membuat data CMS tidak pernah lolos typecheck.
+   */
+  secondaryProducts: FeaturedProduct[];
+  locale?: Locale;
 }
 
 export function FeaturedCollection({
-  eyebrow = "Cerita Edisi Ini",
-  headline = "Untuk Pekerja Mobile",
-  subheadline = "Koleksi pilihan untuk teman bekerja di mana saja",
+  eyebrow: eyebrowProp,
+  headline: headlineProp,
+  subheadline: subheadlineProp,
   mainProduct,
   secondaryProducts,
+  locale = defaultLocale,
 }: FeaturedCollectionProps) {
+  const tr = translator(locale);
+  // Fallback mengikuti bahasa aktif ketika field CMS masih kosong.
+  const eyebrow = eyebrowProp ?? tr("featured.eyebrow");
+  const headline = headlineProp ?? tr("featured.headline");
+  const subheadline = subheadlineProp ?? tr("featured.subheadline");
+
   return (
     <section className="py-16 md:py-24 border-b border-border-light">
       <div className="container-prose">
@@ -39,7 +53,7 @@ export function FeaturedCollection({
         <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr] gap-3">
           {/* Main featured */}
           <Link
-            href={`/produk/detail/${mainProduct.slug}`}
+            href={localePath(locale, `/produk/detail/${mainProduct.slug}`)}
             className="reveal aspect-[5/4] md:aspect-[1.2/1] bg-bg-warm border border-border-mid rounded-md overflow-hidden relative hover-zoom group"
           >
             {mainProduct.imageUrl ? (
@@ -52,7 +66,7 @@ export function FeaturedCollection({
               />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-ink-tertiary text-sm">
-                <span>Featured product</span>
+                <span>{tr("featured.imagePlaceholder")}</span>
                 <span className="text-xs mt-1">{mainProduct.name}</span>
               </div>
             )}
@@ -63,7 +77,7 @@ export function FeaturedCollection({
             {secondaryProducts.map((p) => (
               <Link
                 key={p.slug}
-                href={`/produk/detail/${p.slug}`}
+                href={localePath(locale, `/produk/detail/${p.slug}`)}
                 className="reveal bg-bg-warm border border-border-mid rounded-md overflow-hidden relative hover-zoom"
               >
                 {p.imageUrl ? (

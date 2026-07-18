@@ -14,6 +14,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { defaultLocale, localePath, translator, type Locale } from "@/lib/i18n";
 
 export interface Slide {
   id: string;
@@ -32,7 +33,14 @@ export interface Slide {
 
 const INTERVAL = 6000;
 
-export function HeroCarousel({ slides }: { slides: Slide[] }) {
+export function HeroCarousel({
+  slides,
+  locale = defaultLocale,
+}: {
+  slides: Slide[];
+  locale?: Locale;
+}) {
+  const tr = translator(locale);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const touchX = useRef<number | null>(null);
@@ -58,7 +66,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       aria-roledescription="carousel"
-      aria-label="Sorotan Noblekase"
+      aria-label={tr("carousel.ariaLabel")}
       onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
       onTouchEnd={(e) => {
         if (touchX.current === null) return;
@@ -81,9 +89,13 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
               aria-hidden={i !== index}
               role="group"
               aria-roledescription="slide"
-              aria-label={`${i + 1} dari ${count}`}
+              aria-label={tr("carousel.slideOfTemplate", { index: i + 1, total: count })}
             >
-              <Link href={s.ctaUrl} tabIndex={i === index ? 0 : -1} className="block">
+              <Link
+                href={s.ctaUrl.startsWith("/") ? localePath(locale, s.ctaUrl) : s.ctaUrl}
+                tabIndex={i === index ? 0 : -1}
+                className="block"
+              >
                 {/* Tinggi responsif — gambar selalu memenuhi lebar */}
                 <div className="relative h-[420px] sm:h-[480px] md:h-[560px] lg:h-[640px]">
                   {s.imageUrl && (
@@ -180,14 +192,14 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
         <>
           <button
             onClick={prev}
-            aria-label="Slide sebelumnya"
+            aria-label={tr("carousel.prev")}
             className="absolute left-3 md:left-5 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/35 hover:bg-black/55 backdrop-blur-sm flex items-center justify-center transition-colors"
           >
             <ChevronLeft className="w-5 h-5 text-white" />
           </button>
           <button
             onClick={next}
-            aria-label="Slide berikutnya"
+            aria-label={tr("carousel.next")}
             className="absolute right-3 md:right-5 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/35 hover:bg-black/55 backdrop-blur-sm flex items-center justify-center transition-colors"
           >
             <ChevronRight className="w-5 h-5 text-white" />
@@ -198,7 +210,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
               <button
                 key={s.id}
                 onClick={() => go(i)}
-                aria-label={`Ke slide ${i + 1}`}
+                aria-label={tr("carousel.goToSlide", { index: i + 1 })}
                 aria-current={i === index}
                 className={cn(
                   "h-2 rounded-full transition-all",

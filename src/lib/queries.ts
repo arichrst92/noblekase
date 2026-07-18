@@ -8,6 +8,7 @@
  */
 
 import { getPayloadClient } from "@/lib/payload";
+import { defaultLocale, type Locale } from "@/lib/i18n";
 import type {
   SampleProduct,
   SampleCategory,
@@ -136,9 +137,10 @@ function mapProduct(p: any): ProductWithSeo {
 // Products
 // ------------------------------------------------------------------
 
-export async function getProducts(): Promise<ProductWithSeo[]> {
+export async function getProducts(locale: Locale = defaultLocale): Promise<ProductWithSeo[]> {
   const payload = await getPayloadClient();
   const res = await payload.find({
+    locale,
     collection: "products",
     where: { status: { equals: "published" } },
     depth: 2,
@@ -148,9 +150,10 @@ export async function getProducts(): Promise<ProductWithSeo[]> {
   return res.docs.map(mapProduct);
 }
 
-export async function getProductBySlug(slug: string): Promise<ProductWithSeo | null> {
+export async function getProductBySlug(slug: string, locale: Locale = defaultLocale): Promise<ProductWithSeo | null> {
   const payload = await getPayloadClient();
   const res = await payload.find({
+    locale,
     collection: "products",
     where: { slug: { equals: slug }, status: { equals: "published" } },
     depth: 2,
@@ -159,21 +162,21 @@ export async function getProductBySlug(slug: string): Promise<ProductWithSeo | n
   return res.docs[0] ? mapProduct(res.docs[0]) : null;
 }
 
-export async function getProductsByCategorySlug(slug: string): Promise<ProductWithSeo[]> {
-  const all = await getProducts();
+export async function getProductsByCategorySlug(slug: string, locale: Locale = defaultLocale): Promise<ProductWithSeo[]> {
+  const all = await getProducts(locale);
   return all.filter((p) => p.categorySlug === slug);
 }
 
-export async function getRelatedProducts(product: SampleProduct): Promise<ProductWithSeo[]> {
+export async function getRelatedProducts(product: SampleProduct, locale: Locale = defaultLocale): Promise<ProductWithSeo[]> {
   if (product.related?.length) {
-    const all = await getProducts();
+    const all = await getProducts(locale);
     const bySlug = new Map(all.map((p) => [p.slug, p]));
     const rel = product.related
       .map((s) => bySlug.get(s))
       .filter((p): p is SampleProduct => Boolean(p));
     if (rel.length) return rel.slice(0, 3);
   }
-  const same = (await getProductsByCategorySlug(product.categorySlug)).filter(
+  const same = (await getProductsByCategorySlug(product.categorySlug, locale)).filter(
     (p) => p.slug !== product.slug,
   );
   return same.slice(0, 3);
@@ -183,17 +186,18 @@ export async function getRelatedProducts(product: SampleProduct): Promise<Produc
 // Categories
 // ------------------------------------------------------------------
 
-export async function getCategories(): Promise<CategoryWithSeo[]> {
+export async function getCategories(locale: Locale = defaultLocale): Promise<CategoryWithSeo[]> {
   const payload = await getPayloadClient();
   const [cats, prods] = await Promise.all([
     payload.find({
+      locale,
       collection: "categories",
       where: { status: { equals: "published" } },
       depth: 1,
       sort: "order",
       limit: 50,
     }),
-    getProducts(),
+    getProducts(locale),
   ]);
   return cats.docs.map((c: any) => ({
     slug: c.slug,
@@ -207,8 +211,8 @@ export async function getCategories(): Promise<CategoryWithSeo[]> {
   }));
 }
 
-export async function getCategoryBySlug(slug: string): Promise<CategoryWithSeo | null> {
-  return (await getCategories()).find((c) => c.slug === slug) ?? null;
+export async function getCategoryBySlug(slug: string, locale: Locale = defaultLocale): Promise<CategoryWithSeo | null> {
+  return (await getCategories(locale)).find((c) => c.slug === slug) ?? null;
 }
 
 // ------------------------------------------------------------------
@@ -225,9 +229,10 @@ export interface HeroData {
   ctaUrl: string;
 }
 
-export async function getActiveHero(): Promise<HeroData | null> {
+export async function getActiveHero(locale: Locale = defaultLocale): Promise<HeroData | null> {
   const payload = await getPayloadClient();
   const res = await payload.find({
+    locale,
     collection: "hero-editions",
     where: { isActive: { equals: true } },
     depth: 1,
@@ -259,9 +264,10 @@ export interface FeaturedData {
   secondaryProducts: FeaturedCard[];
 }
 
-export async function getActiveFeatured(): Promise<FeaturedData | null> {
+export async function getActiveFeatured(locale: Locale = defaultLocale): Promise<FeaturedData | null> {
   const payload = await getPayloadClient();
   const res = await payload.find({
+    locale,
     collection: "featured-collections",
     where: { isActive: { equals: true } },
     depth: 2,
@@ -296,9 +302,10 @@ export interface SubCategoryItem {
   categorySlug: string;
 }
 
-export async function getSubCategories(): Promise<SubCategoryItem[]> {
+export async function getSubCategories(locale: Locale = defaultLocale): Promise<SubCategoryItem[]> {
   const payload = await getPayloadClient();
   const res = await payload.find({
+    locale,
     collection: "sub-categories",
     where: { status: { equals: "published" } },
     depth: 1,
@@ -329,7 +336,7 @@ export interface SearchResults {
  * Pencarian sederhana lintas produk, artikel, dan kategori.
  * Memakai operator `like` Payload (case-insensitive) pada beberapa field.
  */
-export async function search(rawQuery: string, limit = 24): Promise<SearchResults> {
+export async function search(rawQuery: string, locale: Locale = defaultLocale, limit = 24): Promise<SearchResults> {
   const query = rawQuery.trim();
   const empty: SearchResults = { query, products: [], articles: [], categories: [], total: 0 };
   if (query.length < 2) return empty;
@@ -338,6 +345,7 @@ export async function search(rawQuery: string, limit = 24): Promise<SearchResult
 
   const [prodRes, artRes, allCategories] = await Promise.all([
     payload.find({
+      locale,
       collection: "products",
       where: {
         and: [
@@ -350,6 +358,7 @@ export async function search(rawQuery: string, limit = 24): Promise<SearchResult
       sort: "order",
     }),
     payload.find({
+      locale,
       collection: "articles",
       where: {
         and: [
@@ -361,7 +370,7 @@ export async function search(rawQuery: string, limit = 24): Promise<SearchResult
       limit,
       sort: "-publishedAt",
     }),
-    getCategories(),
+    getCategories(locale),
   ]);
 
   const q = query.toLowerCase();
@@ -399,9 +408,10 @@ export interface SlideData {
   scrim: boolean;
 }
 
-export async function getSlides(): Promise<SlideData[]> {
+export async function getSlides(locale: Locale = defaultLocale): Promise<SlideData[]> {
   const payload = await getPayloadClient();
   const res = await payload.find({
+    locale,
     collection: "slides",
     where: { status: { equals: "published" } },
     depth: 1,
@@ -462,9 +472,10 @@ function mapArticle(a: any): JournalArticle {
   };
 }
 
-export async function getArticles(): Promise<JournalArticle[]> {
+export async function getArticles(locale: Locale = defaultLocale): Promise<JournalArticle[]> {
   const payload = await getPayloadClient();
   const res = await payload.find({
+    locale,
     collection: "articles",
     where: { status: { equals: "published" } },
     depth: 1,
@@ -474,9 +485,10 @@ export async function getArticles(): Promise<JournalArticle[]> {
   return res.docs.map(mapArticle);
 }
 
-export async function getArticleBySlug(slug: string): Promise<JournalArticle | null> {
+export async function getArticleBySlug(slug: string, locale: Locale = defaultLocale): Promise<JournalArticle | null> {
   const payload = await getPayloadClient();
   const res = await payload.find({
+    locale,
     collection: "articles",
     where: { slug: { equals: slug }, status: { equals: "published" } },
     depth: 1,
@@ -485,8 +497,8 @@ export async function getArticleBySlug(slug: string): Promise<JournalArticle | n
   return res.docs[0] ? mapArticle(res.docs[0]) : null;
 }
 
-export async function getRelatedArticles(article: JournalArticle): Promise<JournalArticle[]> {
-  const all = await getArticles();
+export async function getRelatedArticles(article: JournalArticle, locale: Locale = defaultLocale): Promise<JournalArticle[]> {
+  const all = await getArticles(locale);
   return all
     .filter((a) => a.slug !== article.slug && a.category === article.category)
     .slice(0, 3);
@@ -497,10 +509,10 @@ export async function getRelatedArticles(article: JournalArticle): Promise<Journ
 // ------------------------------------------------------------------
 
 /** Ambil isi global; kembalikan null bila belum ada / error. */
-export async function getGlobalData(slug: string): Promise<any> {
+export async function getGlobalData(slug: string, locale: Locale = defaultLocale): Promise<any> {
   try {
     const payload = await getPayloadClient();
-    return await payload.findGlobal({ slug: slug as any, depth: 1 });
+    return await payload.findGlobal({ slug: slug as any, depth: 1, locale });
   } catch {
     return null;
   }
@@ -516,8 +528,8 @@ export interface MobileNavItem extends NavItem {
   isCenterLogo?: boolean;
 }
 
-export async function getHeaderNav(): Promise<{ navItems: NavItem[]; mobileBottomNav: MobileNavItem[] }> {
-  const g = await getGlobalData("header");
+export async function getHeaderNav(locale: Locale = defaultLocale): Promise<{ navItems: NavItem[]; mobileBottomNav: MobileNavItem[] }> {
+  const g = await getGlobalData("header", locale);
   return {
     navItems: (g?.navItems ?? []).map((n: any) => ({ label: n.label, url: n.url })),
     mobileBottomNav: (g?.mobileBottomNav ?? []).map((n: any) => ({
@@ -536,8 +548,8 @@ export interface FooterData {
   legalLinks: NavItem[];
 }
 
-export async function getFooterData(): Promise<FooterData> {
-  const g = await getGlobalData("footer");
+export async function getFooterData(locale: Locale = defaultLocale): Promise<FooterData> {
+  const g = await getGlobalData("footer", locale);
   return {
     tagline: g?.tagline ?? "",
     columns: (g?.columns ?? []).map((c: any) => ({
@@ -553,22 +565,23 @@ export async function getFooterData(): Promise<FooterData> {
   };
 }
 
-export async function getSiteSettings(): Promise<any> {
-  return getGlobalData("site-settings");
+export async function getSiteSettings(locale: Locale = defaultLocale): Promise<any> {
+  return getGlobalData("site-settings", locale);
 }
 
 /** Global Integrations (API keys). Server-only — jangan kirim field rahasia ke client. */
-export async function getIntegrations(): Promise<any> {
-  return getGlobalData("integrations");
+export async function getIntegrations(locale: Locale = defaultLocale): Promise<any> {
+  return getGlobalData("integrations", locale);
 }
 
 // ------------------------------------------------------------------
 // Pages (block-based) & Support & FAQ
 // ------------------------------------------------------------------
 
-export async function getPageBySlug(slug: string): Promise<any> {
+export async function getPageBySlug(slug: string, locale: Locale = defaultLocale): Promise<any> {
   const payload = await getPayloadClient();
   const res = await payload.find({
+    locale,
     collection: "pages",
     where: { slug: { equals: slug }, status: { equals: "published" } },
     depth: 1,
@@ -582,9 +595,10 @@ export interface FaqItem {
   answer: unknown; // richText
 }
 
-export async function getFaqItems(): Promise<FaqItem[]> {
+export async function getFaqItems(locale: Locale = defaultLocale): Promise<FaqItem[]> {
   const payload = await getPayloadClient();
   const res = await payload.find({
+    locale,
     collection: "faq-items",
     where: { status: { equals: "published" } },
     depth: 0,

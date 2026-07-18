@@ -36,21 +36,35 @@ import {
   getProducts,
   resolveMediaUrl,
 } from "@/lib/queries";
+import { defaultLocale, isLocale, localePath, t, type Locale } from "@/lib/i18n";
+import { languageAlternates } from "@/lib/seo";
 
-// Judul/deskripsi/OG diwarisi dari root layout (Site Settings). Di sini cukup canonical.
-export const metadata: Metadata = {
-  alternates: { canonical: "/" },
-};
+interface HomePageProps {
+  params: Promise<{ locale: string }>;
+}
 
-export default async function HomePage() {
+// Judul/deskripsi/OG diwarisi dari root layout (Site Settings). Di sini cukup
+// canonical + hreflang, keduanya mengikuti bahasa yang sedang dibuka.
+export async function generateMetadata({ params }: HomePageProps): Promise<Metadata> {
+  const { locale: raw } = await params;
+  const locale: Locale = isLocale(raw) ? raw : defaultLocale;
+  return {
+    alternates: { canonical: localePath(locale, "/"), languages: languageAlternates("/") },
+  };
+}
+
+export default async function HomePage({ params }: HomePageProps) {
+  const { locale: raw } = await params;
+  const locale: Locale = isLocale(raw) ? raw : defaultLocale;
+
   const [hero, categories, featured, articles, home, slides, products] = await Promise.all([
-    getActiveHero(),
-    getCategories(),
-    getActiveFeatured(),
-    getArticles(),
-    getGlobalData("page-home"),
-    getSlides(),
-    getProducts(),
+    getActiveHero(locale),
+    getCategories(locale),
+    getActiveFeatured(locale),
+    getArticles(locale),
+    getGlobalData("page-home", locale),
+    getSlides(locale),
+    getProducts(locale),
   ]);
   const brandImageUrl =
     resolveMediaUrl(home?.brandImage, "landscape") ||
@@ -81,7 +95,7 @@ export default async function HomePage() {
 
       {/* 1. Carousel (koleksi Slides). Fallback ke hero tunggal bila belum ada slide. */}
       {slides.length > 0 ? (
-        <HeroCarousel slides={slides} />
+        <HeroCarousel slides={slides} locale={locale} />
       ) : (
         <HeroSection
           eyebrow={hero?.eyebrow}
@@ -91,6 +105,7 @@ export default async function HomePage() {
           imageAlt={hero?.imageAlt}
           ctaLabel={hero?.ctaLabel}
           ctaUrl={hero?.ctaUrl}
+          locale={locale}
         />
       )}
 
@@ -102,6 +117,7 @@ export default async function HomePage() {
           productCount: c.productCount,
           imageUrl: c.imageUrl,
         }))}
+        locale={locale}
       />
 
       {/* 3. Grid produk bertab */}
@@ -110,11 +126,12 @@ export default async function HomePage() {
         eyebrow={home?.productsEyebrow ?? undefined}
         headline={home?.productsHeadline ?? undefined}
         labels={{
-          new: home?.tabNewLabel ?? "Terbaru",
-          best: home?.tabBestLabel ?? "Terlaris",
-          all: home?.tabAllLabel ?? "Semua",
+          new: home?.tabNewLabel ?? t(locale, "productTabs.tab.new"),
+          best: home?.tabBestLabel ?? t(locale, "productTabs.tab.best"),
+          all: home?.tabAllLabel ?? t(locale, "productTabs.tab.all"),
         }}
         seeAllLabel={home?.seeAllLabel ?? undefined}
+        locale={locale}
       />
 
       {/* 4. Banner promo */}
@@ -124,6 +141,7 @@ export default async function HomePage() {
         ctaLabel={home?.promoCtaLabel ?? undefined}
         ctaUrl={home?.promoCtaUrl ?? undefined}
         imageUrl={resolveMediaUrl(home?.promoImage, "banner") || undefined}
+        locale={locale}
       />
 
       {/* 5. Koleksi pilihan */}
@@ -134,6 +152,7 @@ export default async function HomePage() {
           subheadline={featured.subheadline}
           mainProduct={featured.mainProduct}
           secondaryProducts={featured.secondaryProducts}
+          locale={locale}
         />
       )}
 
@@ -144,15 +163,17 @@ export default async function HomePage() {
         body={home?.brandBody ?? undefined}
         ctaLabel={home?.brandCtaLabel ?? undefined}
         ctaUrl={home?.brandCtaUrl ?? undefined}
+        locale={locale}
       />
 
       {/* 6. Marketplace CTA (jalur konversi) lalu 7. teaser Journal */}
-      <MarketplaceCTA />
+      <MarketplaceCTA locale={locale} />
 
       <JournalTeaser
         articles={teaserArticles}
         eyebrow={home?.journalEyebrow ?? undefined}
         headline={home?.journalHeadline ?? undefined}
+        locale={locale}
       />
     </>
   );

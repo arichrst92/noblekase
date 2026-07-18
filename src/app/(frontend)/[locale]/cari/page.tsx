@@ -11,23 +11,41 @@ import { ProductCard } from "@/components/cards/ProductCard";
 import { SearchForm } from "@/components/search/SearchForm";
 import { search } from "@/lib/queries";
 import { buildMetadata } from "@/lib/seo";
+import { defaultLocale, isLocale, localePath, translator, type Locale } from "@/lib/i18n";
 
 interface SearchPageProps {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ q?: string }>;
 }
 
-export async function generateMetadata({ searchParams }: SearchPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+  searchParams,
+}: SearchPageProps): Promise<Metadata> {
+  const { locale: raw } = await params;
+  const locale: Locale = isLocale(raw) ? raw : defaultLocale;
+  const tr = translator(locale);
   const { q } = await searchParams;
-  return buildMetadata({
-    title: q ? `Pencarian: ${q}` : "Pencarian",
-    description: "Cari produk, artikel, dan kategori Noblekase.",
+  const meta = await buildMetadata({
+    title: q ? tr("search.metaTitleWithQuery", { query: q }) : tr("search.metaTitle"),
+    description: tr("search.metaDescription"),
     path: q ? `/cari?q=${encodeURIComponent(q)}` : "/cari",
+    locale,
   });
+
+  // Halaman hasil pencarian tidak diindeks: setiap kata kunci menghasilkan
+  // URL baru, dan sejak situs dua bahasa jumlahnya berlipat dua. Membiarkannya
+  // terindeks hanya mengotori indeks Google dengan halaman tipis. `follow`
+  // tetap aktif agar tautan produk di dalamnya tetap ditelusuri.
+  return { ...meta, robots: { index: false, follow: true } };
 }
 
-export default async function SearchPage({ searchParams }: SearchPageProps) {
+export default async function SearchPage({ params, searchParams }: SearchPageProps) {
+  const { locale: raw } = await params;
+  const locale: Locale = isLocale(raw) ? raw : defaultLocale;
+  const tr = translator(locale);
   const { q = "" } = await searchParams;
-  const results = await search(q, 48);
+  const results = await search(q, locale, 48);
   const hasQuery = q.trim().length >= 2;
 
   return (
@@ -36,16 +54,18 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
       <section className="bg-bg-cream pt-32 md:pt-40 pb-10 md:pb-12 border-b border-border-light">
         <div className="container-prose max-w-2xl">
-          <div className="eyebrow mb-3">Pencarian</div>
+          <div className="eyebrow mb-3">{tr("search.eyebrow")}</div>
           <h1 className="font-serif text-3xl md:text-4xl font-medium leading-tight mb-6 tracking-tight">
-            {hasQuery ? `Hasil untuk "${results.query}"` : "Cari produk & cerita"}
+            {hasQuery
+              ? tr("search.resultsFor", { query: results.query })
+              : tr("search.headingEmpty")}
           </h1>
-          <SearchForm defaultValue={q} autoFocus={!hasQuery} />
+          <SearchForm defaultValue={q} autoFocus={!hasQuery} locale={locale} />
           {hasQuery && (
             <p className="mt-4 text-sm text-ink-secondary">
               {results.total > 0
-                ? `${results.total} hasil ditemukan`
-                : "Tidak ada hasil yang cocok"}
+                ? tr("search.countFound", { count: results.total })
+                : tr("search.noMatch")}
             </p>
           )}
         </div>
@@ -55,11 +75,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       {!hasQuery && (
         <section className="py-16 md:py-20">
           <div className="container-prose max-w-2xl text-center text-ink-secondary">
-            <p className="mb-2">Ketik minimal 2 huruf untuk mulai mencari.</p>
-            <p className="text-sm">
-              Coba kata seperti <em>charger</em>, <em>kabel</em>, <em>earbuds</em>, atau{" "}
-              <em>casing</em>.
-            </p>
+            <p className="mb-2">{tr("search.minChars")}</p>
+            <p className="text-sm">{tr("search.hintExamples")}</p>
           </div>
         </section>
       )}
@@ -69,16 +86,14 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         <section className="py-16 md:py-20">
           <div className="container-prose max-w-xl text-center">
             <h2 className="font-serif text-xl md:text-2xl font-medium mb-3">
-              Belum ada yang cocok
+              {tr("search.emptyHeading")}
             </h2>
-            <p className="text-ink-secondary mb-6">
-              Coba kata kunci lain, atau jelajahi koleksi lengkap kami.
-            </p>
+            <p className="text-ink-secondary mb-6">{tr("search.emptyBody")}</p>
             <Link
-              href="/produk"
+              href={localePath(locale, "/produk")}
               className="inline-flex items-center gap-2 bg-accent text-white px-6 py-3 rounded-md text-sm font-medium hover:bg-ink-primary transition-colors"
             >
-              Lihat semua produk <span aria-hidden>→</span>
+              {tr("common.viewAllProducts")} <span aria-hidden>→</span>
             </Link>
           </div>
         </section>
@@ -88,9 +103,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       {results.products.length > 0 && (
         <section className="py-12 md:py-16">
           <div className="container-prose">
-            <div className="eyebrow mb-2">Produk</div>
+            <div className="eyebrow mb-2">{tr("common.products")}</div>
             <h2 className="font-serif text-2xl md:text-3xl font-medium mb-6">
-              {results.products.length} produk
+              {tr("search.productCount", { count: results.products.length })}
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
               {results.products.map((p) => (
@@ -103,6 +118,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                   imageUrl={p.imageUrl}
                   badge={p.badge}
                   marketplaceKeys={p.marketplaces.map((m) => m.key)}
+                  locale={locale}
                 />
               ))}
             </div>
@@ -114,12 +130,12 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       {results.categories.length > 0 && (
         <section className="py-10 md:py-12 border-t border-border-light">
           <div className="container-prose">
-            <div className="eyebrow mb-4">Kategori</div>
+            <div className="eyebrow mb-4">{tr("common.categories")}</div>
             <div className="flex flex-wrap gap-2">
               {results.categories.map((c) => (
                 <Link
                   key={c.slug}
-                  href={`/produk/${c.slug}`}
+                  href={localePath(locale, `/produk/${c.slug}`)}
                   className="px-4 py-2 rounded-full border border-border-mid text-sm hover:border-ink-primary hover:bg-bg-warm transition-colors"
                 >
                   {c.name}
@@ -135,13 +151,17 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       {results.articles.length > 0 && (
         <section className="py-12 md:py-16 border-t border-border-light">
           <div className="container-prose">
-            <div className="eyebrow mb-2">Journal</div>
+            <div className="eyebrow mb-2">{tr("common.journal")}</div>
             <h2 className="font-serif text-2xl md:text-3xl font-medium mb-6">
-              {results.articles.length} artikel
+              {tr("search.articleCount", { count: results.articles.length })}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
               {results.articles.map((a) => (
-                <Link key={a.slug} href={`/journal/${a.slug}`} className="group">
+                <Link
+                  key={a.slug}
+                  href={localePath(locale, `/journal/${a.slug}`)}
+                  className="group"
+                >
                   <div className="aspect-[4/3] bg-bg-warm border border-border-light rounded-md overflow-hidden mb-3 hover-zoom relative">
                     {a.coverUrl && (
                       <Image
@@ -154,7 +174,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                     )}
                   </div>
                   <div className="text-[10px] tracking-widest uppercase text-ink-tertiary mb-2">
-                    {a.category} · {a.readingTime} mnt
+                    {a.category} · {a.readingTime} {tr("common.minutesShort")}
                   </div>
                   <h3 className="font-serif text-base md:text-lg font-medium leading-snug group-hover:text-accent transition-colors">
                     {a.title}

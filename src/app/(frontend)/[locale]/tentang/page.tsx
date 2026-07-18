@@ -8,32 +8,40 @@ import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
 import { PageBlocks } from "@/components/pages/PageBlocks";
 import { getPageBySlug, resolveMediaUrl } from "@/lib/queries";
 import { buildMetadata } from "@/lib/seo";
+import { defaultLocale, isLocale, t, type Locale } from "@/lib/i18n";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const page = await getPageBySlug("tentang");
+interface TentangPageProps {
+  params: Promise<{ locale: string }>;
+}
+
+export async function generateMetadata({ params }: TentangPageProps): Promise<Metadata> {
+  const { locale: raw } = await params;
+  const locale: Locale = isLocale(raw) ? raw : defaultLocale;
+  const page = await getPageBySlug("tentang", locale);
   // Fallback gambar: SEO override → gambar hero block pertama → default situs
   const heroBlock = (page?.blocks ?? []).find((b: { blockType?: string }) => b.blockType === "hero");
   return buildMetadata({
-    title: page?.seo?.title ?? page?.title ?? "Tentang Noblekase",
-    description:
-      page?.seo?.description ??
-      "Cerita di balik Noblekase: aksesoris yang menemani hari-hari setiap orang dengan kualitas konsisten dan desain editorial.",
+    title: page?.seo?.title ?? page?.title ?? t(locale, "about.metaTitle"),
+    description: page?.seo?.description ?? t(locale, "about.metaDescription"),
     path: "/tentang",
     image:
       resolveMediaUrl(page?.seo?.ogImage, "og") ||
       resolveMediaUrl(heroBlock?.image, "og") ||
       undefined,
+    locale,
   });
 }
 
-export default async function TentangPage() {
-  const page = await getPageBySlug("tentang");
+export default async function TentangPage({ params }: TentangPageProps) {
+  const { locale: raw } = await params;
+  const locale: Locale = isLocale(raw) ? raw : defaultLocale;
+  const page = await getPageBySlug("tentang", locale);
   if (!page) notFound();
 
   return (
     <>
       <RevealOnScroll />
-      <PageBlocks blocks={page.blocks ?? []} />
+      <PageBlocks blocks={page.blocks ?? []} locale={locale} />
     </>
   );
 }

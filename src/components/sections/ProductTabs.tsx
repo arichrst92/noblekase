@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { ProductCard } from "@/components/cards/ProductCard";
 import { cn } from "@/lib/cn";
+import { defaultLocale, localePath, translator, type Locale } from "@/lib/i18n";
 
 export interface TabProduct {
   slug: string;
@@ -30,16 +31,29 @@ interface ProductTabsProps {
   labels?: { new: string; best: string; all: string };
   seeAllLabel?: string;
   limit?: number;
+  locale?: Locale;
 }
 
 export function ProductTabs({
   products,
-  eyebrow = "Koleksi",
-  headline = "Pilihan untuk hari-hari Anda",
-  labels = { new: "Terbaru", best: "Terlaris", all: "Semua" },
-  seeAllLabel = "Lihat semua →",
+  eyebrow: eyebrowProp,
+  headline: headlineProp,
+  labels: labelsProp,
+  seeAllLabel: seeAllLabelProp,
   limit = 8,
+  locale = defaultLocale,
 }: ProductTabsProps) {
+  const tr = translator(locale);
+  // Fallback mengikuti bahasa aktif ketika field CMS masih kosong.
+  const eyebrow = eyebrowProp ?? tr("productTabs.eyebrow");
+  const headline = headlineProp ?? tr("productTabs.headline");
+  const labels = labelsProp ?? {
+    new: tr("productTabs.tab.new"),
+    best: tr("productTabs.tab.best"),
+    all: tr("productTabs.tab.all"),
+  };
+  const seeAllLabel = seeAllLabelProp ?? tr("common.viewAll");
+
   const tabs = [
     { key: "new", label: labels.new, items: products.filter((p) => p.badge === "NEW") },
     { key: "best", label: labels.best, items: products.filter((p) => p.badge === "BEST") },
@@ -59,7 +73,10 @@ export function ProductTabs({
             <div className="eyebrow mb-2">{eyebrow}</div>
             <h2 className="font-serif text-2xl md:text-3xl font-medium">{headline}</h2>
           </div>
-          <Link href="/produk" className="text-sm text-ink-secondary hover:text-ink-primary shrink-0">
+          <Link
+            href={localePath(locale, "/produk")}
+            className="text-sm text-ink-secondary hover:text-ink-primary shrink-0"
+          >
             {seeAllLabel}
           </Link>
         </div>
@@ -96,6 +113,7 @@ export function ProductTabs({
               imageUrl={p.imageUrl}
               badge={p.badge}
               marketplaceKeys={p.marketplaceKeys}
+              locale={locale}
             />
           ))}
         </div>

@@ -11,6 +11,8 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { localePath, stripLocale, translator } from "@/lib/i18n";
 
 export default function GlobalError({
   error,
@@ -19,6 +21,11 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  // Next tidak mengoper `params` ke error boundary, jadi bahasa dibaca dari
+  // pathname yang sedang dibuka (prefix "/en" dilepas oleh stripLocale).
+  const { locale } = stripLocale(usePathname() ?? "/");
+  const tr = translator(locale);
+
   useEffect(() => {
     console.error("[frontend error]", error);
   }, [error]);
@@ -26,33 +33,30 @@ export default function GlobalError({
   return (
     <section className="min-h-[70vh] flex items-center py-24">
       <div className="container-prose max-w-xl text-center">
-        <div className="eyebrow mb-3">Ada gangguan</div>
+        <div className="eyebrow mb-3">{tr("error.eyebrow")}</div>
         <h1 className="font-serif text-3xl md:text-4xl font-medium leading-tight mb-4 tracking-tight">
-          Maaf, halaman ini gagal dimuat
+          {tr("error.heading")}
         </h1>
-        <p className="text-ink-secondary leading-relaxed mb-8">
-          Gangguan sementara di sisi kami. Coba muat ulang — kalau masih bermasalah, hubungi
-          kami lewat halaman Dukungan.
-        </p>
+        <p className="text-ink-secondary leading-relaxed mb-8">{tr("error.body")}</p>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button
             onClick={reset}
             className="bg-accent text-white px-6 py-3 rounded-md text-sm font-medium hover:bg-ink-primary transition-colors"
           >
-            Coba lagi
+            {tr("error.retry")}
           </button>
           <Link
-            href="/dukungan"
+            href={localePath(locale, "/dukungan")}
             className="border border-ink-primary text-ink-primary px-6 py-3 rounded-md text-sm font-medium hover:bg-bg-warm transition-colors"
           >
-            Hubungi Dukungan
+            {tr("error.contactSupport")}
           </Link>
         </div>
 
         {error.digest && (
           <p className="mt-8 text-[11px] text-ink-tertiary">
-            Kode rujukan: <code>{error.digest}</code>
+            {tr("error.referenceCode")} <code>{error.digest}</code>
           </p>
         )}
       </div>

@@ -9,23 +9,36 @@ import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
 import { RichText } from "@/components/richtext/RichText";
 import { getGlobalData, getFaqItems, resolveMediaUrl } from "@/lib/queries";
 import { buildMetadata } from "@/lib/seo";
+import { defaultLocale, isLocale, translator, type Locale } from "@/lib/i18n";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const s = await getGlobalData("page-support");
+interface DukunganPageProps {
+  params: Promise<{ locale: string }>;
+}
+
+export async function generateMetadata({ params }: DukunganPageProps): Promise<Metadata> {
+  const { locale: raw } = await params;
+  const locale: Locale = isLocale(raw) ? raw : defaultLocale;
+  const tr = translator(locale);
+  const s = await getGlobalData("page-support", locale);
   return buildMetadata({
-    title: s?.heroHeadline ?? "Dukungan",
-    description:
-      s?.heroIntro ??
-      "Hubungi tim Noblekase via WhatsApp, Instagram, atau email. Lihat FAQ untuk pertanyaan umum.",
+    title: s?.heroHeadline ?? tr("support.metaTitle"),
+    description: s?.heroIntro ?? tr("support.metaDescription"),
     path: "/dukungan",
     image: resolveMediaUrl(s?.heroImage, "og") || undefined,
+    locale,
   });
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export default async function DukunganPage() {
-  const [s, faqs] = await Promise.all([getGlobalData("page-support"), getFaqItems()]);
+export default async function DukunganPage({ params }: DukunganPageProps) {
+  const { locale: raw } = await params;
+  const locale: Locale = isLocale(raw) ? raw : defaultLocale;
+  const tr = translator(locale);
+  const [s, faqs] = await Promise.all([
+    getGlobalData("page-support", locale),
+    getFaqItems(locale),
+  ]);
   const heroImg = resolveMediaUrl(s?.heroImage, "landscape");
   const channels: any[] = s?.channels ?? [];
 
@@ -38,20 +51,19 @@ export default async function DukunganPage() {
         <div className="container-prose">
           <div className="grid grid-cols-1 md:grid-cols-[1.2fr_1fr] gap-8 md:gap-12 items-center">
             <div className="reveal">
-              <div className="eyebrow mb-3">{s?.heroEyebrow ?? "Dukungan"}</div>
+              <div className="eyebrow mb-3">{s?.heroEyebrow ?? tr("support.eyebrow")}</div>
               <h1 className="font-serif text-3xl md:text-5xl font-medium leading-tight mb-5 tracking-tight">
-                {s?.heroHeadline ?? "Bantu kami menjawab Anda"}
+                {s?.heroHeadline ?? tr("support.heading")}
               </h1>
               <p className="text-base md:text-lg text-ink-secondary leading-relaxed">
-                {s?.heroIntro ??
-                  "Tim kecil yang membaca semua pesan. Cara tercepat lewat WhatsApp di jam kerja, atau DM Instagram kapan saja."}
+                {s?.heroIntro ?? tr("support.intro")}
               </p>
             </div>
             <div className="reveal aspect-[4/3] bg-bg-base border border-border-mid rounded-lg overflow-hidden relative">
               {heroImg ? (
                 <Image
                   src={heroImg}
-                  alt={s?.heroHeadline ?? "Kontak Noblekase"}
+                  alt={s?.heroHeadline ?? tr("support.heroImageAlt")}
                   fill
                   priority
                   sizes="(max-width: 768px) 100vw, 40vw"
@@ -59,7 +71,7 @@ export default async function DukunganPage() {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-ink-tertiary text-sm">
-                  image
+                  {tr("common.imagePlaceholder")}
                 </div>
               )}
             </div>
@@ -70,9 +82,11 @@ export default async function DukunganPage() {
       {/* Channels */}
       <section className="py-12 md:py-16">
         <div className="container-prose">
-          <div className="reveal eyebrow mb-2">{s?.channelsEyebrow ?? "Kanal"}</div>
+          <div className="reveal eyebrow mb-2">
+            {s?.channelsEyebrow ?? tr("support.channelsEyebrow")}
+          </div>
           <h2 className="reveal font-serif text-2xl md:text-3xl font-medium mb-8">
-            {s?.channelsHeadline ?? "Pilih cara yang paling nyaman"}
+            {s?.channelsHeadline ?? tr("support.channelsHeading")}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
             {channels.map((ch, i) => {
@@ -114,9 +128,9 @@ export default async function DukunganPage() {
       {faqs.length > 0 && (
         <section className="bg-bg-cream py-16 md:py-20 border-t border-border-light">
           <div className="container-prose max-w-3xl">
-            <div className="reveal eyebrow mb-2">{s?.faqEyebrow ?? "FAQ"}</div>
+            <div className="reveal eyebrow mb-2">{s?.faqEyebrow ?? tr("support.faqEyebrow")}</div>
             <h2 className="reveal font-serif text-2xl md:text-3xl font-medium mb-8">
-              {s?.faqHeadline ?? "Pertanyaan yang sering ditanyakan"}
+              {s?.faqHeadline ?? tr("support.faqHeading")}
             </h2>
             <div className="space-y-1">
               {faqs.map((faq, i) => (
@@ -134,7 +148,7 @@ export default async function DukunganPage() {
                     </span>
                   </summary>
                   <div className="mt-3 text-base text-ink-secondary leading-relaxed [&_p]:mb-3 [&_p:last-child]:mb-0">
-                    <RichText data={faq.answer} />
+                    <RichText data={faq.answer} locale={locale} />
                   </div>
                 </details>
               ))}

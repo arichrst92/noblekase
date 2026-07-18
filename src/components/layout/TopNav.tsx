@@ -1,38 +1,50 @@
 /**
  * TopNav — floating rounded navbar (sticky top)
+ * Dibuat oleh: PT Solusi Inovasi Bangsa (https://ide.asia)
  *
  * Hidden on mobile (replaced by hamburger + bottom nav).
  * Shows brand wordmark, menu links, language toggle, search icon.
+ *
+ * Semua tautan internal dilewatkan localePath() supaya pengunjung yang sedang
+ * membaca versi Inggris tetap berada di /en saat berpindah halaman.
  */
 
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Search, Menu } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { SearchOverlay } from "@/components/search/SearchOverlay";
+import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
+import { defaultLocale, localePath, translator, type Locale } from "@/lib/i18n";
 
 interface NavItem {
   label: string;
   url: string;
 }
 
-const defaultNavItems: NavItem[] = [
-  { label: "Beranda", url: "/" },
-  { label: "Produk", url: "/produk" },
-  { label: "Tentang", url: "/tentang" },
-  { label: "Journal", url: "/journal" },
-  { label: "Dukungan", url: "/dukungan" },
-];
-
 interface TopNavProps {
   navItems?: NavItem[];
   brand?: string;
   logoUrl?: string;
+  locale?: Locale;
 }
 
-export function TopNav({ navItems, brand = "NOBLEKASE", logoUrl }: TopNavProps) {
+export function TopNav({
+  navItems,
+  brand = "NOBLEKASE",
+  logoUrl,
+  locale = defaultLocale,
+}: TopNavProps) {
+  const tr = translator(locale);
+  const defaultNavItems: NavItem[] = [
+    { label: tr("nav.home"), url: "/" },
+    { label: tr("nav.products"), url: "/produk" },
+    { label: tr("nav.about"), url: "/tentang" },
+    { label: tr("nav.journal"), url: "/journal" },
+    { label: tr("nav.support"), url: "/dukungan" },
+  ];
   const items = navItems && navItems.length ? navItems : defaultNavItems;
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -53,14 +65,11 @@ export function TopNav({ navItems, brand = "NOBLEKASE", logoUrl }: TopNavProps) 
         )}
       >
         {/* Mobile: hamburger + brand + search */}
-        <button
-          className="md:hidden p-1"
-          aria-label="Open menu"
-        >
+        <button className="md:hidden p-1" aria-label={tr("nav.openMenu")}>
           <Menu className="w-4 h-4 text-ink-primary" />
         </button>
 
-        <Link href="/" className="flex items-center" aria-label={brand}>
+        <Link href={localePath(locale, "/")} className="flex items-center" aria-label={brand}>
           {logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -80,7 +89,7 @@ export function TopNav({ navItems, brand = "NOBLEKASE", logoUrl }: TopNavProps) 
           {items.map((item) => (
             <li key={item.url}>
               <Link
-                href={item.url}
+                href={localePath(locale, item.url)}
                 className="hover:text-ink-primary transition-colors"
               >
                 {item.label}
@@ -91,16 +100,15 @@ export function TopNav({ navItems, brand = "NOBLEKASE", logoUrl }: TopNavProps) 
 
         {/* Right side actions */}
         <div className="flex items-center gap-1.5 ml-auto md:ml-2">
-          <button
-            className="hidden md:inline-flex px-2.5 py-1 bg-bg-warm rounded-full text-[10px] text-ink-secondary hover:bg-bg-cream transition-colors"
-            aria-label="Switch language"
-          >
-            ID/EN
-          </button>
+          {/* Suspense wajib: LanguageSwitcher memakai useSearchParams, dan tanpa
+              batas Suspense Next akan menggagalkan prerender halaman. */}
+          <Suspense fallback={<span className="inline-flex w-[52px]" />}>
+            <LanguageSwitcher current={locale} />
+          </Suspense>
           <button
             onClick={() => setSearchOpen(true)}
             className="p-1.5 md:px-2.5 md:py-1 md:bg-bg-warm md:rounded-full text-ink-secondary hover:text-ink-primary transition-colors"
-            aria-label="Cari"
+            aria-label={tr("nav.search")}
             aria-haspopup="dialog"
           >
             <Search className="w-3.5 h-3.5" />
@@ -108,7 +116,7 @@ export function TopNav({ navItems, brand = "NOBLEKASE", logoUrl }: TopNavProps) 
         </div>
       </nav>
 
-      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} locale={locale} />
     </header>
   );
 }

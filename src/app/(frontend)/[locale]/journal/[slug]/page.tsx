@@ -17,15 +17,29 @@ import {
 } from "@/lib/queries";
 import { buildMetadata } from "@/lib/seo";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import {
+  defaultLocale,
+  htmlLang,
+  isLocale,
+  localePath,
+  locales,
+  translator,
+  type Locale,
+} from "@/lib/i18n";
 
 interface ArticlePageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }
 
+/** Setiap artikel diprerender untuk kedua bahasa. */
 export async function generateStaticParams() {
   try {
-    const articles = await getArticles();
-    return articles.map((a) => ({ slug: a.slug }));
+    const out: { locale: string; slug: string }[] = [];
+    for (const locale of locales) {
+      const articles = await getArticles(locale);
+      for (const a of articles) out.push({ locale, slug: a.slug });
+    }
+    return out;
   } catch {
     return [];
   }
@@ -34,9 +48,10 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: ArticlePageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const article = await getArticleBySlug(slug);
-  if (!article) return { title: "Artikel tidak ditemukan" };
+  const { locale: raw, slug } = await params;
+  const locale: Locale = isLocale(raw) ? raw : defaultLocale;
+  const article = await getArticleBySlug(slug, locale);
+  if (!article) return { title: translator(locale)("article.notFoundTitle") };
   return buildMetadata({
     title: article.seoTitle ?? article.title,
     description: article.seoDescription ?? article.excerpt,
@@ -44,28 +59,33 @@ export async function generateMetadata({
     image: article.ogUrl,
     type: "article",
     publishedTime: article.publishedAt || undefined,
+    locale,
   });
 }
 
-const dateFormat = new Intl.DateTimeFormat("id-ID", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-});
+/** Format tanggal mengikuti bahasa halaman (id-ID / en-US). */
+const dateFormat = (locale: Locale) =>
+  new Intl.DateTimeFormat(htmlLang[locale], {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
-  const { slug } = await params;
+  const { locale: raw, slug } = await params;
+  const locale: Locale = isLocale(raw) ? raw : defaultLocale;
+  const tr = translator(locale);
+
   const [article, t] = await Promise.all([
-    getArticleBySlug(slug),
-    getGlobalData("page-article-detail"),
+    getArticleBySlug(slug, locale),
+    getGlobalData("page-article-detail", locale),
   ]);
   if (!article) notFound();
 
-  const related = await getRelatedArticles(article);
-  const relatedHeadline = (t?.relatedHeadlineTemplate ?? "Cerita lain dari {category}").replace(
-    "{category}",
-    article.category,
-  );
+  const related = await getRelatedArticles(article, locale);
+  const relatedHeadline = (
+    t?.relatedHeadlineTemplate ?? tr("article.relatedHeadingTemplate")
+  ).replace("{category}", article.category);
 
   return (
     <>
@@ -75,14 +95,17 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         headline={article.title}
         description={article.seoDescription ?? article.excerpt}
         imageUrl={article.heroUrl}
-        path={`/journal/${article.slug}`}
+        path={localePath(locale, `/journal/${article.slug}`)}
         publishedAt={article.publishedAt || undefined}
       />
       <BreadcrumbJsonLd
         items={[
-          { name: "Beranda", path: "/" },
-          { name: "Journal", path: "/journal" },
-          { name: article.title, path: `/journal/${article.slug}` },
+          { name: tr("common.home"), path: localePath(locale, "/") },
+          { name: tr("common.journal"), path: localePath(locale, "/journal") },
+          {
+            name: article.title,
+            path: localePath(locale, `/journal/${article.slug}`),
+          },
         ]}
       />
 
@@ -91,12 +114,12 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         <div className="container-prose max-w-3xl">
           {/* Breadcrumb */}
           <nav className="text-[12px] text-ink-tertiary mb-6 flex items-center gap-1.5">
-            <Link href="/" className="hover:text-ink-primary">
-              {t?.breadcrumbHome ?? "Beranda"}
+            <Link href={localePath(locale, "/")} className="hover:text-ink-primary">
+              {t?.breadcrumbHome ?? tr("common.home")}
             </Link>
             <span>/</span>
-            <Link href="/journal" className="hover:text-ink-primary">
-              {t?.breadcrumbJournal ?? "Journal"}
+            <Link href={localePath(locale, "/journal")} className="hover:text-ink-primary">
+              {t?.breadcrumbJournal ?? tr("common.journal")}
             </Link>
             <span>/</span>
             <span className="text-ink-secondary line-clamp-1">
@@ -106,8 +129,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
           <div className="reveal mb-6">
             <div className="text-[10px] tracking-widest uppercase text-ink-tertiary mb-3">
-              {article.category} · {article.readingTime} mnt baca ·{" "}
-              {dateFormat.format(new Date(article.publishedAt))}
+              {article.category} · {article.readingTime} {tr("article.readingTimeUnit")} ·{" "}
+              {dateFormat(locale).format(new Date(article.publishedAt))}
             </div>
             <h1 className="font-serif text-3xl md:text-5xl font-medium leading-tight mb-5 tracking-tight">
               {article.title}
@@ -129,18 +152,18 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </div>
 
           {/* Body */}
-          <RichText data={article.body} className="prose-body reveal" />
+          <RichText data={article.body} className="prose-body reveal" locale={locale} />
 
           {/* Share */}
           <div className="mt-12 pt-6 border-t border-border-light flex items-center justify-between">
             <Link
-              href="/journal"
+              href={localePath(locale, "/journal")}
               className="text-sm text-ink-secondary hover:text-ink-primary"
             >
-              {t?.backLabel ?? "← Kembali ke Journal"}
+              {t?.backLabel ?? tr("article.backToJournal")}
             </Link>
             <span className="text-[11px] uppercase tracking-widest text-ink-tertiary">
-              {t?.shareLabel ?? "Bagikan:"} WA · Tw · IG
+              {t?.shareLabel ?? tr("article.shareLabel")} WA · Tw · IG
             </span>
           </div>
         </div>
@@ -150,7 +173,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       {related.length > 0 && (
         <section className="bg-bg-cream py-16 md:py-20 border-t border-border-light">
           <div className="container-prose">
-            <div className="reveal eyebrow mb-2">{t?.relatedEyebrow ?? "Artikel terkait"}</div>
+            <div className="reveal eyebrow mb-2">
+              {t?.relatedEyebrow ?? tr("article.relatedEyebrow")}
+            </div>
             <h2 className="reveal font-serif text-2xl md:text-3xl font-medium mb-8">
               {relatedHeadline}
             </h2>
@@ -158,7 +183,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               {related.map((a, i) => (
                 <Link
                   key={a.slug}
-                  href={`/journal/${a.slug}`}
+                  href={localePath(locale, `/journal/${a.slug}`)}
                   className="reveal group"
                   style={{ transitionDelay: `${i * 80}ms` }}
                 >
@@ -172,7 +197,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     />
                   </div>
                   <div className="text-[10px] tracking-widest uppercase text-ink-tertiary mb-2">
-                    {a.category} · {a.readingTime} mnt
+                    {a.category} · {a.readingTime} {tr("common.minutesShort")}
                   </div>
                   <h3 className="font-serif text-base md:text-lg font-medium leading-snug group-hover:text-accent transition-colors">
                     {a.title}

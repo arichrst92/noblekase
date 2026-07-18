@@ -11,11 +11,12 @@
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 import {
-  BADGE_OPTIONS,
+  getBadgeOptions,
   buildFilterUrl,
   hasActiveFilters,
   type ProductFilters,
 } from "@/lib/productFilters";
+import { defaultLocale, localePath, stripLocale, translator, type Locale } from "@/lib/i18n";
 
 interface FilterCategory {
   slug: string;
@@ -40,6 +41,7 @@ interface ProductFilterSidebarProps {
   subCounts?: Record<string, number>;
   badgeCounts?: Record<string, number>;
   marketplaceNote?: string;
+  locale?: Locale;
 }
 
 export function ProductFilterSidebar({
@@ -51,8 +53,16 @@ export function ProductFilterSidebar({
   basePath = "/produk",
   subCounts = {},
   badgeCounts = {},
-  marketplaceNote = "Harga ditampilkan di setiap marketplace. Kami menyatukan koleksi — marketplace yang memutuskan promo & ongkos kirim.",
+  marketplaceNote: marketplaceNoteProp,
+  locale = defaultLocale,
 }: ProductFilterSidebarProps) {
+  const tr = translator(locale);
+  // Fallback mengikuti bahasa aktif ketika field CMS masih kosong.
+  const marketplaceNote = marketplaceNoteProp ?? tr("filter.marketplaceNote");
+  const badgeOptions = getBadgeOptions(locale);
+  // stripLocale dulu supaya aman kalau pemanggil sudah mengoper path ber-prefix.
+  const base = localePath(locale, stripLocale(basePath).path);
+
   // Sub-kategori dibatasi ke kategori aktif bila sedang di halaman kategori
   const subs = activeCategory
     ? subCategories.filter((s) => s.categorySlug === activeCategory)
@@ -71,18 +81,21 @@ export function ProductFilterSidebar({
       <div className="bg-bg-base border border-border-light rounded-lg p-5 md:p-6">
         {/* Kategori */}
         <div className="text-[10px] tracking-widest uppercase text-ink-tertiary mb-3">
-          Kategori
+          {tr("filter.categoryHeading")}
         </div>
         <ul className="space-y-1.5 text-sm">
           <li>
-            <Link href="/produk" className={linkClass(!activeCategory)}>
-              <span>Semua produk</span>
+            <Link href={localePath(locale, "/produk")} className={linkClass(!activeCategory)}>
+              <span>{tr("filter.allProducts")}</span>
               <span className="text-[11px] text-ink-tertiary">{totalCount}</span>
             </Link>
           </li>
           {categories.map((cat) => (
             <li key={cat.slug}>
-              <Link href={`/produk/${cat.slug}`} className={linkClass(activeCategory === cat.slug)}>
+              <Link
+                href={localePath(locale, `/produk/${cat.slug}`)}
+                className={linkClass(activeCategory === cat.slug)}
+              >
                 <span>{cat.name}</span>
                 <span className="text-[11px] text-ink-tertiary">{cat.productCount}</span>
               </Link>
@@ -94,15 +107,15 @@ export function ProductFilterSidebar({
         {subs.length > 0 && (
           <div className="mt-6 pt-5 border-t border-border-light">
             <div className="text-[10px] tracking-widest uppercase text-ink-tertiary mb-3">
-              Tipe
+              {tr("filter.typeHeading")}
             </div>
             <ul className="space-y-1.5 text-sm">
               <li>
                 <Link
-                  href={buildFilterUrl(basePath, filters, { sub: undefined })}
+                  href={buildFilterUrl(base, filters, { sub: undefined })}
                   className={linkClass(!filters.sub)}
                 >
-                  <span>Semua tipe</span>
+                  <span>{tr("filter.allTypes")}</span>
                 </Link>
               </li>
               {subs.map((s) => {
@@ -110,7 +123,7 @@ export function ProductFilterSidebar({
                 return (
                   <li key={s.slug}>
                     <Link
-                      href={buildFilterUrl(basePath, filters, {
+                      href={buildFilterUrl(base, filters, {
                         sub: active ? undefined : s.slug,
                       })}
                       className={linkClass(active)}
@@ -130,17 +143,17 @@ export function ProductFilterSidebar({
         {/* Badge */}
         <div className="mt-6 pt-5 border-t border-border-light">
           <div className="text-[10px] tracking-widest uppercase text-ink-tertiary mb-3">
-            Label
+            {tr("filter.labelHeading")}
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {BADGE_OPTIONS.map((b) => {
+            {badgeOptions.map((b) => {
               const active = filters.badge === b.value;
               const count = badgeCounts[b.value] ?? 0;
               if (!active && count === 0) return null;
               return (
                 <Link
                   key={b.value}
-                  href={buildFilterUrl(basePath, filters, {
+                  href={buildFilterUrl(base, filters, {
                     badge: active ? undefined : b.value,
                   })}
                   className={cn(
@@ -162,10 +175,10 @@ export function ProductFilterSidebar({
         {hasActiveFilters(filters) && (
           <div className="mt-5">
             <Link
-              href={basePath}
+              href={base}
               className="text-[12px] text-accent hover:text-ink-primary underline underline-offset-2"
             >
-              Reset filter
+              {tr("filter.reset")}
             </Link>
           </div>
         )}

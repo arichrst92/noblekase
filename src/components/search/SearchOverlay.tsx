@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
+import { defaultLocale, localePath, translator, type Locale } from "@/lib/i18n";
 
 interface Suggestion {
   products: { slug: string; name: string; category: string }[];
@@ -21,12 +22,21 @@ interface Suggestion {
 
 const EMPTY: Suggestion = { products: [], articles: [], total: 0 };
 
-export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function SearchOverlay({
+  open,
+  onClose,
+  locale = defaultLocale,
+}: {
+  open: boolean;
+  onClose: () => void;
+  locale?: Locale;
+}) {
   const [value, setValue] = useState("");
   const [data, setData] = useState<Suggestion>(EMPTY);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const tr = translator(locale);
 
   // Fokus & tutup dengan Escape
   useEffect(() => {
@@ -48,7 +58,9 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
     const ctrl = new AbortController();
     const t = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`, { signal: ctrl.signal });
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&locale=${locale}`, {
+          signal: ctrl.signal,
+        });
         setData(await res.json());
       } catch {
         /* dibatalkan / gagal — abaikan */
@@ -60,23 +72,28 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
       clearTimeout(t);
       ctrl.abort();
     };
-  }, [value]);
+  }, [value, locale]);
 
   if (!open) return null;
 
   const submit = () => {
     const q = value.trim();
     if (q.length < 2) return;
-    router.push(`/cari?q=${encodeURIComponent(q)}`);
+    router.push(`${localePath(locale, "/cari")}?q=${encodeURIComponent(q)}`);
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label="Pencarian">
+    <div
+      className="fixed inset-0 z-[60]"
+      role="dialog"
+      aria-modal="true"
+      aria-label={tr("search.dialogAriaLabel")}
+    >
       <button
         className="absolute inset-0 bg-ink-primary/40 backdrop-blur-sm"
         onClick={onClose}
-        aria-label="Tutup pencarian"
+        aria-label={tr("search.closeOverlay")}
       />
       <div className="relative mx-auto mt-24 w-[92%] max-w-2xl bg-bg-base rounded-xl shadow-deep border border-border-light overflow-hidden">
         <div className="flex items-center gap-2 p-3 border-b border-border-light">
@@ -87,37 +104,41 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
             value={value}
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && submit()}
-            placeholder="Cari produk, kategori, atau artikel…"
-            aria-label="Kata kunci pencarian"
+            placeholder={tr("search.placeholder")}
+            aria-label={tr("search.inputAriaLabel")}
             className="flex-1 py-2 text-sm bg-transparent focus:outline-none"
           />
-          <button onClick={onClose} aria-label="Tutup" className="p-2 text-ink-tertiary hover:text-ink-primary">
+          <button
+            onClick={onClose}
+            aria-label={tr("common.close")}
+            className="p-2 text-ink-tertiary hover:text-ink-primary"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         <div className="max-h-[60vh] overflow-y-auto">
           {value.trim().length < 2 && (
-            <p className="px-5 py-6 text-sm text-ink-secondary">Ketik minimal 2 huruf…</p>
+            <p className="px-5 py-6 text-sm text-ink-secondary">{tr("search.overlayMinChars")}</p>
           )}
 
           {value.trim().length >= 2 && loading && (
-            <p className="px-5 py-6 text-sm text-ink-secondary">Mencari…</p>
+            <p className="px-5 py-6 text-sm text-ink-secondary">{tr("search.loading")}</p>
           )}
 
           {value.trim().length >= 2 && !loading && data.total === 0 && (
-            <p className="px-5 py-6 text-sm text-ink-secondary">Tidak ada hasil.</p>
+            <p className="px-5 py-6 text-sm text-ink-secondary">{tr("search.overlayNoResults")}</p>
           )}
 
           {data.products.length > 0 && (
             <div className="py-2">
               <div className="px-5 py-2 text-[10px] uppercase tracking-widest text-ink-tertiary">
-                Produk
+                {tr("common.products")}
               </div>
               {data.products.map((p) => (
                 <Link
                   key={p.slug}
-                  href={`/produk/detail/${p.slug}`}
+                  href={localePath(locale, `/produk/detail/${p.slug}`)}
                   onClick={onClose}
                   className="flex items-center justify-between px-5 py-2.5 hover:bg-bg-warm transition-colors"
                 >
@@ -131,12 +152,12 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
           {data.articles.length > 0 && (
             <div className="py-2 border-t border-border-light">
               <div className="px-5 py-2 text-[10px] uppercase tracking-widest text-ink-tertiary">
-                Journal
+                {tr("common.journal")}
               </div>
               {data.articles.map((a) => (
                 <Link
                   key={a.slug}
-                  href={`/journal/${a.slug}`}
+                  href={localePath(locale, `/journal/${a.slug}`)}
                   onClick={onClose}
                   className="flex items-center justify-between px-5 py-2.5 hover:bg-bg-warm transition-colors"
                 >
@@ -152,7 +173,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
               onClick={submit}
               className="w-full px-5 py-3 text-sm font-medium text-accent hover:bg-bg-warm border-t border-border-light text-left"
             >
-              Lihat semua hasil untuk &ldquo;{value.trim()}&rdquo; →
+              {tr("search.viewAllResults", { query: value.trim() })}
             </button>
           )}
         </div>

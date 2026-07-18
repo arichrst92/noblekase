@@ -3,6 +3,7 @@
  */
 
 import Link from "next/link";
+import { defaultLocale, localePath, translator, type Locale } from "@/lib/i18n";
 
 interface Marketplace {
   name: string;
@@ -13,6 +14,7 @@ interface MarketplaceCTAProps {
   eyebrow?: string;
   headline?: string;
   marketplaces?: Marketplace[];
+  locale?: Locale;
 }
 
 const defaultMarketplaces: Marketplace[] = [
@@ -23,10 +25,16 @@ const defaultMarketplaces: Marketplace[] = [
 ];
 
 export function MarketplaceCTA({
-  eyebrow = "Dapatkan Di",
-  headline = "Beli langsung di marketplace pilihan",
+  eyebrow: eyebrowProp,
+  headline: headlineProp,
   marketplaces = defaultMarketplaces,
+  locale = defaultLocale,
 }: MarketplaceCTAProps) {
+  const tr = translator(locale);
+  // Fallback mengikuti bahasa aktif ketika field CMS masih kosong.
+  const eyebrow = eyebrowProp ?? tr("marketplaceCta.eyebrow");
+  const headline = headlineProp ?? tr("marketplaceCta.headline");
+
   return (
     <section className="bg-bg-cream py-12 md:py-14">
       <div className="container-prose">
@@ -40,7 +48,7 @@ export function MarketplaceCTA({
             {marketplaces.map((m) => (
               <Link
                 key={m.name}
-                href={m.url}
+                href={m.url.startsWith("/") ? localePath(locale, m.url) : m.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-4 py-2.5 bg-bg-base border border-border-light rounded-md text-sm text-center hover:border-ink-primary hover:bg-bg-warm transition-colors"

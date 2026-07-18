@@ -19,16 +19,29 @@ import {
 } from "@/lib/queries";
 import { buildMetadata } from "@/lib/seo";
 import { applyFilters, parseFilters } from "@/lib/productFilters";
+import {
+  defaultLocale,
+  isLocale,
+  localePath,
+  locales,
+  translator,
+  type Locale,
+} from "@/lib/i18n";
 
 interface CategoryPageProps {
-  params: Promise<{ category: string }>;
+  params: Promise<{ locale: string; category: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
+/** Setiap kategori diprerender untuk kedua bahasa. */
 export async function generateStaticParams() {
   try {
-    const categories = await getCategories();
-    return categories.map((c) => ({ category: c.slug }));
+    const out: { locale: string; category: string }[] = [];
+    for (const locale of locales) {
+      const categories = await getCategories(locale);
+      for (const c of categories) out.push({ locale, category: c.slug });
+    }
+    return out;
   } catch {
     return [];
   }
@@ -37,32 +50,44 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: CategoryPageProps): Promise<Metadata> {
-  const { category } = await params;
-  const cat = await getCategoryBySlug(category);
-  if (!cat) return { title: "Kategori tidak ditemukan" };
+  const { locale: raw, category } = await params;
+  const locale: Locale = isLocale(raw) ? raw : defaultLocale;
+  const cat = await getCategoryBySlug(category, locale);
+  if (!cat) return { title: translator(locale)("category.notFoundTitle") };
   return buildMetadata({
     title: cat.seoTitle ?? cat.name,
     description: cat.seoDescription ?? cat.description,
     path: `/produk/${category}`,
     image: cat.ogUrl,
+    locale,
   });
 }
 
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
-  const { category } = await params;
+  const { locale: raw, category } = await params;
+  const locale: Locale = isLocale(raw) ? raw : defaultLocale;
+  const tr = translator(locale);
+
   const [cat, categories, subCategories, sp] = await Promise.all([
-    getCategoryBySlug(category),
-    getCategories(),
-    getSubCategories(),
+    getCategoryBySlug(category, locale),
+    getCategories(locale),
+    getSubCategories(locale),
     searchParams,
   ]);
   if (!cat) notFound();
 
-  const allInCategory = await getProductsByCategorySlug(category);
+  const allInCategory = await getProductsByCategorySlug(category, locale);
   const filters = parseFilters(sp);
   const items = applyFilters(allInCategory, filters);
   const totalCount = categories.reduce((sum, c) => sum + c.productCount, 0);
-  const basePath = `/produk/${category}`;
+  const basePath = localePath(locale, `/produk/${category}`);
+
+  // Sama seperti listing utama: angka "ditampilkan" tetap ditebalkan, jadi
+  // templat kamus dipecah dulu di sekitar {shown}.
+  const [showingBefore, showingAfter] = tr("category.showingCount", {
+    total: allInCategory.length,
+    category: cat.name,
+  }).split("{shown}");
 
   const subCounts = allInCategory.reduce<Record<string, number>>((acc, p) => {
     if (p.subCategorySlug) acc[p.subCategorySlug] = (acc[p.subCategorySlug] ?? 0) + 1;
@@ -81,7 +106,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         <div className="container-prose">
           <div className="grid grid-cols-1 md:grid-cols-[1.3fr_1fr] gap-8 md:gap-12 items-center">
             <div className="reveal">
-              <div className="eyebrow mb-3">Kategori</div>
+              <div className="eyebrow mb-3">{tr("category.eyebrow")}</div>
               <h1 className="font-serif text-3xl md:text-5xl font-medium leading-tight mb-4 tracking-tight">
                 {cat.name}
               </h1>
@@ -115,21 +140,22 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
               basePath={basePath}
               subCounts={subCounts}
               badgeCounts={badgeCounts}
+              locale={locale}
             />
 
             <div>
               <div className="flex items-center justify-between gap-4 mb-5 md:mb-6">
                 <div className="text-sm text-ink-secondary">
-                  Menampilkan{" "}
-                  <span className="text-ink-primary font-medium">{items.length}</span> dari{" "}
-                  {allInCategory.length} produk di {cat.name}
+                  {showingBefore}
+                  <span className="text-ink-primary font-medium">{items.length}</span>
+                  {showingAfter}
                 </div>
-                <SortSelect basePath={basePath} filters={filters} />
+                <SortSelect basePath={basePath} filters={filters} locale={locale} />
               </div>
 
               {items.length === 0 && (
                 <p className="text-sm text-ink-secondary py-10">
-                  Tidak ada produk yang cocok dengan filter ini.
+                  {tr("products.noMatchFilter")}
                 </p>
               )}
 
@@ -144,6 +170,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                     imageUrl={p.imageUrl}
                     badge={p.badge}
                     marketplaceKeys={p.marketplaces.map((m) => m.key)}
+                    locale={locale}
                   />
                 ))}
               </div>

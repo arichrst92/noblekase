@@ -27,12 +27,19 @@ const nextConfig: NextConfig = {
   experimental: {
     reactCompiler: false,
   },
-  // Multi-language: i18n handled via next-intl middleware (App Router compatible)
+  // Dua bahasa ditangani src/middleware.ts + segmen [locale] di App Router.
+  // Bahasa default (ID) tanpa prefix, Inggris memakai /en.
   redirects: async () => [
     {
       // Footer ada link /kontak — redirect ke /dukungan (page yang sebenarnya)
       source: "/kontak",
       destination: "/dukungan",
+      permanent: true,
+    },
+    {
+      // Versi Inggris dari redirect di atas — tanpa ini /en/kontak jatuh ke 404.
+      source: "/en/kontak",
+      destination: "/en/dukungan",
       permanent: true,
     },
   ],

@@ -9,6 +9,7 @@
  */
 
 import { getProducts, getCategories, type ProductWithSeo } from "@/lib/queries";
+import { defaultLocale, localePath, type Locale } from "@/lib/i18n";
 
 const STOPWORDS = new Set([
   "yang","untuk","dari","dan","atau","apa","apakah","ada","bisa","saya","aku","kamu",
@@ -72,8 +73,12 @@ export interface RetrievedContext {
  * Selalu menyertakan daftar kategori agar bot bisa mengarahkan,
  * plus beberapa produk paling relevan.
  */
-export async function retrieveContext(question: string, maxProducts = 5): Promise<RetrievedContext> {
-  const [products, categories] = await Promise.all([getProducts(), getCategories()]);
+export async function retrieveContext(
+  question: string,
+  locale: Locale = defaultLocale,
+  maxProducts = 5,
+): Promise<RetrievedContext> {
+  const [products, categories] = await Promise.all([getProducts(locale), getCategories(locale)]);
   const tokens = tokenize(question);
 
   const ranked = products
@@ -84,8 +89,10 @@ export async function retrieveContext(question: string, maxProducts = 5): Promis
   const hits = ranked.filter((r) => r.score > 0).slice(0, maxProducts);
   const chosen = (hits.length > 0 ? hits : ranked.slice(0, 3)).map((r) => r.p);
 
+  // Tautan di konteks sudah diberi prefix bahasa, supaya jawaban bot tidak
+  // melempar pembaca versi Inggris kembali ke halaman Indonesia.
   const categoryLine = `KATEGORI TERSEDIA: ${categories
-    .map((c) => `${c.name} (${c.productCount} produk, /produk/${c.slug})`)
+    .map((c) => `${c.name} (${c.productCount}, ${localePath(locale, `/produk/${c.slug}`)})`)
     .join(" | ")}`;
 
   return {

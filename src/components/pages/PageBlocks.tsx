@@ -9,10 +9,12 @@ import { SmartImage as Image } from "@/components/media/SmartImage";
 import Link from "next/link";
 import { RichText } from "@/components/richtext/RichText";
 import { resolveMediaUrl } from "@/lib/queries";
+import { defaultLocale, localePath, t, type Locale } from "@/lib/i18n";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 function HeroBlock(b: any) {
+  const locale: Locale = b.locale ?? defaultLocale;
   const img = resolveMediaUrl(b.image, "wide");
   const centered = b.alignment === "center";
   return (
@@ -39,7 +41,7 @@ function HeroBlock(b: any) {
               {img ? (
                 <Image src={img} alt={b.headline ?? ""} fill priority sizes="(max-width: 768px) 100vw, 40vw" className="object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-ink-tertiary text-sm">image</div>
+                <div className="w-full h-full flex items-center justify-center text-ink-tertiary text-sm">{t(locale, "common.imagePlaceholder")}</div>
               )}
             </div>
           )}
@@ -49,7 +51,7 @@ function HeroBlock(b: any) {
   );
 }
 
-function StoryBlock(b: any, key: number) {
+function StoryBlock(b: any, key: number, locale: Locale) {
   const img = resolveMediaUrl(b.image, "landscape");
   const right = b.imagePosition === "right";
   return (
@@ -60,7 +62,7 @@ function StoryBlock(b: any, key: number) {
             {img ? (
               <Image src={img} alt={b.headline ?? ""} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-ink-tertiary text-sm">image</div>
+              <div className="w-full h-full flex items-center justify-center text-ink-tertiary text-sm">{t(locale, "common.imagePlaceholder")}</div>
             )}
           </div>
           <div className="reveal">
@@ -68,7 +70,11 @@ function StoryBlock(b: any, key: number) {
             {b.headline && (
               <h2 className="font-serif text-2xl md:text-4xl font-medium leading-tight mb-4">{b.headline}</h2>
             )}
-            <RichText data={b.body} className="text-base md:text-lg text-ink-secondary leading-relaxed" />
+            <RichText
+              data={b.body}
+              className="text-base md:text-lg text-ink-secondary leading-relaxed"
+              locale={locale}
+            />
           </div>
         </div>
       </div>
@@ -117,7 +123,7 @@ function NumberedListBlock(b: any, key: number) {
   );
 }
 
-function CtaBlock(b: any, key: number) {
+function CtaBlock(b: any, key: number, locale: Locale) {
   return (
     <section key={key} className="bg-bg-cream py-14 md:py-16 border-t border-border-light">
       <div className="container-prose text-center max-w-xl">
@@ -125,7 +131,11 @@ function CtaBlock(b: any, key: number) {
         {b.buttonLabel && (
           <div className="reveal">
             <Link
-              href={b.buttonUrl ?? "#"}
+              href={
+                typeof b.buttonUrl === "string" && b.buttonUrl.startsWith("/")
+                  ? localePath(locale, b.buttonUrl)
+                  : (b.buttonUrl ?? "#")
+              }
               className="inline-block bg-ink-primary text-bg-base px-6 py-3 rounded-md text-sm font-medium hover:bg-accent transition-colors"
             >
               {b.buttonLabel}
@@ -137,21 +147,27 @@ function CtaBlock(b: any, key: number) {
   );
 }
 
-export function PageBlocks({ blocks }: { blocks: any[] }) {
+export function PageBlocks({
+  blocks,
+  locale = defaultLocale,
+}: {
+  blocks: any[];
+  locale?: Locale;
+}) {
   return (
     <>
       {(blocks ?? []).map((b, i) => {
         switch (b.blockType) {
           case "hero":
-            return <HeroBlock key={i} {...b} />;
+            return <HeroBlock key={i} {...b} locale={locale} />;
           case "story":
-            return StoryBlock(b, i);
+            return StoryBlock(b, i, locale);
           case "pillars":
             return PillarsBlock(b, i);
           case "numberedList":
             return NumberedListBlock(b, i);
           case "cta":
-            return CtaBlock(b, i);
+            return CtaBlock(b, i, locale);
           default:
             return null;
         }

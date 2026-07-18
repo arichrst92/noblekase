@@ -4,6 +4,7 @@
 
 import { SmartImage as Image } from "@/components/media/SmartImage";
 import Link from "next/link";
+import { defaultLocale, localePath, translator, type Locale } from "@/lib/i18n";
 
 interface Article {
   title: string;
@@ -17,6 +18,7 @@ interface JournalTeaserProps {
   eyebrow?: string;
   headline?: string;
   articles?: Article[];
+  locale?: Locale;
 }
 
 const defaultArticles: Article[] = [
@@ -41,10 +43,16 @@ const defaultArticles: Article[] = [
 ];
 
 export function JournalTeaser({
-  eyebrow = "Dari Journal",
-  headline = "Cerita & panduan terbaru",
+  eyebrow: eyebrowProp,
+  headline: headlineProp,
   articles = defaultArticles,
+  locale = defaultLocale,
 }: JournalTeaserProps) {
+  const tr = translator(locale);
+  // Fallback mengikuti bahasa aktif ketika field CMS masih kosong.
+  const eyebrow = eyebrowProp ?? tr("journalTeaser.eyebrow");
+  const headline = headlineProp ?? tr("journalTeaser.headline");
+
   return (
     <section className="py-16 md:py-24 border-b border-border-light">
       <div className="container-prose">
@@ -53,8 +61,11 @@ export function JournalTeaser({
             <div className="eyebrow mb-2">{eyebrow}</div>
             <h2 className="font-serif text-2xl md:text-3xl font-medium">{headline}</h2>
           </div>
-          <Link href="/journal" className="text-sm text-ink-secondary hover:text-ink-primary">
-            Lihat semua →
+          <Link
+            href={localePath(locale, "/journal")}
+            className="text-sm text-ink-secondary hover:text-ink-primary"
+          >
+            {tr("common.viewAll")}
           </Link>
         </div>
 
@@ -62,7 +73,7 @@ export function JournalTeaser({
           {articles.map((article, i) => (
             <Link
               key={article.slug}
-              href={`/journal/${article.slug}`}
+              href={localePath(locale, `/journal/${article.slug}`)}
               className="reveal group"
               style={{ transitionDelay: `${i * 100}ms` }}
             >
@@ -77,12 +88,12 @@ export function JournalTeaser({
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-xs text-ink-tertiary">
-                    article image
+                    {tr("common.imagePlaceholder")}
                   </div>
                 )}
               </div>
               <div className="text-[10px] tracking-widest uppercase text-ink-tertiary mb-2">
-                {article.category} · {article.readingTime} mnt
+                {article.category} · {article.readingTime} {tr("common.minutesShort")}
               </div>
               <h3 className="font-serif text-base md:text-lg font-medium leading-snug group-hover:text-accent transition-colors">
                 {article.title}

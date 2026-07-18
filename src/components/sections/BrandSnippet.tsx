@@ -5,6 +5,7 @@
 
 import { SmartImage as Image } from "@/components/media/SmartImage";
 import Link from "next/link";
+import { defaultLocale, localePath, translator, type Locale } from "@/lib/i18n";
 
 interface BrandSnippetProps {
   eyebrow?: string;
@@ -13,16 +14,25 @@ interface BrandSnippetProps {
   ctaLabel?: string;
   ctaUrl?: string;
   imageUrl?: string;
+  locale?: Locale;
 }
 
 export function BrandSnippet({
-  eyebrow = "Tentang Noblekase",
-  headline = "Bukan sekadar aksesoris",
-  body = "Kami percaya bahwa setiap orang berhak atas aksesoris yang berkualitas dan terdesain baik—tanpa harus mengeluarkan biaya berlebihan.",
-  ctaLabel = "Selengkapnya",
+  eyebrow: eyebrowProp,
+  headline: headlineProp,
+  body: bodyProp,
+  ctaLabel: ctaLabelProp,
   ctaUrl = "/tentang",
   imageUrl,
+  locale = defaultLocale,
 }: BrandSnippetProps) {
+  const tr = translator(locale);
+  // Fallback mengikuti bahasa aktif ketika field CMS masih kosong.
+  const eyebrow = eyebrowProp ?? tr("brandSnippet.eyebrow");
+  const headline = headlineProp ?? tr("brandSnippet.headline");
+  const body = bodyProp ?? tr("brandSnippet.body");
+  const ctaLabel = ctaLabelProp ?? tr("brandSnippet.cta");
+
   return (
     <section className="bg-bg-cream py-16 md:py-24">
       <div className="container-prose">
@@ -31,14 +41,14 @@ export function BrandSnippet({
             {imageUrl ? (
               <Image
                 src={imageUrl}
-                alt="Noblekase brand"
+                alt={tr("brandSnippet.imageAlt")}
                 fill
                 sizes="(max-width: 768px) 100vw, 40vw"
                 className="object-cover"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-ink-tertiary text-sm">
-                Brand image
+                {tr("brandSnippet.imagePlaceholder")}
               </div>
             )}
           </div>
@@ -47,7 +57,10 @@ export function BrandSnippet({
             <div className="eyebrow mb-3">{eyebrow}</div>
             <h2 className="font-serif text-2xl md:text-3xl font-medium mb-4">{headline}</h2>
             <p className="text-base text-ink-secondary leading-relaxed mb-5">{body}</p>
-            <Link href={ctaUrl} className="text-sm font-medium text-ink-primary hover:text-accent">
+            <Link
+              href={ctaUrl.startsWith("/") ? localePath(locale, ctaUrl) : ctaUrl}
+              className="text-sm font-medium text-ink-primary hover:text-accent"
+            >
               {ctaLabel} →
             </Link>
           </div>

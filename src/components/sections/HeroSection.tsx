@@ -8,6 +8,7 @@
 
 import { SmartImage as Image } from "@/components/media/SmartImage";
 import Link from "next/link";
+import { defaultLocale, localePath, translator, type Locale } from "@/lib/i18n";
 
 interface HeroProps {
   eyebrow?: string;
@@ -17,17 +18,27 @@ interface HeroProps {
   imageAlt?: string;
   ctaLabel?: string;
   ctaUrl?: string;
+  locale?: Locale;
 }
 
 export function HeroSection({
-  eyebrow = "Edisi · Mei 2026",
-  headline = "Aksesoris yang menemani hari-hari setiap orang.",
-  subheadline = "Kualitas konsisten. Desain yang tidak biasa. Tersedia untuk semua.",
+  eyebrow: eyebrowProp,
+  headline: headlineProp,
+  subheadline: subheadlineProp,
   imageUrl,
-  imageAlt = "Noblekase hero",
-  ctaLabel = "Jelajahi produk",
+  imageAlt: imageAltProp,
+  ctaLabel: ctaLabelProp,
   ctaUrl = "/produk",
+  locale = defaultLocale,
 }: HeroProps) {
+  const tr = translator(locale);
+  // Fallback mengikuti bahasa aktif ketika field CMS masih kosong.
+  const eyebrow = eyebrowProp ?? tr("hero.eyebrow");
+  const headline = headlineProp ?? tr("hero.headline");
+  const subheadline = subheadlineProp ?? tr("hero.subheadline");
+  const imageAlt = imageAltProp ?? tr("hero.imageAlt");
+  const ctaLabel = ctaLabelProp ?? tr("hero.cta");
+
   return (
     <section className="bg-bg-cream pt-32 md:pt-40 pb-20 md:pb-28">
       <div className="container-prose">
@@ -44,7 +55,7 @@ export function HeroSection({
               </p>
             )}
             <Link
-              href={ctaUrl}
+              href={ctaUrl.startsWith("/") ? localePath(locale, ctaUrl) : ctaUrl}
               className="inline-flex items-center gap-2 bg-ink-primary text-bg-base px-6 py-3 rounded-md text-sm font-medium hover:bg-accent transition-colors"
             >
               {ctaLabel} <span aria-hidden>→</span>
@@ -65,7 +76,7 @@ export function HeroSection({
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-ink-tertiary text-sm">
-                  Hero image · contextual lifestyle
+                  {tr("hero.imagePlaceholder")}
                 </div>
               )}
             </div>

@@ -5,6 +5,7 @@
 
 import { SmartImage as Image } from "@/components/media/SmartImage";
 import Link from "next/link";
+import { defaultLocale, localePath, type Locale } from "@/lib/i18n";
 
 interface ProductCardProps {
   slug: string;
@@ -14,6 +15,7 @@ interface ProductCardProps {
   imageUrl: string;
   badge?: "NEW" | "BEST" | "PRO";
   marketplaceKeys?: string[];
+  locale?: Locale;
 }
 
 export function ProductCard({
@@ -24,10 +26,11 @@ export function ProductCard({
   imageUrl,
   badge,
   marketplaceKeys = [],
+  locale = defaultLocale,
 }: ProductCardProps) {
   return (
     <Link
-      href={`/produk/detail/${slug}`}
+      href={localePath(locale, `/produk/detail/${slug}`)}
       className="reveal group block border border-border-light rounded-lg overflow-hidden bg-bg-base hover:border-border-mid transition-colors"
     >
       <div className="relative aspect-[4/3] bg-bg-warm overflow-hidden">

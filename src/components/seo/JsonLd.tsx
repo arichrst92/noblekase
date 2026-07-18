@@ -9,6 +9,8 @@
  * berharap muncul rich snippet harga/rating.
  */
 
+import { defaultLocale, localePath, type Locale } from "@/lib/i18n";
+
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 const abs = (path: string) => (path.startsWith("http") ? path : `${SITE.replace(/\/$/, "")}${path}`);
 
@@ -27,11 +29,18 @@ export function SiteJsonLd({
   siteName = "Noblekase",
   logoUrl,
   socialUrls = [],
+  locale = defaultLocale,
 }: {
   siteName?: string;
   logoUrl?: string;
   socialUrls?: string[];
+  locale?: Locale;
 }) {
+  // Entitas situs ikut bahasa halaman: SearchAction harus menunjuk rute cari
+  // milik bahasa itu, kalau tidak Google mengarahkan pencari berbahasa Inggris
+  // ke halaman hasil berbahasa Indonesia.
+  const homePath = localePath(locale, "/");
+  const searchPath = localePath(locale, "/cari");
   return (
     <>
       <JsonLdScript
@@ -39,7 +48,7 @@ export function SiteJsonLd({
           "@context": "https://schema.org",
           "@type": "Organization",
           name: siteName,
-          url: abs("/"),
+          url: abs(homePath),
           ...(logoUrl ? { logo: abs(logoUrl) } : {}),
           ...(socialUrls.length ? { sameAs: socialUrls } : {}),
         }}
@@ -49,10 +58,10 @@ export function SiteJsonLd({
           "@context": "https://schema.org",
           "@type": "WebSite",
           name: siteName,
-          url: abs("/"),
+          url: abs(homePath),
           potentialAction: {
             "@type": "SearchAction",
-            target: { "@type": "EntryPoint", urlTemplate: abs("/cari?q={search_term_string}") },
+            target: { "@type": "EntryPoint", urlTemplate: abs(`${searchPath}?q={search_term_string}`) },
             "query-input": "required name=search_term_string",
           },
         }}

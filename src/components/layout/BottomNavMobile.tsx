@@ -2,6 +2,9 @@
  * BottomNavMobile — floating rounded bottom navigation (mobile only)
  *
  * 5 slots: Beranda · Produk · [N logo center] · Journal · Lainnya
+ *
+ * Tautan internal dilewatkan localePath() dan status aktif dihitung dari
+ * pathname yang sudah dilepas prefix locale-nya.
  */
 
 "use client";
@@ -10,6 +13,14 @@ import Link from "next/link";
 import { Home, Grid3x3, BookOpen, MoreHorizontal, Info, LifeBuoy, type LucideIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
+import {
+  defaultLocale,
+  localeHref,
+  stripLocale,
+  translator,
+  type Locale,
+  type Translator,
+} from "@/lib/i18n";
 
 const iconMap: Record<string, LucideIcon> = {
   home: Home,
@@ -28,20 +39,28 @@ interface MobileItem {
   isCenterLogo?: boolean;
 }
 
-const defaultItems: MobileItem[] = [
-  { label: "Beranda", url: "/", icon: "home" },
-  { label: "Produk", url: "/produk", icon: "grid" },
+const buildDefaultItems = (tr: Translator): MobileItem[] => [
+  { label: tr("nav.home"), url: "/", icon: "home" },
+  { label: tr("nav.products"), url: "/produk", icon: "grid" },
   { label: "", url: "#", isCenterLogo: true },
-  { label: "Journal", url: "/journal", icon: "book-open" },
-  { label: "Lainnya", url: "#more", icon: "more-horizontal" },
+  { label: tr("nav.journal"), url: "/journal", icon: "book-open" },
+  { label: tr("nav.more"), url: "#more", icon: "more-horizontal" },
 ];
 
-export function BottomNavMobile({ items }: { items?: MobileItem[] }) {
-  const navItems = items && items.length ? items : defaultItems;
+export function BottomNavMobile({
+  items,
+  locale = defaultLocale,
+}: {
+  items?: MobileItem[];
+  locale?: Locale;
+}) {
+  const tr = translator(locale);
+  const navItems = items && items.length ? items : buildDefaultItems(tr);
   const pathname = usePathname();
+  const currentPath = stripLocale(pathname ?? "/").path;
 
   const isActive = (url: string) =>
-    url === "/" ? pathname === "/" : url.startsWith("/") && pathname.startsWith(url);
+    url === "/" ? currentPath === "/" : url.startsWith("/") && currentPath.startsWith(url);
 
   return (
     <nav className="md:hidden fixed bottom-3 left-3 right-3 z-50">
@@ -51,7 +70,7 @@ export function BottomNavMobile({ items }: { items?: MobileItem[] }) {
             return (
               <div key={i} className="flex justify-center">
                 <Link
-                  href={item.url || "/"}
+                  href={localeHref(locale, item.url || "/")}
                   className={cn(
                     "inline-flex w-10 h-10 rounded-full bg-ink-primary text-bg-base",
                     "items-center justify-center font-serif text-sm tracking-wider",
@@ -70,7 +89,7 @@ export function BottomNavMobile({ items }: { items?: MobileItem[] }) {
           return (
             <Link
               key={i}
-              href={item.url}
+              href={localeHref(locale, item.url)}
               className={cn(
                 "flex flex-col items-center justify-center py-1 transition-colors",
                 active ? "text-ink-primary" : "text-ink-secondary"

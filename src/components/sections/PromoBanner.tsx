@@ -5,6 +5,7 @@
 
 import { SmartImage as Image } from "@/components/media/SmartImage";
 import Link from "next/link";
+import { defaultLocale, localePath, translator, type Locale } from "@/lib/i18n";
 
 interface PromoBannerProps {
   eyebrow?: string;
@@ -12,20 +13,28 @@ interface PromoBannerProps {
   ctaLabel?: string;
   ctaUrl?: string;
   imageUrl?: string;
+  locale?: Locale;
 }
 
 export function PromoBanner({
-  eyebrow = "Edisi Berjalan",
-  headline = "Perlengkapan harian, satu paket",
-  ctaLabel = "Jelajahi koleksi",
+  eyebrow: eyebrowProp,
+  headline: headlineProp,
+  ctaLabel: ctaLabelProp,
   ctaUrl = "/produk",
   imageUrl,
+  locale = defaultLocale,
 }: PromoBannerProps) {
+  const tr = translator(locale);
+  // Fallback mengikuti bahasa aktif ketika field CMS masih kosong.
+  const eyebrow = eyebrowProp ?? tr("promo.eyebrow");
+  const headline = headlineProp ?? tr("promo.headline");
+  const ctaLabel = ctaLabelProp ?? tr("promo.cta");
+
   return (
     <section className="py-12 md:py-16">
       <div className="container-prose">
         <Link
-          href={ctaUrl}
+          href={ctaUrl.startsWith("/") ? localePath(locale, ctaUrl) : ctaUrl}
           className="reveal group relative block overflow-hidden rounded-lg border border-border-light bg-bg-warm"
         >
           <div className="grid grid-cols-1 md:grid-cols-[1fr_1.15fr] items-center">
@@ -49,7 +58,7 @@ export function PromoBanner({
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-ink-tertiary text-sm">
-                  image
+                  {tr("common.imagePlaceholder")}
                 </div>
               )}
             </div>

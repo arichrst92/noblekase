@@ -17,15 +17,28 @@ import {
 } from "@/lib/queries";
 import { buildMetadata } from "@/lib/seo";
 import { ProductJsonLd, BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import {
+  defaultLocale,
+  isLocale,
+  localePath,
+  locales,
+  translator,
+  type Locale,
+} from "@/lib/i18n";
 
 interface ProductDetailProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }
 
+/** Setiap produk diprerender untuk kedua bahasa. */
 export async function generateStaticParams() {
   try {
-    const products = await getProducts();
-    return products.map((p) => ({ slug: p.slug }));
+    const out: { locale: string; slug: string }[] = [];
+    for (const locale of locales) {
+      const products = await getProducts(locale);
+      for (const p of products) out.push({ locale, slug: p.slug });
+    }
+    return out;
   } catch {
     return [];
   }
@@ -34,25 +47,30 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: ProductDetailProps): Promise<Metadata> {
-  const { slug } = await params;
-  const product = await getProductBySlug(slug);
-  if (!product) return { title: "Produk tidak ditemukan" };
+  const { locale: raw, slug } = await params;
+  const locale: Locale = isLocale(raw) ? raw : defaultLocale;
+  const product = await getProductBySlug(slug, locale);
+  if (!product) return { title: translator(locale)("product.notFoundTitle") };
   return buildMetadata({
     title: product.seoTitle ?? product.name,
     description: product.seoDescription ?? product.tagline,
     path: `/produk/detail/${slug}`,
     image: product.ogUrl,
+    locale,
   });
 }
 
 export default async function ProductDetailPage({
   params,
 }: ProductDetailProps) {
-  const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const { locale: raw, slug } = await params;
+  const locale: Locale = isLocale(raw) ? raw : defaultLocale;
+  const tr = translator(locale);
+
+  const product = await getProductBySlug(slug, locale);
   if (!product) notFound();
 
-  const related = await getRelatedProducts(product);
+  const related = await getRelatedProducts(product, locale);
 
   return (
     <>
@@ -62,17 +80,25 @@ export default async function ProductDetailPage({
         name={product.name}
         description={product.seoDescription ?? product.tagline}
         imageUrl={product.imageUrl}
-        path={`/produk/detail/${product.slug}`}
+        path={localePath(locale, `/produk/detail/${product.slug}`)}
         category={product.category}
       />
       <BreadcrumbJsonLd
         items={[
-          { name: "Beranda", path: "/" },
-          { name: "Produk", path: "/produk" },
+          { name: tr("common.home"), path: localePath(locale, "/") },
+          { name: tr("common.products"), path: localePath(locale, "/produk") },
           ...(product.categorySlug
-            ? [{ name: product.category, path: `/produk/${product.categorySlug}` }]
+            ? [
+                {
+                  name: product.category,
+                  path: localePath(locale, `/produk/${product.categorySlug}`),
+                },
+              ]
             : []),
-          { name: product.name, path: `/produk/detail/${product.slug}` },
+          {
+            name: product.name,
+            path: localePath(locale, `/produk/detail/${product.slug}`),
+          },
         ]}
       />
 
@@ -80,16 +106,16 @@ export default async function ProductDetailPage({
         <div className="container-prose">
           {/* Breadcrumb */}
           <nav className="text-[12px] text-ink-tertiary mb-6 flex items-center gap-1.5">
-            <Link href="/" className="hover:text-ink-primary">
-              Beranda
+            <Link href={localePath(locale, "/")} className="hover:text-ink-primary">
+              {tr("common.home")}
             </Link>
             <span>/</span>
-            <Link href="/produk" className="hover:text-ink-primary">
-              Produk
+            <Link href={localePath(locale, "/produk")} className="hover:text-ink-primary">
+              {tr("common.products")}
             </Link>
             <span>/</span>
             <Link
-              href={`/produk/${product.categorySlug}`}
+              href={localePath(locale, `/produk/${product.categorySlug}`)}
               className="hover:text-ink-primary"
             >
               {product.category}
@@ -125,7 +151,10 @@ export default async function ProductDetailPage({
                     >
                       <Image
                         src={img}
-                        alt={`${product.name} view ${i + 1}`}
+                        alt={tr("product.galleryViewAlt", {
+                          name: product.name,
+                          index: i + 1,
+                        })}
                         fill
                         sizes="120px"
                         className="object-cover"
@@ -149,7 +178,7 @@ export default async function ProductDetailPage({
               {/* Marketplace cards */}
               <div className="border border-border-light rounded-lg p-4 md:p-5 mb-8">
                 <div className="text-[10px] tracking-widest uppercase text-ink-tertiary mb-3">
-                  Beli di marketplace pilihan
+                  {tr("product.marketplaceHeading")}
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   {product.marketplaces.map((m) => (
@@ -164,29 +193,31 @@ export default async function ProductDetailPage({
                       {m.badge && (
                         <div className="text-[10px] text-ink-tertiary mt-1">
                           {m.badge === "best-price"
-                            ? "Harga terbaik"
+                            ? tr("product.badge.bestPrice")
                             : m.badge === "fast-ship"
-                              ? "Pengiriman cepat"
-                              : "Baru rilis"}
+                              ? tr("product.badge.fastShip")
+                              : tr("product.badge.newRelease")}
                         </div>
                       )}
                     </Link>
                   ))}
                 </div>
                 <a
-                  href="https://wa.me/6281234567890?text=Halo%20Noblekase%2C%20saya%20tertarik%20dengan%20produk%20"
+                  href={`https://wa.me/6281234567890?text=${encodeURIComponent(
+                    tr("product.whatsAppPrefill"),
+                  )}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-3 flex items-center justify-center gap-2 bg-ink-primary text-bg-base py-2.5 rounded-md text-sm font-medium hover:bg-accent transition-colors"
                 >
-                  Tanya via WhatsApp →
+                  {tr("product.askWhatsApp")}
                 </a>
               </div>
 
               {/* Story */}
               <div className="mb-8">
                 <div className="text-[10px] tracking-widest uppercase text-ink-tertiary mb-2">
-                  Cerita Produk
+                  {tr("product.storyHeading")}
                 </div>
                 <p className="text-base text-ink-secondary leading-relaxed">
                   {product.story}
@@ -196,7 +227,7 @@ export default async function ProductDetailPage({
               {/* Specs */}
               <div className="mb-2">
                 <div className="text-[10px] tracking-widest uppercase text-ink-tertiary mb-3">
-                  Spesifikasi
+                  {tr("product.specsHeading")}
                 </div>
                 <dl className="border-t border-border-light">
                   {product.specs.map((s) => (
@@ -219,9 +250,9 @@ export default async function ProductDetailPage({
       {product.lifestyle && product.lifestyle.length > 0 && (
         <section className="bg-bg-cream py-16 md:py-20 border-y border-border-light">
           <div className="container-prose">
-            <div className="reveal eyebrow mb-2">Dalam Keseharian</div>
+            <div className="reveal eyebrow mb-2">{tr("product.lifestyleEyebrow")}</div>
             <h2 className="reveal font-serif text-2xl md:text-3xl font-medium mb-8">
-              {product.name} di hari-hari biasa
+              {tr("product.lifestyleHeadingTemplate", { name: product.name })}
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
               {product.lifestyle.map((img, i) => (
@@ -232,7 +263,7 @@ export default async function ProductDetailPage({
                 >
                   <Image
                     src={img}
-                    alt={`Lifestyle ${i + 1}`}
+                    alt={tr("product.lifestyleAlt", { index: i + 1 })}
                     fill
                     sizes="(max-width: 768px) 50vw, 25vw"
                     className="object-cover"
@@ -248,9 +279,9 @@ export default async function ProductDetailPage({
       {related.length > 0 && (
         <section className="py-16 md:py-20">
           <div className="container-prose">
-            <div className="reveal eyebrow mb-2">Mungkin juga cocok</div>
+            <div className="reveal eyebrow mb-2">{tr("product.relatedEyebrow")}</div>
             <h2 className="reveal font-serif text-2xl md:text-3xl font-medium mb-8">
-              Produk lain yang sering dipasangkan
+              {tr("product.relatedHeading")}
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5">
               {related.map((p) => (
@@ -263,6 +294,7 @@ export default async function ProductDetailPage({
                   imageUrl={p.imageUrl}
                   badge={p.badge}
                   marketplaceKeys={p.marketplaces.map((m) => m.key)}
+                  locale={locale}
                 />
               ))}
             </div>
@@ -279,7 +311,7 @@ export default async function ProductDetailPage({
           className="floating-nav flex items-center justify-between px-4 py-3"
         >
           <span className="text-sm font-medium text-ink-primary">
-            Beli {product.name}
+            {tr("product.buyCta", { name: product.name })}
           </span>
           <span className="text-xs px-2.5 py-1 bg-ink-primary text-bg-base rounded-full">
             →

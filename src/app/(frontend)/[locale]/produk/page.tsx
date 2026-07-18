@@ -17,29 +17,42 @@ import {
 } from "@/lib/queries";
 import { buildMetadata } from "@/lib/seo";
 import { applyFilters, parseFilters } from "@/lib/productFilters";
-
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getGlobalData("page-products");
-  return buildMetadata({
-    title: t?.headline ?? "Produk",
-    description:
-      t?.intro ??
-      "Jelajahi koleksi aksesoris Noblekase: charger GaN, kabel, holder, audio, dan casing.",
-    path: "/produk",
-    image: resolveMediaUrl(t?.bannerImage, "og") || undefined,
-  });
-}
+import { defaultLocale, isLocale, localePath, translator, type Locale } from "@/lib/i18n";
 
 interface ProductListingPageProps {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export default async function ProductListingPage({ searchParams }: ProductListingPageProps) {
+export async function generateMetadata({
+  params,
+}: ProductListingPageProps): Promise<Metadata> {
+  const { locale: raw } = await params;
+  const locale: Locale = isLocale(raw) ? raw : defaultLocale;
+  const tr = translator(locale);
+  const t = await getGlobalData("page-products", locale);
+  return buildMetadata({
+    title: t?.headline ?? tr("products.metaTitle"),
+    description: t?.intro ?? tr("products.metaDescription"),
+    path: "/produk",
+    image: resolveMediaUrl(t?.bannerImage, "og") || undefined,
+    locale,
+  });
+}
+
+export default async function ProductListingPage({
+  params,
+  searchParams,
+}: ProductListingPageProps) {
+  const { locale: raw } = await params;
+  const locale: Locale = isLocale(raw) ? raw : defaultLocale;
+  const tr = translator(locale);
+
   const [allProducts, categories, subCategories, t, sp] = await Promise.all([
-    getProducts(),
-    getCategories(),
-    getSubCategories(),
-    getGlobalData("page-products"),
+    getProducts(locale),
+    getCategories(locale),
+    getSubCategories(locale),
+    getGlobalData("page-products", locale),
     searchParams,
   ]);
 
@@ -59,6 +72,12 @@ export default async function ProductListingPage({ searchParams }: ProductListin
   const bannerUrl =
     resolveMediaUrl(t?.bannerImage, "landscape") || "/images/hero/produk-listing-banner.svg";
 
+  // Angka "ditampilkan" tetap ditebalkan, jadi templat kamus dipecah dulu di
+  // sekitar {shown} — t() membiarkan placeholder yang tidak diisi apa adanya.
+  const [showingBefore, showingAfter] = tr("products.showingCount", {
+    total: allProducts.length,
+  }).split("{shown}");
+
   return (
     <>
       <RevealOnScroll />
@@ -68,19 +87,18 @@ export default async function ProductListingPage({ searchParams }: ProductListin
         <div className="container-prose">
           <div className="grid grid-cols-1 md:grid-cols-[1.3fr_1fr] gap-8 md:gap-12 items-center">
             <div className="reveal">
-              <div className="eyebrow mb-3">{t?.eyebrow ?? "Koleksi"}</div>
+              <div className="eyebrow mb-3">{t?.eyebrow ?? tr("products.eyebrow")}</div>
               <h1 className="font-serif text-3xl md:text-5xl font-medium leading-tight mb-4 tracking-tight">
-                {t?.headline ?? "Semua produk Noblekase"}
+                {t?.headline ?? tr("products.heading")}
               </h1>
               <p className="text-base text-ink-secondary leading-relaxed max-w-md">
-                {t?.intro ??
-                  "Empat kategori yang menemani hari-hari Anda. Harga ada di marketplace pilihan — kami menjaga koleksi & konsistensi kualitas."}
+                {t?.intro ?? tr("products.intro")}
               </p>
             </div>
             <div className="reveal aspect-[4/3] bg-bg-base border border-border-mid rounded-md overflow-hidden relative">
               <Image
                 src={bannerUrl}
-                alt={t?.headline ?? "Noblekase produk"}
+                alt={t?.headline ?? tr("products.bannerAlt")}
                 fill
                 priority
                 sizes="(max-width: 768px) 100vw, 40vw"
@@ -100,25 +118,30 @@ export default async function ProductListingPage({ searchParams }: ProductListin
               categories={categories}
               subCategories={subCategories}
               filters={filters}
-              basePath="/produk"
+              basePath={localePath(locale, "/produk")}
               subCounts={subCounts}
               badgeCounts={badgeCounts}
               marketplaceNote={t?.filterDisclaimer ?? undefined}
+              locale={locale}
             />
 
             <div>
               <div className="flex items-center justify-between gap-4 mb-5 md:mb-6">
                 <div className="text-sm text-ink-secondary">
-                  Menampilkan{" "}
-                  <span className="text-ink-primary font-medium">{products.length}</span>{" "}
-                  dari {allProducts.length} produk
+                  {showingBefore}
+                  <span className="text-ink-primary font-medium">{products.length}</span>
+                  {showingAfter}
                 </div>
-                <SortSelect basePath="/produk" filters={filters} />
+                <SortSelect
+                  basePath={localePath(locale, "/produk")}
+                  filters={filters}
+                  locale={locale}
+                />
               </div>
 
               {products.length === 0 && (
                 <p className="text-sm text-ink-secondary py-10">
-                  Tidak ada produk yang cocok dengan filter ini.
+                  {tr("products.noMatchFilter")}
                 </p>
               )}
 
@@ -133,6 +156,7 @@ export default async function ProductListingPage({ searchParams }: ProductListin
                     imageUrl={p.imageUrl}
                     badge={p.badge}
                     marketplaceKeys={p.marketplaces.map((m) => m.key)}
+                    locale={locale}
                   />
                 ))}
               </div>

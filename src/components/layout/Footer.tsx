@@ -6,6 +6,9 @@
  * bila kosong. Untuk marketplace dipakai ikon toko generik — logo resmi
  * Tokopedia/Shopee/dll adalah merek pihak ketiga, jadi jika ingin logo asli
  * silakan unggah berkas resminya (koleksi Marketplaces punya field `icon`).
+ *
+ * Semua tautan internal (termasuk yang datang dari CMS) dilewatkan localePath()
+ * agar pengunjung versi Inggris tetap berada di /en saat berpindah halaman.
  */
 
 import Link from "next/link";
@@ -20,6 +23,13 @@ import {
   ExternalLink,
   type LucideIcon,
 } from "lucide-react";
+import {
+  defaultLocale,
+  localeHref,
+  translator,
+  type Locale,
+  type Translator,
+} from "@/lib/i18n";
 
 interface FooterLink {
   label: string;
@@ -38,6 +48,7 @@ interface FooterProps {
   columns?: FooterColumn[];
   copyrightText?: string;
   legalLinks?: FooterLink[];
+  locale?: Locale;
 }
 
 const ICONS: Record<string, LucideIcon> = {
@@ -65,22 +76,22 @@ function inferIcon(label: string): LucideIcon | null {
   return null;
 }
 
-const defaultColumns: FooterColumn[] = [
+const buildDefaultColumns = (tr: Translator): FooterColumn[] => [
   {
-    title: "Produk",
+    title: tr("common.products"),
     links: [
-      { label: "Charger & Power", url: "/produk/charger-power" },
-      { label: "Kabel & Konektor", url: "/produk/kabel-konektor" },
-      { label: "Holder & Stand", url: "/produk/holder-stand" },
-      { label: "Audio & Casing", url: "/produk/audio-casing" },
+      { label: tr("footer.category.chargerPower"), url: "/produk/charger-power" },
+      { label: tr("footer.category.cableConnector"), url: "/produk/kabel-konektor" },
+      { label: tr("footer.category.holderStand"), url: "/produk/holder-stand" },
+      { label: tr("footer.category.audioCase"), url: "/produk/audio-casing" },
     ],
   },
   {
     title: "Brand",
     links: [
-      { label: "Tentang", url: "/tentang" },
-      { label: "Journal", url: "/journal" },
-      { label: "Dukungan", url: "/dukungan" },
+      { label: tr("nav.about"), url: "/tentang" },
+      { label: tr("nav.journal"), url: "/journal" },
+      { label: tr("nav.support"), url: "/dukungan" },
     ],
   },
   {
@@ -93,7 +104,7 @@ const defaultColumns: FooterColumn[] = [
     ],
   },
   {
-    title: "Sosial",
+    title: tr("footer.columnSocial"),
     links: [
       { label: "Instagram", url: "https://instagram.com/noblekase", icon: "instagram" },
       { label: "TikTok", url: "https://tiktok.com/@noblekase", icon: "tiktok" },
@@ -111,12 +122,15 @@ const defaultLegal: FooterLink[] = [
 export function Footer({
   brand = "NOBLEKASE",
   logoUrl,
-  tagline = "Aksesoris yang menemani hari-hari setiap orang. Kualitas konsisten, desain editorial untuk semua.",
+  tagline,
   columns,
   copyrightText = "© 2026 Noblekase. All rights reserved.",
   legalLinks,
+  locale = defaultLocale,
 }: FooterProps) {
-  const cols = columns && columns.length ? columns : defaultColumns;
+  const tr = translator(locale);
+  const taglineText = tagline ?? tr("site.taglineFallback");
+  const cols = columns && columns.length ? columns : buildDefaultColumns(tr);
   const legal = legalLinks && legalLinks.length ? legalLinks : defaultLegal;
 
   return (
@@ -135,7 +149,7 @@ export function Footer({
             ) : (
               <div className="font-serif text-2xl tracking-[0.15em] mb-4">{brand}</div>
             )}
-            <p className="text-sm text-bg-base/75 max-w-xs leading-relaxed">{tagline}</p>
+            <p className="text-sm text-bg-base/75 max-w-xs leading-relaxed">{taglineText}</p>
           </div>
 
           {/* Link columns */}
@@ -151,7 +165,7 @@ export function Footer({
                   return (
                     <li key={link.url + link.label}>
                       <Link
-                        href={link.url}
+                        href={localeHref(locale, link.url)}
                         {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                         className="inline-flex items-center gap-2 hover:text-accent-light transition-colors"
                       >
@@ -170,7 +184,11 @@ export function Footer({
           <span>{copyrightText}</span>
           <div className="flex gap-5">
             {legal.map((l) => (
-              <Link key={l.url + l.label} href={l.url} className="hover:text-accent-light">
+              <Link
+                key={l.url + l.label}
+                href={localeHref(locale, l.url)}
+                className="hover:text-accent-light"
+              >
                 {l.label}
               </Link>
             ))}
