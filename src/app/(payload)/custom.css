@@ -94,6 +94,21 @@ a:not(.btn):not(.nav__link) {
 }
 
 /* ------------------------------------------------------------------
+   Varian kredit di halaman login.
+
+   Aturan sidebar (order, margin-top, garis pemisah) sengaja dinetralkan:
+   di sini kredit bukan footer sebuah kolom flex, melainkan penutup form
+   yang berdiri sendiri. Dibuat rata tengah mengikuti sumbu form login.
+   ------------------------------------------------------------------ */
+.nk-powered-by--login {
+  order: 0;
+  justify-content: center;
+  border-top: none;
+  margin-top: 1.75rem;
+  padding-top: 0;
+}
+
+/* ------------------------------------------------------------------
    Logo brand di admin.
    Wordmark Noblekase rasio ~6:1, sedangkan container ikon bawaan Payload
    sempit/persegi sehingga logo mengecil. Paksa tinggi + lebar otomatis,

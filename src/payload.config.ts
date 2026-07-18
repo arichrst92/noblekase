@@ -78,6 +78,9 @@ export default buildConfig({
       },
       // Kredit pembuat, menempel di bagian bawah sidebar.
       afterNavLinks: ["@/components/admin/PoweredBy#PoweredBy"],
+      // Kredit yang sama di bawah form login (Payload merender slot ini
+      // tepat setelah form).
+      afterLogin: ["@/components/admin/PoweredBy#PoweredByLogin"],
     },
     livePreview: {
       breakpoints: [
