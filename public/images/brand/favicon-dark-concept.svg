@@ -1,8 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-    <rect width="64" height="64" fill="#1F2937"/>
-    <g transform="translate(-8.0, -8.0)">
-        <rect x="0" y="0" width="14" height="80" fill="#EDE6D9"/>
-        <rect x="62" y="0" width="14" height="80" fill="#EDE6D9"/>
-        <line x1="14" y1="0" x2="62" y2="80" stroke="#EDE6D9" stroke-width="14"/>
-    </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"><rect width="64" height="64" rx="14" fill="#1B2A63"/><text x="32.0" y="44.8" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="37" font-weight="800" fill="#FFFFFF">N</text></svg>
