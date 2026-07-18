@@ -288,9 +288,13 @@ export interface SlideData {
   headline: string;
   subheadline: string;
   imageUrl: string;
+  imageMobileUrl: string;
   imageAlt: string;
   ctaLabel: string;
   ctaUrl: string;
+  textAlign: "left" | "center";
+  textTheme: "light" | "dark";
+  scrim: boolean;
 }
 
 export async function getSlides(): Promise<SlideData[]> {
@@ -305,12 +309,16 @@ export async function getSlides(): Promise<SlideData[]> {
   return res.docs.map((s: any) => ({
     id: String(s.id),
     eyebrow: s.eyebrow ?? "",
-    headline: s.headline,
+    headline: s.headline ?? "",
     subheadline: s.subheadline ?? "",
-    imageUrl: mediaUrl(s.image, "wide"),
-    imageAlt: (typeof s.image === "object" ? s.image?.alt : "") || s.headline,
-    ctaLabel: s.ctaLabel ?? "Lihat produk",
+    imageUrl: mediaUrl(s.image),
+    imageMobileUrl: mediaUrl(s.imageMobile),
+    imageAlt: (typeof s.image === "object" ? s.image?.alt : "") || s.headline || s.label || "",
+    ctaLabel: s.ctaLabel ?? "",
     ctaUrl: s.ctaUrl ?? "/produk",
+    textAlign: s.textAlign === "left" ? "left" : "center",
+    textTheme: s.textTheme === "dark" ? "dark" : "light",
+    scrim: s.scrim !== false,
   }));
 }
 

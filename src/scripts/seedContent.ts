@@ -236,36 +236,43 @@ const seed = async () => {
   if (existingSlides.totalDocs === 0) {
     const slides = [
       {
-        label: "Slide 01 — Charger",
+        label: "Slide 01 — Edisi",
         eyebrow: "EDISI · MEI 2026",
         headline: "Aksesoris yang menemani hari-hari.",
         subheadline: "Kualitas konsisten, harga masuk akal. Tersedia di marketplace pilihan.",
-        img: "images/hero/hero-edisi-01-desktop.svg",
+        img: "images/slides/slide-01-desktop.svg",
+        imgMobile: "images/slides/slide-01-mobile.svg",
         ctaLabel: "Jelajahi produk",
         ctaUrl: "/produk",
+        textAlign: "left",
       },
       {
-        label: "Slide 02 — Power",
+        label: "Slide 02 — Charger & Power",
         eyebrow: "CHARGER & POWER",
         headline: "Daya yang tidak bikin menunggu.",
         subheadline: "GaN ringkas, powerbank yang cukup untuk seharian.",
-        img: "images/hero/hero-edisi-02-alt.svg",
+        img: "images/slides/slide-02-desktop.svg",
+        imgMobile: "images/slides/slide-02-mobile.svg",
         ctaLabel: "Lihat Charger & Power",
         ctaUrl: "/produk/charger-power",
+        textAlign: "left",
       },
       {
-        label: "Slide 03 — Audio",
+        label: "Slide 03 — Audio & Casing",
         eyebrow: "AUDIO & CASING",
         headline: "Teman perjalanan yang tenang.",
         subheadline: "Earbuds, speaker, dan casing dengan finishing rapi.",
-        img: "images/kategori/kategori-audio-casing.svg",
+        img: "images/slides/slide-03-desktop.svg",
+        imgMobile: "images/slides/slide-03-mobile.svg",
         ctaLabel: "Lihat Audio & Casing",
         ctaUrl: "/produk/audio-casing",
+        textAlign: "center",
       },
     ];
     let ord = 0;
     for (const s of slides) {
       const image = await findOrUpload(s.img, s.headline);
+      const imageMobile = await findOrUpload(s.imgMobile, s.headline);
       if (!image) continue;
       await payload.create({
         collection: "slides",
@@ -275,14 +282,18 @@ const seed = async () => {
           headline: s.headline,
           subheadline: s.subheadline,
           image,
+          ...(imageMobile ? { imageMobile } : {}),
           ctaLabel: s.ctaLabel,
           ctaUrl: s.ctaUrl,
+          textAlign: s.textAlign,
+          textTheme: "light",
+          scrim: true,
           order: ord++,
           status: "published",
         },
       });
     }
-    payload.logger.info(`Seeded: ${ord} slide carousel`);
+    payload.logger.info(`Seeded: ${ord} slide carousel (full-bleed)`);
   } else {
     payload.logger.info("Lewati: slide carousel sudah ada");
   }

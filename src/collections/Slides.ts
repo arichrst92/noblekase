@@ -31,26 +31,80 @@ export const Slides: CollectionConfig = {
       required: true,
       admin: { description: "Nama internal slide, mis. 'Promo Charger Mei'." },
     },
-    { name: "eyebrow", type: "text", localized: true },
-    { name: "headline", type: "text", localized: true, required: true },
-    { name: "subheadline", type: "textarea", localized: true },
     {
       name: "image",
       type: "upload",
       relationTo: "media",
       required: true,
+      label: "Gambar (desktop)",
       admin: {
         description: imgHint({
-          slot: "Gambar slide carousel Beranda",
-          size: "1600×900",
-          ratio: "16:9",
+          slot: "Banner full-width carousel Beranda (gambar memenuhi layar)",
+          size: "1920×800",
+          ratio: "2.4:1",
           prompt:
-            "a wide promotional banner of phone accessories arranged neatly, leaving clear space on one side for headline text",
+            "a wide full-bleed hero banner of phone accessories, dramatic lighting, generous empty space on one side so headline text stays readable",
         }),
       },
     },
-    { name: "ctaLabel", type: "text", localized: true, defaultValue: "Lihat produk" },
-    { name: "ctaUrl", type: "text", defaultValue: "/produk" },
+    {
+      name: "imageMobile",
+      type: "upload",
+      relationTo: "media",
+      label: "Gambar (mobile, opsional)",
+      admin: {
+        description: imgHint({
+          slot: "Versi mobile banner (opsional; jika kosong, gambar desktop dipotong otomatis)",
+          size: "1080×1350",
+          ratio: "4:5",
+          prompt: "a vertical hero banner of phone accessories with clear space for a headline",
+        }),
+      },
+    },
+    {
+      type: "collapsible",
+      label: "Teks Overlay (opsional)",
+      admin: {
+        description:
+          "Kosongkan semua bila teks sudah menyatu di dalam gambar — carousel akan menampilkan gambar saja.",
+      },
+      fields: [
+        { name: "eyebrow", type: "text", localized: true },
+        { name: "headline", type: "text", localized: true },
+        { name: "subheadline", type: "textarea", localized: true },
+        { name: "ctaLabel", type: "text", localized: true },
+        {
+          name: "textAlign",
+          type: "select",
+          defaultValue: "center",
+          options: [
+            { label: "Kiri", value: "left" },
+            { label: "Tengah", value: "center" },
+          ],
+        },
+        {
+          name: "textTheme",
+          type: "select",
+          defaultValue: "light",
+          options: [
+            { label: "Teks terang (gambar gelap)", value: "light" },
+            { label: "Teks gelap (gambar terang)", value: "dark" },
+          ],
+        },
+        {
+          name: "scrim",
+          type: "checkbox",
+          defaultValue: true,
+          label: "Gelapkan gambar agar teks terbaca",
+        },
+      ],
+    },
+    {
+      name: "ctaUrl",
+      type: "text",
+      defaultValue: "/produk",
+      admin: { description: "Tautan slide. Seluruh area banner bisa diklik." },
+    },
     {
       name: "order",
       type: "number",
