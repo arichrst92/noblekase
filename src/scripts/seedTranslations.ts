@@ -624,6 +624,28 @@ const footerColumnTitleEN: Record<string, string> = {
 };
 
 /** Label link footer per URL — mengikuti kamus UI di src/lib/i18n.ts. */
+/**
+ * Label Indonesia untuk tautan footer — PEMULIH, sama peran dengan
+ * headerNavID. Legal link (Privacy/Terms/Sitemap) memakai kata yang sama di
+ * kedua bahasa, tapi tetap perlu ditulis: nilainya sempat terhapus dan
+ * field-nya `required`, jadi menyimpan footer dengan label kosong akan
+ * ditolak validasi.
+ */
+const footerLinkID: Record<string, string> = {
+  "/": "Beranda",
+  "/produk": "Semua produk",
+  "/produk/charger-power": "Charger & Power",
+  "/produk/kabel-konektor": "Kabel & Konektor",
+  "/produk/holder-stand": "Holder & Stand",
+  "/produk/audio-casing": "Audio & Casing",
+  "/tentang": "Tentang",
+  "/journal": "Journal",
+  "/dukungan": "Dukungan",
+  "/privacy": "Privacy",
+  "/terms": "Terms",
+  "/sitemap.xml": "Sitemap",
+};
+
 const footerLinkEN: Record<string, string> = {
   "/": "Home",
   "/produk": "All products",
@@ -1206,8 +1228,6 @@ const run = async () => {
   // navItems & mobileBottomNav dicocokkan lewat `url` (non-lokal).
   // ----------------------------------------------------------------
   await step("Global: Header", async () => {
-    await ensureIndonesianBaseline("header");
-
     const read = async () =>
       payload.findGlobal({ slug: "header", locale: "id", depth: 0 });
 
@@ -1220,18 +1240,36 @@ const run = async () => {
       return;
     }
 
-    // Langkah 1 — pulihkan label Indonesia yang mungkin kosong.
+    /*
+     * Langkah 1 — pulihkan label Indonesia yang kosong.
+     *
+     * Rantai fallback-nya berlapis supaya penulisan TIDAK PERNAH menghasilkan
+     * label kosong: label yang sudah ada → peta Indonesia → peta Inggris →
+     * URL-nya sendiri. Field ini `required`, jadi satu label kosong saja
+     * membuat seluruh penyimpanan Header ditolak dan navbar tetap rusak.
+     * Label Inggris atau URL memang tidak ideal, tapi jauh lebih baik
+     * daripada navigasi yang hilang sama sekali — dan editor bisa
+     * merapikannya lewat admin.
+     */
     await payload.updateGlobal({
       slug: "header",
       locale: "id",
       data: {
         navItems: (before.navItems ?? []).map((row) => ({
           ...row,
-          label: row.label || headerNavID[row.url] || row.label,
+          label:
+            row.label ||
+            headerNavID[row.url] ||
+            headerNavEN[row.url] ||
+            row.url,
         })),
+        // Baris logo tengah memang tanpa label, jadi rantai fallback dilewati
+        // bila peta Indonesia memberi string kosong secara eksplisit.
         mobileBottomNav: (before.mobileBottomNav ?? []).map((row) => ({
           ...row,
-          label: row.label || headerNavID[row.url] || row.label,
+          label:
+            row.label ??
+            (row.url in headerNavID ? headerNavID[row.url] : row.url),
         })),
       },
     });
@@ -1265,15 +1303,13 @@ const run = async () => {
   // `copyrightText` tidak lokal — sengaja tidak dikirim.
   // ----------------------------------------------------------------
   await step("Global: Footer", async () => {
-    await ensureIndonesianBaseline("footer");
-
     const read = async () =>
       payload.findGlobal({ slug: "footer", locale: "id", depth: 0 });
 
     const before = await read();
 
-    // Langkah 1 — simpan ulang array apa adanya di locale ID supaya setiap
-    // baris punya `id` di database. Nilai tidak diubah; ini murni penjangkaran.
+    // Langkah 1 — tulis locale ID lebih dulu: memulihkan label yang kosong
+    // sekaligus memastikan tiap baris array punya `id` di database.
     if (
       (before.columns ?? []).length > 0 ||
       (before.legalLinks ?? []).length > 0
@@ -1282,8 +1318,33 @@ const run = async () => {
         slug: "footer",
         locale: "id",
         data: {
-          ...(before.columns ? { columns: before.columns } : {}),
-          ...(before.legalLinks ? { legalLinks: before.legalLinks } : {}),
+          ...(before.columns
+            ? {
+                columns: before.columns.map((col) => ({
+                  ...col,
+                  links: (col.links ?? []).map((link) => ({
+                    ...link,
+                    label:
+                      link.label ||
+                      footerLinkID[link.url] ||
+                      footerLinkEN[link.url] ||
+                      link.url,
+                  })),
+                })),
+              }
+            : {}),
+          ...(before.legalLinks
+            ? {
+                legalLinks: before.legalLinks.map((link) => ({
+                  ...link,
+                  label:
+                    link.label ||
+                    footerLinkID[link.url] ||
+                    footerLinkEN[link.url] ||
+                    link.url,
+                })),
+              }
+            : {}),
         },
       });
     }
