@@ -59,8 +59,18 @@ const badgeOut: Record<string, "NEW" | "BEST" | "PRO"> = {
 // Mappers
 // ------------------------------------------------------------------
 
+/** Data SEO tambahan yang ikut dibawa tiap entitas. */
+export interface SeoFields {
+  ogUrl?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+}
+
+export type ProductWithSeo = SampleProduct & SeoFields;
+export type CategoryWithSeo = SampleCategory & SeoFields;
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
-function mapProduct(p: any): SampleProduct {
+function mapProduct(p: any): ProductWithSeo {
   const sub = p.subCategory && typeof p.subCategory === "object" ? p.subCategory : null;
   const cat = sub?.category && typeof sub.category === "object" ? sub.category : null;
 
@@ -107,14 +117,18 @@ function mapProduct(p: any): SampleProduct {
     specs: (p.specs ?? []).map((s: any) => ({ label: s.label, value: s.value })),
     marketplaces,
     related,
-  } as SampleProduct;
+    // SEO: override editor dulu, fallback ke foto utama (varian 1200×630)
+    ogUrl: mediaUrl(p.seo?.ogImage, "og") || mediaUrl(p.mainImage, "og"),
+    seoTitle: p.seo?.title || undefined,
+    seoDescription: p.seo?.description || undefined,
+  } as ProductWithSeo;
 }
 
 // ------------------------------------------------------------------
 // Products
 // ------------------------------------------------------------------
 
-export async function getProducts(): Promise<SampleProduct[]> {
+export async function getProducts(): Promise<ProductWithSeo[]> {
   const payload = await getPayloadClient();
   const res = await payload.find({
     collection: "products",
@@ -126,7 +140,7 @@ export async function getProducts(): Promise<SampleProduct[]> {
   return res.docs.map(mapProduct);
 }
 
-export async function getProductBySlug(slug: string): Promise<SampleProduct | null> {
+export async function getProductBySlug(slug: string): Promise<ProductWithSeo | null> {
   const payload = await getPayloadClient();
   const res = await payload.find({
     collection: "products",
@@ -137,12 +151,12 @@ export async function getProductBySlug(slug: string): Promise<SampleProduct | nu
   return res.docs[0] ? mapProduct(res.docs[0]) : null;
 }
 
-export async function getProductsByCategorySlug(slug: string): Promise<SampleProduct[]> {
+export async function getProductsByCategorySlug(slug: string): Promise<ProductWithSeo[]> {
   const all = await getProducts();
   return all.filter((p) => p.categorySlug === slug);
 }
 
-export async function getRelatedProducts(product: SampleProduct): Promise<SampleProduct[]> {
+export async function getRelatedProducts(product: SampleProduct): Promise<ProductWithSeo[]> {
   if (product.related?.length) {
     const all = await getProducts();
     const bySlug = new Map(all.map((p) => [p.slug, p]));
@@ -161,7 +175,7 @@ export async function getRelatedProducts(product: SampleProduct): Promise<Sample
 // Categories
 // ------------------------------------------------------------------
 
-export async function getCategories(): Promise<SampleCategory[]> {
+export async function getCategories(): Promise<CategoryWithSeo[]> {
   const payload = await getPayloadClient();
   const [cats, prods] = await Promise.all([
     payload.find({
@@ -179,10 +193,13 @@ export async function getCategories(): Promise<SampleCategory[]> {
     description: c.description ?? "",
     productCount: prods.filter((p) => p.categorySlug === c.slug).length,
     imageUrl: mediaUrl(c.image, "landscape"),
+    ogUrl: mediaUrl(c.seo?.ogImage, "og") || mediaUrl(c.image, "og"),
+    seoTitle: c.seo?.title || undefined,
+    seoDescription: c.seo?.description || undefined,
   }));
 }
 
-export async function getCategoryBySlug(slug: string): Promise<SampleCategory | null> {
+export async function getCategoryBySlug(slug: string): Promise<CategoryWithSeo | null> {
   return (await getCategories()).find((c) => c.slug === slug) ?? null;
 }
 
@@ -275,6 +292,9 @@ export interface JournalArticle {
   coverUrl: string;
   heroUrl: string;
   body: unknown; // Lexical richText JSON
+  ogUrl?: string;
+  seoTitle?: string;
+  seoDescription?: string;
 }
 
 function mapArticle(a: any): JournalArticle {
@@ -290,6 +310,9 @@ function mapArticle(a: any): JournalArticle {
     coverUrl: hero,
     heroUrl: hero,
     body: a.body ?? null,
+    ogUrl: mediaUrl(a.seo?.ogImage, "og") || mediaUrl(a.heroImage, "og"),
+    seoTitle: a.seo?.title || undefined,
+    seoDescription: a.seo?.description || undefined,
   };
 }
 

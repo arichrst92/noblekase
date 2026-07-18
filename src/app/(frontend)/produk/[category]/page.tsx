@@ -15,6 +15,7 @@ import {
   getCategoryBySlug,
   getProductsByCategorySlug,
 } from "@/lib/queries";
+import { buildMetadata } from "@/lib/seo";
 
 interface CategoryPageProps {
   params: Promise<{ category: string }>;
@@ -35,10 +36,12 @@ export async function generateMetadata({
   const { category } = await params;
   const cat = await getCategoryBySlug(category);
   if (!cat) return { title: "Kategori tidak ditemukan" };
-  return {
-    title: `${cat.name}`,
-    description: cat.description,
-  };
+  return buildMetadata({
+    title: cat.seoTitle ?? cat.name,
+    description: cat.seoDescription ?? cat.description,
+    path: `/produk/${category}`,
+    image: cat.ogUrl,
+  });
 }
 
 export default async function CategoryPage({ params }: CategoryPageProps) {

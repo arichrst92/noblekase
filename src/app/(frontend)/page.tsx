@@ -22,7 +22,13 @@ import { JournalTeaser } from "@/components/sections/JournalTeaser";
 import { MarketplaceCTA } from "@/components/sections/MarketplaceCTA";
 import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
 
+import type { Metadata } from "next";
 import { getActiveHero, getCategories, getActiveFeatured, getArticles } from "@/lib/queries";
+
+// Judul/deskripsi/OG diwarisi dari root layout (Site Settings). Di sini cukup canonical.
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default async function HomePage() {
   const [hero, categories, featured, articles] = await Promise.all([

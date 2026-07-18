@@ -8,15 +8,18 @@ import Image from "next/image";
 import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
 import { RichText } from "@/components/richtext/RichText";
 import { getGlobalData, getFaqItems, resolveMediaUrl } from "@/lib/queries";
+import { buildMetadata } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getGlobalData("page-support");
-  return {
-    title: "Dukungan",
+  return buildMetadata({
+    title: s?.heroHeadline ?? "Dukungan",
     description:
       s?.heroIntro ??
       "Hubungi tim Noblekase via WhatsApp, Instagram, atau email. Lihat FAQ untuk pertanyaan umum.",
-  };
+    path: "/dukungan",
+    image: resolveMediaUrl(s?.heroImage, "og") || undefined,
+  });
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

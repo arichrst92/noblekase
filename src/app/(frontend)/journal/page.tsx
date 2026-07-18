@@ -8,12 +8,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
 import { getArticles, getGlobalData } from "@/lib/queries";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Journal",
-  description:
-    "Cerita, panduan, dan inspirasi dari Noblekase — seputar aksesoris HP dan keseharian.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getGlobalData("page-journal");
+  return buildMetadata({
+    title: t?.headline ?? "Journal",
+    description:
+      t?.intro ??
+      "Cerita, panduan, dan inspirasi dari Noblekase — seputar aksesoris HP dan keseharian.",
+    path: "/journal",
+  });
+}
 
 export default async function JournalPage() {
   const [articles, t] = await Promise.all([getArticles(), getGlobalData("page-journal")]);

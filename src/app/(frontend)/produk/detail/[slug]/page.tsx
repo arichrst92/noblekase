@@ -15,6 +15,7 @@ import {
   getProductBySlug,
   getRelatedProducts,
 } from "@/lib/queries";
+import { buildMetadata } from "@/lib/seo";
 
 interface ProductDetailProps {
   params: Promise<{ slug: string }>;
@@ -35,15 +36,12 @@ export async function generateMetadata({
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) return { title: "Produk tidak ditemukan" };
-  return {
-    title: product.name,
-    description: product.tagline,
-    openGraph: {
-      title: product.name,
-      description: product.tagline,
-      images: [{ url: product.imageUrl }],
-    },
-  };
+  return buildMetadata({
+    title: product.seoTitle ?? product.name,
+    description: product.seoDescription ?? product.tagline,
+    path: `/produk/detail/${slug}`,
+    image: product.ogUrl,
+  });
 }
 
 export default async function ProductDetailPage({

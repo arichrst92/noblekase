@@ -7,13 +7,20 @@ import Image from "next/image";
 import { ProductCard } from "@/components/cards/ProductCard";
 import { ProductFilterSidebar } from "@/components/sections/ProductFilterSidebar";
 import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
-import { getProducts, getCategories } from "@/lib/queries";
+import { getProducts, getCategories, getGlobalData, resolveMediaUrl } from "@/lib/queries";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Produk",
-  description:
-    "Jelajahi koleksi aksesoris Noblekase: charger GaN, kabel, holder, audio, dan casing.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getGlobalData("page-products");
+  return buildMetadata({
+    title: t?.headline ?? "Produk",
+    description:
+      t?.intro ??
+      "Jelajahi koleksi aksesoris Noblekase: charger GaN, kabel, holder, audio, dan casing.",
+    path: "/produk",
+    image: resolveMediaUrl(t?.bannerImage, "og") || undefined,
+  });
+}
 
 export default async function ProductListingPage() {
   const [products, categories] = await Promise.all([getProducts(), getCategories()]);

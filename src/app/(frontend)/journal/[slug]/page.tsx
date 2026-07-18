@@ -15,6 +15,7 @@ import {
   getRelatedArticles,
   getGlobalData,
 } from "@/lib/queries";
+import { buildMetadata } from "@/lib/seo";
 
 interface ArticlePageProps {
   params: Promise<{ slug: string }>;
@@ -35,17 +36,14 @@ export async function generateMetadata({
   const { slug } = await params;
   const article = await getArticleBySlug(slug);
   if (!article) return { title: "Artikel tidak ditemukan" };
-  return {
-    title: article.title,
-    description: article.excerpt,
-    openGraph: {
-      title: article.title,
-      description: article.excerpt,
-      images: [{ url: article.heroUrl ?? article.coverUrl }],
-      type: "article",
-      publishedTime: article.publishedAt,
-    },
-  };
+  return buildMetadata({
+    title: article.seoTitle ?? article.title,
+    description: article.seoDescription ?? article.excerpt,
+    path: `/journal/${slug}`,
+    image: article.ogUrl,
+    type: "article",
+    publishedTime: article.publishedAt || undefined,
+  });
 }
 
 const dateFormat = new Intl.DateTimeFormat("id-ID", {
