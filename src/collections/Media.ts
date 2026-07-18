@@ -20,6 +20,7 @@
 
 import type { CollectionConfig } from "payload";
 import { isAdminOrEditor, isAuthenticated } from "@/lib/access";
+import { BRAND_MOOD } from "@/lib/imageGuidance";
 
 export const Media: CollectionConfig = {
   slug: "media",
@@ -28,7 +29,8 @@ export const Media: CollectionConfig = {
     group: "Content",
     description:
       "Perpustakaan gambar. Setelah upload, klik 'Edit Image' untuk atur titik fokus/crop. " +
-      "Rekomendasi ukuran & prompt ChatGPT tercantum di setiap field gambar (mis. di Produk, Kategori, Hero).",
+      "Isi field 'Peruntukan' di bawah untuk melihat ukuran yang disarankan, dan " +
+      "'Prompt AI' berisi template siap-tempel ke ChatGPT / DALL·E.",
   },
   access: {
     read: () => true, // Public can read media URLs
@@ -73,6 +75,40 @@ export const Media: CollectionConfig = {
       localized: true,
       admin: {
         description: "Caption opsional untuk ditampilkan di bawah gambar.",
+      },
+    },
+    {
+      name: "slot",
+      type: "select",
+      label: "Peruntukan",
+      admin: {
+        description:
+          "Pilih peruntukan gambar untuk melihat ukuran & rasio yang disarankan. " +
+          "Daftar lengkap ada di docs/IMAGE-GUIDE.md.",
+      },
+      options: [
+        { label: "Foto utama produk — 800×800 (1:1)", value: "product-main" },
+        { label: "Galeri / detail produk — 800×800 (1:1)", value: "product-gallery" },
+        { label: "Lifestyle / cerita produk — 900×1200 (3:4)", value: "lifestyle" },
+        { label: "Kartu kategori — 800×600 (4:3)", value: "category" },
+        { label: "Hero beranda / halaman — 1600×900 (16:9)", value: "hero" },
+        { label: "Cover artikel Journal — 1600×900 (16:9)", value: "article" },
+        { label: "Banner listing produk — 2100×900 (21:9)", value: "banner" },
+        { label: "Share sosial / Open Graph — 1200×630 (1.91:1)", value: "og" },
+        { label: "Logo / ikon brand", value: "brand" },
+      ],
+    },
+    {
+      name: "aiPrompt",
+      type: "textarea",
+      label: "Prompt AI",
+      admin: {
+        rows: 4,
+        description:
+          "Template siap-tempel ke ChatGPT / DALL·E. Ganti [SUBJEK] dengan objeknya " +
+          '(mis. "a 65W GaN charger on a work desk") dan [RASIO] sesuai Peruntukan di atas. ' +
+          "Simpan prompt yang dipakai di sini agar hasilnya bisa diulang/konsisten.\n\n" +
+          `"[SUBJEK], ${BRAND_MOOD}. Aspect ratio [RASIO]."`,
       },
     },
   ],

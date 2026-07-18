@@ -12,7 +12,7 @@
  * gaya consumer-electronics retail modern, high-contrast, premium namun accessible.
  */
 
-const BRAND_MOOD =
+export const BRAND_MOOD =
   "clean and bold, crisp white background, vivid orange (#F15A24) and deep navy (#1B2A63) brand accents, " +
   "high-contrast, modern consumer-electronics retail photography, sharp product focus, " +
   "energetic yet premium, bright even lighting";
