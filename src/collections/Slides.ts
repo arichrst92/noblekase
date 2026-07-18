@@ -6,7 +6,7 @@
  */
 
 import type { CollectionConfig } from "payload";
-import { isAdminOrEditor } from "@/lib/access";
+import { isAdminOrEditor, isPublishedOrAdmin } from "@/lib/access";
 import { imgHint } from "@/lib/imageGuidance";
 
 export const Slides: CollectionConfig = {
@@ -19,7 +19,9 @@ export const Slides: CollectionConfig = {
     description: "Slide carousel Beranda. Urutkan lewat kolom 'order' (kecil tampil dulu).",
   },
   access: {
-    read: () => true,
+    // Publik hanya boleh melihat slide published — sebelumnya draft ikut
+    // terekspos lewat REST API /api/slides.
+    read: isPublishedOrAdmin,
     create: isAdminOrEditor,
     update: isAdminOrEditor,
     delete: isAdminOrEditor,

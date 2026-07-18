@@ -19,7 +19,7 @@
  */
 
 import type { CollectionConfig } from "payload";
-import { isAdminOrEditor, isAuthenticated } from "@/lib/access";
+import { isAdminOrEditor } from "@/lib/access";
 import { BRAND_MOOD } from "@/lib/imageGuidance";
 
 export const Media: CollectionConfig = {
@@ -34,7 +34,8 @@ export const Media: CollectionConfig = {
   },
   access: {
     read: () => true, // Public can read media URLs
-    create: isAuthenticated,
+    // Hanya admin/editor yang boleh upload (sebelumnya semua user login bisa).
+    create: isAdminOrEditor,
     update: isAdminOrEditor,
     delete: isAdminOrEditor,
   },

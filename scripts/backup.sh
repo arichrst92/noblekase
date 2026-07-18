@@ -11,6 +11,9 @@
 # =====================================
 
 set -euo pipefail
+# Pola glob yang tidak menemukan berkas harus menghasilkan daftar kosong,
+# bukan string literal — mencegah gpg dipanggil dengan nama berkas palsu.
+shopt -s nullglob
 
 # === CONFIG ===
 PROJECT_DIR="/opt/noblekase"
@@ -46,6 +49,15 @@ docker compose exec -T postgres pg_dump \
 
 DB_SIZE=$(du -sh "$BACKUP_TMP/db_${DATE}.dump" | cut -f1)
 log "Database dump size: $DB_SIZE"
+
+# Verifikasi dump tidak kosong/rusak sebelum dianggap sukses.
+if [[ ! -s "$BACKUP_TMP/db_${DATE}.dump" ]]; then
+    log "ERROR: dump database kosong — backup dibatalkan."
+    exit 1
+fi
+if ! pg_restore --list "$BACKUP_TMP/db_${DATE}.dump" > /dev/null 2>&1; then
+    log "WARN: pg_restore tidak dapat membaca dump (pg_restore mungkin tidak terpasang di host)."
+fi
 
 # 2. Uploads tar
 log "Archiving uploads..."

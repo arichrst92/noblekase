@@ -8,8 +8,19 @@
 
 import { NextResponse } from "next/server";
 import { search } from "@/lib/queries";
+import { clientKey, rateLimit } from "@/lib/ai/rateLimit";
+
+const RATE_LIMIT_SEARCH = Number(process.env.RATE_LIMIT_SEARCH ?? 60);
 
 export async function GET(request: Request) {
+  const rl = await rateLimit(clientKey(request, "search"), RATE_LIMIT_SEARCH);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { query: "", products: [], articles: [], total: 0, error: "rate-limited" },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSeconds) } },
+    );
+  }
+
   const q = new URL(request.url).searchParams.get("q") ?? "";
 
   if (q.trim().length < 2) {

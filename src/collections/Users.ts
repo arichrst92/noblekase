@@ -5,7 +5,7 @@
  */
 
 import type { CollectionConfig } from "payload";
-import { isSuperAdmin, isAuthenticated } from "@/lib/access";
+import { isSuperAdmin } from "@/lib/access";
 
 export const Users: CollectionConfig = {
   slug: "users",
@@ -24,7 +24,13 @@ export const Users: CollectionConfig = {
     group: "System",
   },
   access: {
-    read: isAuthenticated,
+    // Least privilege: super admin melihat semua user; peran lain hanya
+    // dirinya sendiri (mencegah kebocoran daftar email antar-pengguna CMS).
+    read: ({ req: { user } }) => {
+      if (!user) return false;
+      if ((user as { role?: string }).role === "superAdmin") return true;
+      return { id: { equals: user.id } };
+    },
     create: isSuperAdmin,
     update: ({ req: { user }, id }) => {
       if (!user) return false;

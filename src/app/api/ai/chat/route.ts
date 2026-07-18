@@ -55,7 +55,7 @@ function systemPrompt(siteName: string, context: string) {
 
 export async function POST(request: Request) {
   // 1. Rate limit
-  const rl = rateLimit(clientKey(request), RATE_LIMIT);
+  const rl = await rateLimit(clientKey(request, "ai-chat"), RATE_LIMIT);
   if (!rl.allowed) {
     return plain(
       `Maaf, terlalu banyak permintaan. Coba lagi dalam ${rl.retryAfterSeconds} detik ya.`,
