@@ -45,6 +45,9 @@ import {
 } from "@/lib/i18n";
 import { languageAlternates } from "@/lib/seo";
 
+// Render dinamis — lihat catatan di src/app/(frontend)/[locale]/[...slug]/page.tsx
+export const dynamic = "force-dynamic";
+
 interface HomePageProps {
   params: Promise<{ locale: string }>;
 }

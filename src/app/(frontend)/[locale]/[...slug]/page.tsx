@@ -18,6 +18,13 @@ import { getPageBySlug, resolveMediaUrl } from "@/lib/queries";
 import { buildMetadata } from "@/lib/seo";
 import { defaultLocale, isLocale, t, type Locale } from "@/lib/i18n";
 
+// Render dinamis (bukan SSG) — halaman ini mengambil konten dari Payload
+// (koleksi Pages) via DB. Tanpa ini, `next build` mencoba prerender halaman
+// ini secara statis dan gagal karena Postgres belum jalan/reachable saat
+// image Docker di-build (build image dan start container adalah dua
+// tahap terpisah).
+export const dynamic = "force-dynamic";
+
 interface DynamicPageProps {
   params: Promise<{ locale: string; slug: string[] }>;
 }

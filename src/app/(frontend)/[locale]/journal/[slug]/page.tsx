@@ -28,6 +28,9 @@ import {
   type Locale,
 } from "@/lib/i18n";
 
+// Render dinamis — lihat catatan di src/app/(frontend)/[locale]/[...slug]/page.tsx
+export const dynamic = "force-dynamic";
+
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 interface ArticlePageProps {

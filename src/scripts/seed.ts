@@ -62,10 +62,13 @@ function heading(text: string) {
 function quote(text: string) {
   return { children: [textNode(text)], direction: "ltr", format: "", indent: 0, type: "quote", version: 1 };
 }
-function richTextFromString(text: string) {
+// any: bentuk objeknya sudah valid Lexical SerializedEditorState, tapi
+// literal "ltr"/"root" di sini melebar jadi `string` tanpa `as const` —
+// dicasting di sini saja daripada menandai tiap literal di seluruh berkas.
+function richTextFromString(text: string): any {
   return { root: { children: [paragraph(text)], direction: "ltr", format: "", indent: 0, type: "root", version: 1 } };
 }
-function richTextFromBlocks(blocks: Block[]) {
+function richTextFromBlocks(blocks: Block[]): any {
   const children = blocks
     .filter((b) => b.type !== "img" && b.text) // gambar inline dilewati di seed
     .map((b) => (b.type === "h2" ? heading(b.text!) : b.type === "quote" ? quote(b.text!) : paragraph(b.text!)));
@@ -76,7 +79,11 @@ function richTextFromBlocks(blocks: Block[]) {
 // ------------------------------------------------------------------
 // Mapping data tambahan
 // ------------------------------------------------------------------
-const badgeMap: Record<string, string> = { NEW: "new", BEST: "best-seller", PRO: "limited" };
+const badgeMap: Record<string, "new" | "best-seller" | "limited"> = {
+  NEW: "new",
+  BEST: "best-seller",
+  PRO: "limited",
+};
 
 const subCategoryDefs = [
   { slug: "wall-charger", name: "Wall Charger", category: "charger-power" },
@@ -138,8 +145,8 @@ const seed = async () => {
   }
 
   // --- Media upload dengan cache (path -> id) ---
-  const mediaCache = new Map<string, number | string>();
-  async function upload(imageUrl: string | undefined, alt: string): Promise<number | string | undefined> {
+  const mediaCache = new Map<string, number>();
+  async function upload(imageUrl: string | undefined, alt: string): Promise<number | undefined> {
     if (!imageUrl) return undefined;
     if (mediaCache.has(imageUrl)) return mediaCache.get(imageUrl);
     const filePath = path.resolve(process.cwd(), "public", imageUrl.replace(/^\//, ""));
@@ -152,13 +159,15 @@ const seed = async () => {
       data: { alt },
       filePath,
     });
-    mediaCache.set(imageUrl, doc.id);
-    return doc.id;
+    // as number: payload.create() mengembalikan id bertipe `string | number`
+    // secara generik meski adapter Postgres selalu memakai integer.
+    mediaCache.set(imageUrl, doc.id as number);
+    return doc.id as number;
   }
 
   // --- Marketplaces ---
   payload.logger.info("Seeding marketplaces...");
-  const mpBySlug = new Map<string, number | string>();
+  const mpBySlug = new Map<string, number>();
   let mpOrder = 0;
   for (const mp of allMarketplaces) {
     const doc = await payload.create({
@@ -172,12 +181,12 @@ const seed = async () => {
         status: "published",
       },
     });
-    mpBySlug.set(mp.key, doc.id);
+    mpBySlug.set(mp.key, doc.id as number);
   }
 
   // --- Categories ---
   payload.logger.info("Seeding categories...");
-  const catBySlug = new Map<string, number | string>();
+  const catBySlug = new Map<string, number>();
   let catOrder = 0;
   for (const cat of categories) {
     const imageId = await upload(cat.imageUrl, `Kategori ${cat.name}`);
@@ -192,12 +201,12 @@ const seed = async () => {
         status: "published",
       },
     });
-    catBySlug.set(cat.slug, doc.id);
+    catBySlug.set(cat.slug, doc.id as number);
   }
 
   // --- SubCategories ---
   payload.logger.info("Seeding sub-categories...");
-  const subBySlug = new Map<string, number | string>();
+  const subBySlug = new Map<string, number>();
   let subOrder = 0;
   for (const sub of subCategoryDefs) {
     const doc = await payload.create({
@@ -205,17 +214,19 @@ const seed = async () => {
       data: {
         name: sub.name,
         slug: sub.slug,
-        category: catBySlug.get(sub.category),
+        // Non-null: sub-category selalu merujuk slug kategori yang sudah
+        // di-seed di loop sebelumnya (lihat subCategoryDefs di atas).
+        category: catBySlug.get(sub.category)!,
         order: subOrder++,
         status: "published",
       },
     });
-    subBySlug.set(sub.slug, doc.id);
+    subBySlug.set(sub.slug, doc.id as number);
   }
 
   // --- Products ---
   payload.logger.info("Seeding products...");
-  const prodBySlug = new Map<string, number | string>();
+  const prodBySlug = new Map<string, number>();
   let prodOrder = 0;
   for (const p of products) {
     const mainImage = await upload(p.imageUrl, p.name);
@@ -224,7 +235,7 @@ const seed = async () => {
       continue;
     }
     // gallery + lifestyle
-    const gallery: { image: number | string; type: string }[] = [];
+    const gallery: { image: number; type: "gallery" | "lifestyle" | "detail" }[] = [];
     for (const g of p.gallery || []) {
       const id = await upload(g, `${p.name} — foto`);
       if (id) gallery.push({ image: id, type: "gallery" });
@@ -234,8 +245,10 @@ const seed = async () => {
       if (id) gallery.push({ image: id, type: "lifestyle" });
     }
     // marketplace links
+    // Non-null: mp.key selalu merujuk marketplace yang sudah di-seed di
+    // loop "Marketplaces" sebelumnya.
     const marketplaceLinks = (p.marketplaces || []).map((mp) => ({
-      marketplace: mpBySlug.get(mp.key),
+      marketplace: mpBySlug.get(mp.key)!,
       url: mp.url,
       benefitLabel: mp.badge ? benefitFromBadge[mp.badge] : undefined,
       isPrimary: mp.badge === "best-price",
@@ -246,7 +259,9 @@ const seed = async () => {
       data: {
         name: p.name,
         slug: p.slug,
-        subCategory: subBySlug.get(productSubCategory[p.slug]),
+        // Non-null: setiap p.slug punya entri di productSubCategory yang
+        // merujuk sub-category yang sudah di-seed di loop sebelumnya.
+        subCategory: subBySlug.get(productSubCategory[p.slug])!,
         tagline: p.tagline,
         badge: p.badge ? badgeMap[p.badge] : undefined,
         storyHeadline: p.tagline,
@@ -259,12 +274,12 @@ const seed = async () => {
         status: "published",
       },
     });
-    prodBySlug.set(p.slug, doc.id);
+    prodBySlug.set(p.slug, doc.id as number);
   }
 
   // --- Article Categories (dari nama kategori unik di articles) ---
   payload.logger.info("Seeding article categories...");
-  const artCatBySlug = new Map<string, number | string>();
+  const artCatBySlug = new Map<string, number>();
   const slugify = (s: string) => s.toLowerCase().replace(/\s+/g, "-");
   let artCatOrder = 0;
   for (const name of Array.from(new Set(articles.map((a) => a.category)))) {
@@ -272,7 +287,7 @@ const seed = async () => {
       collection: "article-categories",
       data: { name, slug: slugify(name), order: artCatOrder++ },
     });
-    artCatBySlug.set(slugify(name), doc.id);
+    artCatBySlug.set(slugify(name), doc.id as number);
   }
 
   // --- Articles ---
@@ -288,7 +303,8 @@ const seed = async () => {
       data: {
         title: a.title,
         slug: a.slug,
-        category: artCatBySlug.get(slugify(a.category)),
+        // Non-null: kategori artikel selalu di-seed lebih dulu di loop di atas.
+        category: artCatBySlug.get(slugify(a.category))!,
         intro: a.excerpt,
         heroImage,
         body: richTextFromBlocks(a.body as Block[]),
@@ -331,7 +347,7 @@ const seed = async () => {
         mainProduct,
         secondaryProducts: featuredCollection.secondaryProductSlugs
           .map((s) => prodBySlug.get(s))
-          .filter(Boolean) as (number | string)[],
+          .filter(Boolean) as number[],
         isActive: true,
       },
     });

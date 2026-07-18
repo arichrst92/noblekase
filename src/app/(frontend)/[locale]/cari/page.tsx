@@ -13,6 +13,9 @@ import { search } from "@/lib/queries";
 import { buildMetadata } from "@/lib/seo";
 import { defaultLocale, isLocale, localePath, translator, type Locale } from "@/lib/i18n";
 
+// Render dinamis — lihat catatan di src/app/(frontend)/[locale]/[...slug]/page.tsx
+export const dynamic = "force-dynamic";
+
 interface SearchPageProps {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ q?: string }>;

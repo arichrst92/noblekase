@@ -34,7 +34,10 @@ function textNode(text: string) {
 function paragraph(text: string) {
   return { children: [textNode(text)], direction: "ltr", format: "", indent: 0, textFormat: 0, type: "paragraph", version: 1 };
 }
-function rt(text: string) {
+// any: bentuk objeknya sudah valid Lexical SerializedEditorState, tapi
+// literal "ltr"/"root" di sini melebar jadi `string` tanpa `as const` —
+// dicasting di sini saja daripada menandai tiap literal di seluruh berkas.
+function rt(text: string): any {
   return { root: { children: [paragraph(text)], direction: "ltr", format: "", indent: 0, type: "root", version: 1 } };
 }
 
@@ -49,7 +52,7 @@ const seed = async () => {
    * disk. Dokumen basi (file hilang) dihapus lalu diupload ulang — jika tidak,
    * frontend akan 500 "file is missing on the disk".
    */
-  async function findOrUpload(relPath: string, alt: string): Promise<number | string | undefined> {
+  async function findOrUpload(relPath: string, alt: string): Promise<number | undefined> {
     const filename = path.basename(relPath);
     const existing = await payload.find({
       collection: "media",
@@ -74,7 +77,9 @@ const seed = async () => {
       return undefined;
     }
     const doc = await payload.create({ collection: "media", data: { alt }, filePath });
-    return doc.id;
+    // as number: payload.create() mengembalikan id bertipe `string | number`
+    // secara generik meski adapter Postgres selalu memakai integer.
+    return doc.id as number;
   }
 
   // --- 0. Upload gambar halaman statis & brand ---
@@ -235,20 +240,20 @@ const seed = async () => {
   // --- 2. FAQ (kategori + item) ---
   const existingFaq = await payload.find({ collection: "faq-items", limit: 1 });
   if (existingFaq.totalDocs === 0) {
-    let catId: number | string;
+    let catId: number;
     const existingCat = await payload.find({
       collection: "faq-categories",
       where: { slug: { equals: "umum" } },
       limit: 1,
     });
     if (existingCat.totalDocs > 0) {
-      catId = existingCat.docs[0].id;
+      catId = existingCat.docs[0].id as number;
     } else {
       const cat = await payload.create({
         collection: "faq-categories",
         data: { name: "Umum", slug: "umum", order: 0 },
       });
-      catId = cat.id;
+      catId = cat.id as number;
     }
 
     const faqs = [
@@ -337,7 +342,7 @@ const seed = async () => {
         imgMobile: "images/slides/slide-01-mobile.svg",
         ctaLabel: "Jelajahi produk",
         ctaUrl: "/produk",
-        textAlign: "left",
+        textAlign: "left" as const,
       },
       {
         label: "Slide 02 — Charger & Power",
@@ -348,7 +353,7 @@ const seed = async () => {
         imgMobile: "images/slides/slide-02-mobile.svg",
         ctaLabel: "Lihat Charger & Power",
         ctaUrl: "/produk/charger-power",
-        textAlign: "left",
+        textAlign: "left" as const,
       },
       {
         label: "Slide 03 — Audio & Casing",
@@ -359,7 +364,7 @@ const seed = async () => {
         imgMobile: "images/slides/slide-03-mobile.svg",
         ctaLabel: "Lihat Audio & Casing",
         ctaUrl: "/produk/audio-casing",
-        textAlign: "center",
+        textAlign: "center" as const,
       },
     ];
     let ord = 0;

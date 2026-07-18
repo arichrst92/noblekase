@@ -28,6 +28,9 @@ import {
   type Locale,
 } from "@/lib/i18n";
 
+// Render dinamis — lihat catatan di src/app/(frontend)/[locale]/[...slug]/page.tsx
+export const dynamic = "force-dynamic";
+
 interface CategoryPageProps {
   params: Promise<{ locale: string; category: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;

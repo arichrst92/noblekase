@@ -26,6 +26,9 @@ import {
   type Locale,
 } from "@/lib/i18n";
 
+// Render dinamis — lihat catatan di src/app/(frontend)/[locale]/[...slug]/page.tsx
+export const dynamic = "force-dynamic";
+
 interface ProductDetailProps {
   params: Promise<{ locale: string; slug: string }>;
 }

@@ -11,6 +11,9 @@ import { getGlobalData, getFaqItems, resolveMediaUrl } from "@/lib/queries";
 import { buildMetadata } from "@/lib/seo";
 import { defaultLocale, isLocale, translator, type Locale } from "@/lib/i18n";
 
+// Render dinamis — lihat catatan di src/app/(frontend)/[locale]/[...slug]/page.tsx
+export const dynamic = "force-dynamic";
+
 interface DukunganPageProps {
   params: Promise<{ locale: string }>;
 }

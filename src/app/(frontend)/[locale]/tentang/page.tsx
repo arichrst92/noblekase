@@ -10,6 +10,9 @@ import { getPageBySlug, resolveMediaUrl } from "@/lib/queries";
 import { buildMetadata } from "@/lib/seo";
 import { defaultLocale, isLocale, t, type Locale } from "@/lib/i18n";
 
+// Render dinamis — lihat catatan di src/app/(frontend)/[locale]/[...slug]/page.tsx
+export const dynamic = "force-dynamic";
+
 interface TentangPageProps {
   params: Promise<{ locale: string }>;
 }
