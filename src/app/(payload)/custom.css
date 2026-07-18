@@ -49,10 +49,12 @@ a:not(.btn):not(.nav__link) {
    sempit/persegi sehingga logo mengecil. Paksa tinggi + lebar otomatis,
    dan lepas batasan lebar pada container pembungkusnya.
    ------------------------------------------------------------------ */
+/* Ikon navigator/header = mark persegi, jangan diregangkan */
 .nk-admin-icon {
-  height: 30px !important;
-  width: auto !important;
+  width: 28px !important;
+  height: 28px !important;
   max-width: none !important;
+  object-fit: contain !important;
 }
 .nk-admin-logo {
   height: 56px !important;
