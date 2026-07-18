@@ -60,6 +60,12 @@ RUN if [ -z "$NEXT_PUBLIC_SITE_URL" ]; then \
       exit 1; \
     fi
 
+# src/payload-types.ts di-gitignore (di-generate, bukan dikomit) — tanpa
+# langkah ini, `pnpm build` gagal di type-check dengan error
+# "Cannot find module '@/payload-types'" pada file mana pun yang meng-import
+# tipe Payload (mis. src/scripts/seedTranslations.ts).
+RUN pnpm generate:types
+
 # Import map Payload HARUS dibuat sebelum build — komponen admin kustom
 # (Logo, Icon, PoweredBy) diresolusi lewat berkas ini. Sengaja tanpa `|| true`:
 # kalau langkah ini gagal, panel admin akan rusak diam-diam di production.
