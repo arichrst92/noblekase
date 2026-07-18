@@ -3,7 +3,7 @@
  * Tidak menampilkan harga (per keputusan brand: harga ada di marketplace).
  */
 
-import { SmartImage as Image } from "@/components/media/SmartImage";
+import Image from "next/image";
 import Link from "next/link";
 
 interface ProductCardProps {

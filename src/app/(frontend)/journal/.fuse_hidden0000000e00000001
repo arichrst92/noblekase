@@ -4,7 +4,7 @@
  */
 
 import type { Metadata } from "next";
-import { SmartImage as Image } from "@/components/media/SmartImage";
+import Image from "next/image";
 import Link from "next/link";
 import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
 import { getArticles, getGlobalData } from "@/lib/queries";

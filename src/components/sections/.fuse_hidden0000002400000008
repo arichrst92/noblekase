@@ -3,7 +3,7 @@
  * Dibuat oleh: PT Solusi Inovasi Bangsa (https://ide.asia)
  */
 
-import { SmartImage as Image } from "@/components/media/SmartImage";
+import Image from "next/image";
 import Link from "next/link";
 
 interface PromoBannerProps {

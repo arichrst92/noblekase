@@ -2,7 +2,7 @@
  * JournalTeaser — 3 artikel terbaru di Beranda
  */
 
-import { SmartImage as Image } from "@/components/media/SmartImage";
+import Image from "next/image";
 import Link from "next/link";
 
 interface Article {

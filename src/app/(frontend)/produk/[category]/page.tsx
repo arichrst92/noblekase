@@ -5,7 +5,7 @@
  */
 
 import type { Metadata } from "next";
-import Image from "next/image";
+import { SmartImage as Image } from "@/components/media/SmartImage";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/cards/ProductCard";
 import { ProductFilterSidebar } from "@/components/sections/ProductFilterSidebar";

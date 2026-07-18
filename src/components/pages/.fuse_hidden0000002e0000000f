@@ -5,7 +5,7 @@
  * Block types: hero, pillars, story, numberedList, cta.
  */
 
-import { SmartImage as Image } from "@/components/media/SmartImage";
+import Image from "next/image";
 import Link from "next/link";
 import { RichText } from "@/components/richtext/RichText";
 import { resolveMediaUrl } from "@/lib/queries";

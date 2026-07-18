@@ -6,7 +6,7 @@
  * Soft parallax pada hero image saat scroll (GSAP ScrollTrigger).
  */
 
-import { SmartImage as Image } from "@/components/media/SmartImage";
+import Image from "next/image";
 import Link from "next/link";
 
 interface HeroProps {

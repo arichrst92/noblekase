@@ -7,7 +7,7 @@
  */
 
 import Link from "next/link";
-import { SmartImage as Image } from "@/components/media/SmartImage";
+import Image from "next/image";
 import { Fragment } from "react";
 import { resolveMediaUrl } from "@/lib/queries";
 
