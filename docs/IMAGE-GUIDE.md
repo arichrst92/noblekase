@@ -27,8 +27,8 @@ Teks di bawah sudah otomatis ditambahkan mood ini di CMS. Di dokumen ini, prompt
 | Lokasi (CMS) | Slot | Ukuran | Rasio | Prompt inti (ChatGPT) |
 |---|---|---|---|---|
 | Hero Editions → Image | Hero Beranda | 1600×900 | 16:9 | Wide editorial hero of phone accessories in a warm everyday setting (morning desk, sunlit), empty space on one side for headline |
-| Beranda (Konten) → Brand Image | Section brand snippet | 900×1200 | 3:4 | Warm brand lifestyle photo of phone accessories arranged thoughtfully on a natural surface |
-| Produk — Listing → Banner Image | Banner listing produk | 2100×900 | 21:9 | Wide editorial banner showing an assortment of phone accessories laid out neatly on a warm surface |
+| Beranda (Konten) → Brand Image | Section brand snippet — **full-bleed, teks di-overlay di kanan** | 2100×900 | 21:9 | Warm brand lifestyle photo of phone accessories arranged thoughtfully on a natural surface, with the right third kept visually calm and uncluttered so overlaid white text stays readable |
+| Produk — Listing → Banner Image | Banner listing produk (**full-bleed, teks di-overlay**) | 2100×900 | 21:9 | Wide editorial banner showing an assortment of phone accessories laid out neatly on a warm surface, with the left third kept visually calm and uncluttered so overlaid white headline text stays readable |
 | Categories → Image | Kartu kategori | 800×600 | 4:3 | Tidy flat-lay of phone accessories representing this category on a warm cream surface |
 | Categories → SEO OG Image | Share sosial kategori | 1200×630 | 1.91:1 | Hero banner of the category's accessories with brand wordmark space |
 | Products → Main Image | Foto utama produk | 800×800 | 1:1 | Clean product photo of the accessory centered on warm cream background, soft shadow |
@@ -38,10 +38,10 @@ Teks di bawah sudah otomatis ditambahkan mood ini di CMS. Di dokumen ini, prompt
 | Products → SEO OG Image | Share sosial produk | 1200×630 | 1.91:1 | The accessory as a wide social share banner with room for text |
 | Articles → Hero Image | Cover & hero artikel | 1600×900 | 16:9 | Editorial cover illustrating the article topic about phone accessories / everyday tech |
 | Articles → SEO OG Image | Share sosial artikel | 1200×630 | 1.91:1 | Wide social share banner for the article topic with space for a title |
-| Pages → Hero block → Image | Hero halaman (mis. Tentang) | 1600×900 | 16:9 | Editorial brand scene fitting the page theme, warm, space for headline |
+| Pages → Hero block → Image | Hero halaman (mis. Tentang) — **full-bleed, teks di-overlay** | 2100×900 | 21:9 | Editorial brand scene fitting the page theme, warm, with the left third kept visually calm and uncluttered so overlaid white headline text stays readable |
 | Pages → Story block → Image | Pendamping section cerita | 900×1200 | 3:4 | Warm editorial photo supporting the story section, natural light, lived-in |
 | Pages → SEO OG Image | Share sosial halaman | 1200×630 | 1.91:1 | Wide social share banner representing the page with room for a title |
-| Dukungan (Konten) → Hero Image | Hero halaman Dukungan | 1600×900 | 16:9 | Friendly warm scene suggesting customer care, phone on a cafe table |
+| Dukungan (Konten) → Hero Image | Hero halaman Dukungan — **full-bleed, teks di-overlay** | 2100×900 | 21:9 | Friendly warm scene suggesting customer care, phone on a cafe table, with the left third kept visually calm and uncluttered so overlaid white headline text stays readable |
 | Site Settings → Logo | Logo brand | tinggi 80px | — | **File brand asli** (jangan AI-generate) |
 | Site Settings → Favicon | Favicon | 512×512 | 1:1 | **Monogram 'N'** brand asli, PNG transparan |
 | Site Settings → Default OG Image | Share sosial default | 1200×630 | 1.91:1 | Branded social banner with accessories and wordmark space |
@@ -58,7 +58,7 @@ Teks di bawah sudah otomatis ditambahkan mood ini di CMS. Di dokumen ini, prompt
 | `landscape` | 800×600 | 4:3 | Kartu kategori, cover journal |
 | `portrait` | 900×1200 | 3:4 | Lifestyle / story vertikal |
 | `wide` | 1600×900 | 16:9 | Hero |
-| `banner` | 2100×900 | 21:9 | Banner listing |
+| `banner` | 2100×900 | 21:9 | Semua blok full-bleed: hero Produk/Tentang/Dukungan & section brand Beranda |
 | `og` | 1200×630 | 1.91:1 | Open Graph / share sosial |
 
 Semua varian: `fit: cover`, output **WebP** kualitas 85.

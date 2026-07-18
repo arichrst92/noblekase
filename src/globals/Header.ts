@@ -36,9 +36,31 @@ export const Header: GlobalConfig = {
       type: "array",
       maxRows: 5,
       fields: [
-        { name: "label", type: "text", localized: true, required: true },
+        /**
+         * Label SENGAJA tidak required.
+         *
+         * Baris dengan `isCenterLogo` adalah tombol logo bundar di tengah —
+         * secara desain memang tidak berteks, dan defaultValue di bawah pun
+         * mengisinya dengan string kosong. Ketika label ditandai required,
+         * baris itu lolos saat memakai defaultValue (default tidak divalidasi)
+         * tapi langsung gagal begitu global-nya benar-benar disimpan — termasuk
+         * saat mengisi terjemahan bahasa kedua.
+         */
+        {
+          name: "label",
+          type: "text",
+          localized: true,
+          admin: {
+            description:
+              "Kosongkan untuk baris logo tengah; baris lain sebaiknya diisi.",
+          },
+        },
         { name: "url", type: "text", required: true },
-        { name: "icon", type: "text", admin: { description: "Lucide icon name." } },
+        {
+          name: "icon",
+          type: "text",
+          admin: { description: "Lucide icon name." },
+        },
         { name: "isCenterLogo", type: "checkbox", defaultValue: false },
       ],
       defaultValue: [

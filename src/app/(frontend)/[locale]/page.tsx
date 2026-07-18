@@ -36,7 +36,13 @@ import {
   getProducts,
   resolveMediaUrl,
 } from "@/lib/queries";
-import { defaultLocale, isLocale, localePath, t, type Locale } from "@/lib/i18n";
+import {
+  defaultLocale,
+  isLocale,
+  localePath,
+  t,
+  type Locale,
+} from "@/lib/i18n";
 import { languageAlternates } from "@/lib/seo";
 
 interface HomePageProps {
@@ -45,11 +51,16 @@ interface HomePageProps {
 
 // Judul/deskripsi/OG diwarisi dari root layout (Site Settings). Di sini cukup
 // canonical + hreflang, keduanya mengikuti bahasa yang sedang dibuka.
-export async function generateMetadata({ params }: HomePageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: HomePageProps): Promise<Metadata> {
   const { locale: raw } = await params;
   const locale: Locale = isLocale(raw) ? raw : defaultLocale;
   return {
-    alternates: { canonical: localePath(locale, "/"), languages: languageAlternates("/") },
+    alternates: {
+      canonical: localePath(locale, "/"),
+      languages: languageAlternates("/"),
+    },
   };
 }
 
@@ -57,17 +68,20 @@ export default async function HomePage({ params }: HomePageProps) {
   const { locale: raw } = await params;
   const locale: Locale = isLocale(raw) ? raw : defaultLocale;
 
-  const [hero, categories, featured, articles, home, slides, products] = await Promise.all([
-    getActiveHero(locale),
-    getCategories(locale),
-    getActiveFeatured(locale),
-    getArticles(locale),
-    getGlobalData("page-home", locale),
-    getSlides(locale),
-    getProducts(locale),
-  ]);
+  const [hero, categories, featured, articles, home, slides, products] =
+    await Promise.all([
+      getActiveHero(locale),
+      getCategories(locale),
+      getActiveFeatured(locale),
+      getArticles(locale),
+      getGlobalData("page-home", locale),
+      getSlides(locale),
+      getProducts(locale),
+    ]);
+  // Varian `banner` (21:9) dipakai karena section brand kini full-bleed;
+  // varian kartu 4:3 akan terlihat pecah saat direntangkan selebar layar.
   const brandImageUrl =
-    resolveMediaUrl(home?.brandImage, "landscape") ||
+    resolveMediaUrl(home?.brandImage, "banner") ||
     "/images/hero/brand-story-tentang-noblekase.svg";
 
   const tabProducts = products.map((p) => ({

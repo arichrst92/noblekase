@@ -3,8 +3,8 @@
  */
 
 import type { Metadata } from "next";
-import { SmartImage as Image } from "@/components/media/SmartImage";
 import { ProductCard } from "@/components/cards/ProductCard";
+import { PageHeroBanner } from "@/components/sections/PageHeroBanner";
 import { ProductFilterSidebar } from "@/components/sections/ProductFilterSidebar";
 import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
 import { SortSelect } from "@/components/sections/SortSelect";
@@ -17,7 +17,13 @@ import {
 } from "@/lib/queries";
 import { buildMetadata } from "@/lib/seo";
 import { applyFilters, parseFilters } from "@/lib/productFilters";
-import { defaultLocale, isLocale, localePath, translator, type Locale } from "@/lib/i18n";
+import {
+  defaultLocale,
+  isLocale,
+  localePath,
+  translator,
+  type Locale,
+} from "@/lib/i18n";
 
 interface ProductListingPageProps {
   params: Promise<{ locale: string }>;
@@ -62,7 +68,8 @@ export default async function ProductListingPage({
   // Hitungan per filter dihitung dari seluruh produk (bukan hasil terfilter),
   // supaya angka di sidebar tetap informatif saat filter aktif.
   const subCounts = allProducts.reduce<Record<string, number>>((acc, p) => {
-    if (p.subCategorySlug) acc[p.subCategorySlug] = (acc[p.subCategorySlug] ?? 0) + 1;
+    if (p.subCategorySlug)
+      acc[p.subCategorySlug] = (acc[p.subCategorySlug] ?? 0) + 1;
     return acc;
   }, {});
   const badgeCounts = allProducts.reduce<Record<string, number>>((acc, p) => {
@@ -70,7 +77,8 @@ export default async function ProductListingPage({
     return acc;
   }, {});
   const bannerUrl =
-    resolveMediaUrl(t?.bannerImage, "landscape") || "/images/hero/produk-listing-banner.svg";
+    resolveMediaUrl(t?.bannerImage, "banner") ||
+    "/images/hero/produk-listing-banner.svg";
 
   // Angka "ditampilkan" tetap ditebalkan, jadi templat kamus dipecah dulu di
   // sekitar {shown} — t() membiarkan placeholder yang tidak diisi apa adanya.
@@ -82,32 +90,14 @@ export default async function ProductListingPage({
     <>
       <RevealOnScroll />
 
-      {/* Header banner */}
-      <section className="bg-bg-cream pt-32 md:pt-40 pb-10 md:pb-14 border-b border-border-light">
-        <div className="container-prose">
-          <div className="grid grid-cols-1 md:grid-cols-[1.3fr_1fr] gap-8 md:gap-12 items-center">
-            <div className="reveal">
-              <div className="eyebrow mb-3">{t?.eyebrow ?? tr("products.eyebrow")}</div>
-              <h1 className="font-serif text-3xl md:text-5xl font-medium leading-tight mb-4 tracking-tight">
-                {t?.headline ?? tr("products.heading")}
-              </h1>
-              <p className="text-base text-ink-secondary leading-relaxed max-w-md">
-                {t?.intro ?? tr("products.intro")}
-              </p>
-            </div>
-            <div className="reveal aspect-[4/3] bg-bg-base border border-border-mid rounded-md overflow-hidden relative">
-              <Image
-                src={bannerUrl}
-                alt={t?.headline ?? tr("products.bannerAlt")}
-                fill
-                priority
-                sizes="(max-width: 768px) 100vw, 40vw"
-                className="object-cover"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Header banner — full-bleed, perlakuan sama dengan slide di Beranda */}
+      <PageHeroBanner
+        eyebrow={t?.eyebrow ?? tr("products.eyebrow")}
+        headline={t?.headline ?? tr("products.heading")}
+        intro={t?.intro ?? tr("products.intro")}
+        imageUrl={bannerUrl}
+        imageAlt={t?.headline ?? tr("products.bannerAlt")}
+      />
 
       {/* Listing */}
       <section className="py-12 md:py-16">
@@ -129,7 +119,9 @@ export default async function ProductListingPage({
               <div className="flex items-center justify-between gap-4 mb-5 md:mb-6">
                 <div className="text-sm text-ink-secondary">
                   {showingBefore}
-                  <span className="text-ink-primary font-medium">{products.length}</span>
+                  <span className="text-ink-primary font-medium">
+                    {products.length}
+                  </span>
                   {showingAfter}
                 </div>
                 <SortSelect

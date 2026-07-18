@@ -48,16 +48,21 @@ export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
 
-export async function generateMetadata({ params }: LocaleParams): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: LocaleParams): Promise<Metadata> {
   const { locale: raw } = await params;
   const locale: Locale = isLocale(raw) ? raw : "id";
   const s = await getSiteSettings(locale);
   const siteName = s?.siteName ?? "Noblekase";
   const tagline = s?.tagline ?? t(locale, "site.taglineFallback");
-  const description = s?.defaultMetaDescription ?? t(locale, "site.metaDescriptionFallback");
+  const description =
+    s?.defaultMetaDescription ?? t(locale, "site.metaDescriptionFallback");
   const ogImage = resolveMediaUrl(s?.defaultOgImage, "og");
   return {
-    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+    metadataBase: new URL(
+      process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+    ),
     title: {
       default: `${siteName} — ${tagline}`,
       template: `%s · ${siteName}`,
@@ -93,10 +98,22 @@ export default async function FrontendLayout({
   ]);
 
   // Logo: pakai upload CMS bila ada, jika tidak fallback ke file statis.
-  const logoUrl = resolveMediaUrl(settings?.logo) || "/images/noblekase-logo.png";
+  const logoUrl =
+    resolveMediaUrl(settings?.logo) || "/images/noblekase-logo.png";
+
+  // Monogram brand — dipakai tombol tengah bottom nav mobile. Diambil dari
+  // field Favicon karena bentuknya persegi; logo utama berupa wordmark.
+  //
+  // Sengaja memakai URL berkas ASLI, bukan varian "thumbnail". Varian hanya
+  // ada bila Sharp sempat membuatnya saat upload; untuk berkas SVG varian
+  // tidak pernah dibuat sama sekali. Menunjuk varian yang tidak ada membuat
+  // gambar 404 dan tombolnya tampak polos tanpa pesan error apa pun.
+  const iconUrl =
+    resolveMediaUrl(settings?.favicon) || "/images/brand/favicon-noblekase.png";
 
   // Google Analytics 4: dari CMS, fallback ke env.
-  const gaId = integrations?.gaMeasurementId || process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+  const gaId =
+    integrations?.gaMeasurementId || process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
   const gaEnabled = !!gaId && !gaId.includes("XXXX");
 
   return (
@@ -104,7 +121,11 @@ export default async function FrontendLayout({
       <head>
         {/* Preconnect untuk performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
         {/* Fraunces (serif) + Inter (sans) — loaded di browser, tidak saat build */}
         <link
           href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap"
@@ -142,7 +163,11 @@ export default async function FrontendLayout({
           locale={locale}
         />
 
-        <BottomNavMobile items={header.mobileBottomNav} locale={locale} />
+        <BottomNavMobile
+          items={header.mobileBottomNav}
+          locale={locale}
+          iconUrl={iconUrl}
+        />
 
         <ChatbotBubble
           enabled={settings?.chatbotEnabled !== false}
@@ -155,8 +180,9 @@ export default async function FrontendLayout({
              dilakukan manual di sini — tanpa ini pembaca versi Inggris
              disapa dalam Bahasa Indonesia. */
           greeting={
-            (locale === "en" ? settings?.chatbotGreetingEn : settings?.chatbotGreetingId) ??
-            undefined
+            (locale === "en"
+              ? settings?.chatbotGreetingEn
+              : settings?.chatbotGreetingId) ?? undefined
           }
           autoTriggerSeconds={Number(settings?.chatbotAutoTriggerSeconds ?? 0)}
           locale={locale}

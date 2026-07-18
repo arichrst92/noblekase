@@ -4,7 +4,7 @@
  */
 
 import type { Metadata } from "next";
-import { SmartImage as Image } from "@/components/media/SmartImage";
+import { PageHeroBanner } from "@/components/sections/PageHeroBanner";
 import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
 import { RichText } from "@/components/richtext/RichText";
 import { getGlobalData, getFaqItems, resolveMediaUrl } from "@/lib/queries";
@@ -15,7 +15,9 @@ interface DukunganPageProps {
   params: Promise<{ locale: string }>;
 }
 
-export async function generateMetadata({ params }: DukunganPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: DukunganPageProps): Promise<Metadata> {
   const { locale: raw } = await params;
   const locale: Locale = isLocale(raw) ? raw : defaultLocale;
   const tr = translator(locale);
@@ -39,19 +41,31 @@ export default async function DukunganPage({ params }: DukunganPageProps) {
     getGlobalData("page-support", locale),
     getFaqItems(locale),
   ]);
-  const heroImg = resolveMediaUrl(s?.heroImage, "landscape");
+  const heroImg = resolveMediaUrl(s?.heroImage, "banner");
   const channels: any[] = s?.channels ?? [];
 
   return (
     <>
       <RevealOnScroll />
 
-      {/* Hero */}
-      <section className="bg-bg-cream pt-32 md:pt-40 pb-12 md:pb-16 border-b border-border-light">
-        <div className="container-prose">
-          <div className="grid grid-cols-1 md:grid-cols-[1.2fr_1fr] gap-8 md:gap-12 items-center">
+      {/* Hero — full-bleed, perlakuan sama dengan slide di Beranda.
+          Bila gambar belum diunggah, jatuh ke header teks biasa daripada
+          menampilkan blok navy kosong. */}
+      {heroImg ? (
+        <PageHeroBanner
+          eyebrow={s?.heroEyebrow ?? tr("support.eyebrow")}
+          headline={s?.heroHeadline ?? tr("support.heading")}
+          intro={s?.heroIntro ?? tr("support.intro")}
+          imageUrl={heroImg}
+          imageAlt={s?.heroHeadline ?? tr("support.heroImageAlt")}
+        />
+      ) : (
+        <section className="bg-bg-cream pt-32 md:pt-40 pb-12 md:pb-16 border-b border-border-light">
+          <div className="container-prose max-w-2xl">
             <div className="reveal">
-              <div className="eyebrow mb-3">{s?.heroEyebrow ?? tr("support.eyebrow")}</div>
+              <div className="eyebrow mb-3">
+                {s?.heroEyebrow ?? tr("support.eyebrow")}
+              </div>
               <h1 className="font-serif text-3xl md:text-5xl font-medium leading-tight mb-5 tracking-tight">
                 {s?.heroHeadline ?? tr("support.heading")}
               </h1>
@@ -59,25 +73,9 @@ export default async function DukunganPage({ params }: DukunganPageProps) {
                 {s?.heroIntro ?? tr("support.intro")}
               </p>
             </div>
-            <div className="reveal aspect-[4/3] bg-bg-base border border-border-mid rounded-lg overflow-hidden relative">
-              {heroImg ? (
-                <Image
-                  src={heroImg}
-                  alt={s?.heroHeadline ?? tr("support.heroImageAlt")}
-                  fill
-                  priority
-                  sizes="(max-width: 768px) 100vw, 40vw"
-                  className="object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-ink-tertiary text-sm">
-                  {tr("common.imagePlaceholder")}
-                </div>
-              )}
-            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Channels */}
       <section className="py-12 md:py-16">
@@ -110,7 +108,9 @@ export default async function DukunganPage({ params }: DukunganPageProps) {
                   <div className="font-serif text-lg md:text-xl font-medium mb-1">
                     {ch.buttonLabel ?? ch.title} →
                   </div>
-                  <div className={`text-sm ${primary ? "text-bg-base/80" : "text-ink-secondary"}`}>
+                  <div
+                    className={`text-sm ${primary ? "text-bg-base/80" : "text-ink-secondary"}`}
+                  >
                     {ch.description}
                   </div>
                 </a>
@@ -119,7 +119,9 @@ export default async function DukunganPage({ params }: DukunganPageProps) {
           </div>
 
           {s?.operatingHours && (
-            <p className="text-[12px] text-ink-tertiary mt-6 text-center">{s.operatingHours}</p>
+            <p className="text-[12px] text-ink-tertiary mt-6 text-center">
+              {s.operatingHours}
+            </p>
           )}
         </div>
       </section>
@@ -128,7 +130,9 @@ export default async function DukunganPage({ params }: DukunganPageProps) {
       {faqs.length > 0 && (
         <section className="bg-bg-cream py-16 md:py-20 border-t border-border-light">
           <div className="container-prose max-w-3xl">
-            <div className="reveal eyebrow mb-2">{s?.faqEyebrow ?? tr("support.faqEyebrow")}</div>
+            <div className="reveal eyebrow mb-2">
+              {s?.faqEyebrow ?? tr("support.faqEyebrow")}
+            </div>
             <h2 className="reveal font-serif text-2xl md:text-3xl font-medium mb-8">
               {s?.faqHeadline ?? tr("support.faqHeading")}
             </h2>
