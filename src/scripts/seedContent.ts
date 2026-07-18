@@ -88,7 +88,8 @@ const seed = async () => {
   const imgBanner = await findOrUpload("images/hero/produk-listing-banner.svg", "Koleksi produk Noblekase");
   const imgOg = await findOrUpload("images/brand/og-image-default.svg", "Noblekase");
   const imgLogo = await findOrUpload("images/noblekase-logo.png", "Logo Noblekase");
-  const imgFavicon = await findOrUpload("images/brand/favicon-concept.svg", "Favicon Noblekase");
+  // Favicon mengikuti mark "K" dari logo asli (bukan lagi SVG konsep lama).
+  const imgFavicon = await findOrUpload("images/brand/favicon-noblekase.png", "Favicon Noblekase");
 
   // --- 1. Halaman Tentang (Pages, slug "tentang") ---
   const existingTentang = await payload.find({
