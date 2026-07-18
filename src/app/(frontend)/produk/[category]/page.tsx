@@ -10,15 +10,19 @@ import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/cards/ProductCard";
 import { ProductFilterSidebar } from "@/components/sections/ProductFilterSidebar";
 import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
+import { SortSelect } from "@/components/sections/SortSelect";
 import {
   getCategories,
   getCategoryBySlug,
   getProductsByCategorySlug,
+  getSubCategories,
 } from "@/lib/queries";
 import { buildMetadata } from "@/lib/seo";
+import { applyFilters, parseFilters } from "@/lib/productFilters";
 
 interface CategoryPageProps {
   params: Promise<{ category: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 export async function generateStaticParams() {
@@ -44,16 +48,30 @@ export async function generateMetadata({
   });
 }
 
-export default async function CategoryPage({ params }: CategoryPageProps) {
+export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
   const { category } = await params;
-  const [cat, categories] = await Promise.all([
+  const [cat, categories, subCategories, sp] = await Promise.all([
     getCategoryBySlug(category),
     getCategories(),
+    getSubCategories(),
+    searchParams,
   ]);
   if (!cat) notFound();
 
-  const items = await getProductsByCategorySlug(category);
+  const allInCategory = await getProductsByCategorySlug(category);
+  const filters = parseFilters(sp);
+  const items = applyFilters(allInCategory, filters);
   const totalCount = categories.reduce((sum, c) => sum + c.productCount, 0);
+  const basePath = `/produk/${category}`;
+
+  const subCounts = allInCategory.reduce<Record<string, number>>((acc, p) => {
+    if (p.subCategorySlug) acc[p.subCategorySlug] = (acc[p.subCategorySlug] ?? 0) + 1;
+    return acc;
+  }, {});
+  const badgeCounts = allInCategory.reduce<Record<string, number>>((acc, p) => {
+    if (p.badge) acc[p.badge] = (acc[p.badge] ?? 0) + 1;
+    return acc;
+  }, {});
 
   return (
     <>
@@ -92,18 +110,28 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
               activeCategory={category}
               totalCount={totalCount}
               categories={categories}
+              subCategories={subCategories}
+              filters={filters}
+              basePath={basePath}
+              subCounts={subCounts}
+              badgeCounts={badgeCounts}
             />
 
             <div>
-              <div className="flex items-center justify-between mb-5 md:mb-6">
+              <div className="flex items-center justify-between gap-4 mb-5 md:mb-6">
                 <div className="text-sm text-ink-secondary">
                   Menampilkan{" "}
-                  <span className="text-ink-primary font-medium">
-                    {items.length}
-                  </span>{" "}
-                  produk di {cat.name}
+                  <span className="text-ink-primary font-medium">{items.length}</span> dari{" "}
+                  {allInCategory.length} produk di {cat.name}
                 </div>
+                <SortSelect basePath={basePath} filters={filters} />
               </div>
+
+              {items.length === 0 && (
+                <p className="text-sm text-ink-secondary py-10">
+                  Tidak ada produk yang cocok dengan filter ini.
+                </p>
+              )}
 
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5">
                 {items.map((p) => (

@@ -64,6 +64,11 @@ export interface SeoFields {
   ogUrl?: string;
   seoTitle?: string;
   seoDescription?: string;
+  /** Sub-kategori — dipakai untuk filter dinamis di listing produk. */
+  subCategorySlug?: string;
+  subCategoryName?: string;
+  /** Tanggal publish (ISO) — dipakai untuk sorting "terbaru". */
+  publishedAt?: string;
 }
 
 export type ProductWithSeo = SampleProduct & SeoFields;
@@ -121,6 +126,9 @@ function mapProduct(p: any): ProductWithSeo {
     ogUrl: mediaUrl(p.seo?.ogImage, "og") || mediaUrl(p.mainImage, "og"),
     seoTitle: p.seo?.title || undefined,
     seoDescription: p.seo?.description || undefined,
+    subCategorySlug: sub?.slug ?? undefined,
+    subCategoryName: sub?.name ?? undefined,
+    publishedAt: p.publishedAt ?? p.createdAt ?? undefined,
   } as ProductWithSeo;
 }
 
@@ -275,6 +283,100 @@ export async function getActiveFeatured(): Promise<FeaturedData | null> {
     subheadline: f.subheadline ?? "",
     mainProduct: main,
     secondaryProducts,
+  };
+}
+
+// ------------------------------------------------------------------
+// Sub-kategori (untuk filter dinamis)
+// ------------------------------------------------------------------
+
+export interface SubCategoryItem {
+  slug: string;
+  name: string;
+  categorySlug: string;
+}
+
+export async function getSubCategories(): Promise<SubCategoryItem[]> {
+  const payload = await getPayloadClient();
+  const res = await payload.find({
+    collection: "sub-categories",
+    where: { status: { equals: "published" } },
+    depth: 1,
+    sort: "order",
+    limit: 100,
+  });
+  return res.docs.map((s: any) => ({
+    slug: s.slug,
+    name: s.name,
+    categorySlug:
+      s.category && typeof s.category === "object" ? (s.category.slug ?? "") : "",
+  }));
+}
+
+// ------------------------------------------------------------------
+// Pencarian
+// ------------------------------------------------------------------
+
+export interface SearchResults {
+  query: string;
+  products: ProductWithSeo[];
+  articles: JournalArticle[];
+  categories: CategoryWithSeo[];
+  total: number;
+}
+
+/**
+ * Pencarian sederhana lintas produk, artikel, dan kategori.
+ * Memakai operator `like` Payload (case-insensitive) pada beberapa field.
+ */
+export async function search(rawQuery: string, limit = 24): Promise<SearchResults> {
+  const query = rawQuery.trim();
+  const empty: SearchResults = { query, products: [], articles: [], categories: [], total: 0 };
+  if (query.length < 2) return empty;
+
+  const payload = await getPayloadClient();
+
+  const [prodRes, artRes, allCategories] = await Promise.all([
+    payload.find({
+      collection: "products",
+      where: {
+        and: [
+          { status: { equals: "published" } },
+          { or: [{ name: { like: query } }, { tagline: { like: query } }, { sku: { like: query } }] },
+        ],
+      },
+      depth: 2,
+      limit,
+      sort: "order",
+    }),
+    payload.find({
+      collection: "articles",
+      where: {
+        and: [
+          { status: { equals: "published" } },
+          { or: [{ title: { like: query } }, { intro: { like: query } }] },
+        ],
+      },
+      depth: 1,
+      limit,
+      sort: "-publishedAt",
+    }),
+    getCategories(),
+  ]);
+
+  const q = query.toLowerCase();
+  const products = prodRes.docs.map(mapProduct);
+  const articles = artRes.docs.map(mapArticle);
+  const categories = allCategories.filter(
+    (c) => c.name.toLowerCase().includes(q) || c.description.toLowerCase().includes(q),
+  );
+
+  return {
+    query,
+    products,
+    articles,
+    categories,
+    total: products.length + articles.length + categories.length,
   };
 }
 

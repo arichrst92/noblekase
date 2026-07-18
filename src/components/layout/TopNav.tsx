@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Search, Menu } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { SearchOverlay } from "@/components/search/SearchOverlay";
 
 interface NavItem {
   label: string;
@@ -34,6 +35,7 @@ interface TopNavProps {
 export function TopNav({ navItems, brand = "NOBLEKASE", logoUrl }: TopNavProps) {
   const items = navItems && navItems.length ? navItems : defaultNavItems;
   const [scrolled, setScrolled] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 60);
@@ -96,14 +98,17 @@ export function TopNav({ navItems, brand = "NOBLEKASE", logoUrl }: TopNavProps) 
             ID/EN
           </button>
           <button
+            onClick={() => setSearchOpen(true)}
             className="p-1.5 md:px-2.5 md:py-1 md:bg-bg-warm md:rounded-full text-ink-secondary hover:text-ink-primary transition-colors"
-            aria-label="Search"
+            aria-label="Cari"
+            aria-haspopup="dialog"
           >
-            <Search className="w-3.5 h-3.5 md:hidden" />
-            <span className="hidden md:inline text-[10px]">⌕</span>
+            <Search className="w-3.5 h-3.5" />
           </button>
         </div>
       </nav>
+
+      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
     </header>
   );
 }
