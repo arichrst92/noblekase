@@ -8,9 +8,10 @@ import React from "react";
 export const Icon = () => (
   // eslint-disable-next-line @next/next/no-img-element
   <img
+    className="nk-admin-icon"
     src="/images/noblekase-logo.png"
     alt="Noblekase"
-    style={{ height: 24, width: "auto", objectFit: "contain" }}
+    style={{ height: 30, width: "auto", maxWidth: "none", objectFit: "contain" }}
   />
 );
 

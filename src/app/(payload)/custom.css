@@ -42,3 +42,30 @@ a:not(.btn):not(.nav__link) {
 .create-first-user__brand {
   margin-bottom: 1.25rem;
 }
+
+/* ------------------------------------------------------------------
+   Logo brand di admin.
+   Wordmark Noblekase rasio ~6:1, sedangkan container ikon bawaan Payload
+   sempit/persegi sehingga logo mengecil. Paksa tinggi + lebar otomatis,
+   dan lepas batasan lebar pada container pembungkusnya.
+   ------------------------------------------------------------------ */
+.nk-admin-icon {
+  height: 30px !important;
+  width: auto !important;
+  max-width: none !important;
+}
+.nk-admin-logo {
+  height: 56px !important;
+  width: auto !important;
+  max-width: none !important;
+}
+
+/* Container pembungkus jangan memotong / mengecilkan wordmark */
+.graphic-icon,
+.graphic-logo,
+.nav__header .graphic-icon,
+.app-header .graphic-icon {
+  width: auto !important;
+  max-width: none !important;
+  overflow: visible !important;
+}

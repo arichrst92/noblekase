@@ -57,6 +57,9 @@ export default buildConfig({
   serverURL: process.env.SERVER_URL || "http://localhost:3000",
   admin: {
     user: Users.slug,
+    // Kunci ke tema light agar konsisten dengan brand (putih + oranye + navy),
+    // tidak mengikuti dark mode OS.
+    theme: "light",
     meta: {
       title: "Noblekase CMS",
       titleSuffix: " · Noblekase",
