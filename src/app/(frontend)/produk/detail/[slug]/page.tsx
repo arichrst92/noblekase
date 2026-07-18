@@ -16,6 +16,7 @@ import {
   getRelatedProducts,
 } from "@/lib/queries";
 import { buildMetadata } from "@/lib/seo";
+import { ProductJsonLd, BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 
 interface ProductDetailProps {
   params: Promise<{ slug: string }>;
@@ -56,6 +57,24 @@ export default async function ProductDetailPage({
   return (
     <>
       <RevealOnScroll />
+
+      <ProductJsonLd
+        name={product.name}
+        description={product.seoDescription ?? product.tagline}
+        imageUrl={product.imageUrl}
+        path={`/produk/detail/${product.slug}`}
+        category={product.category}
+      />
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Beranda", path: "/" },
+          { name: "Produk", path: "/produk" },
+          ...(product.categorySlug
+            ? [{ name: product.category, path: `/produk/${product.categorySlug}` }]
+            : []),
+          { name: product.name, path: `/produk/detail/${product.slug}` },
+        ]}
+      />
 
       <article className="pt-28 md:pt-32 pb-24 md:pb-20">
         <div className="container-prose">

@@ -21,6 +21,7 @@ import {
   resolveMediaUrl,
 } from "@/lib/queries";
 import { Analytics } from "@/components/analytics/Analytics";
+import { SiteJsonLd } from "@/components/seo/JsonLd";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -83,6 +84,14 @@ export default async function FrontendLayout({ children }: { children: React.Rea
       </head>
       <body className="min-h-screen flex flex-col font-sans">
         {gaEnabled && <Analytics measurementId={gaId!} />}
+
+        <SiteJsonLd
+          siteName={settings?.siteName ?? "Noblekase"}
+          logoUrl={logoUrl}
+          socialUrls={(settings?.social ?? [])
+            .map((s: { url?: string }) => s?.url)
+            .filter(Boolean)}
+        />
 
         <TopNav navItems={header.navItems} brand={settings?.siteName} logoUrl={logoUrl} />
 

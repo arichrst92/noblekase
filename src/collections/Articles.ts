@@ -180,5 +180,18 @@ export const Articles: CollectionConfig = {
         return data;
       },
     ],
+    afterChange: [
+      async ({ doc }) => {
+        // Segarkan cache halaman terkait + beri tahu Google (gagal-aman).
+        const { refreshAfterPublish } = await import("@/lib/publishHooks");
+        const slug = (doc as { slug?: string }).slug;
+        const published = (doc as { status?: string }).status === "published";
+        await refreshAfterPublish(
+          ["/", "/journal", ...(slug ? [`/journal/${slug}`] : [])],
+          slug ? `/journal/${slug}` : undefined,
+          published,
+        );
+      },
+    ],
   },
 };

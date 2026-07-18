@@ -381,8 +381,17 @@ export const Products: CollectionConfig = {
       },
     ],
     afterChange: [
-      // TODO: trigger Google Indexing API submission saat published
-      // TODO: invalidate Next.js cache untuk halaman produk
+      async ({ doc }) => {
+        // Segarkan cache halaman terkait + beri tahu Google (gagal-aman).
+        const { refreshAfterPublish } = await import("@/lib/publishHooks");
+        const slug = (doc as { slug?: string }).slug;
+        const published = (doc as { status?: string }).status === "published";
+        await refreshAfterPublish(
+          ["/", "/produk", ...(slug ? [`/produk/detail/${slug}`] : [])],
+          slug ? `/produk/detail/${slug}` : undefined,
+          published,
+        );
+      },
     ],
   },
 };

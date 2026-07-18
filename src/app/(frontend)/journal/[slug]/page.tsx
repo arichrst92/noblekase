@@ -16,6 +16,7 @@ import {
   getGlobalData,
 } from "@/lib/queries";
 import { buildMetadata } from "@/lib/seo";
+import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 
 interface ArticlePageProps {
   params: Promise<{ slug: string }>;
@@ -69,6 +70,21 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   return (
     <>
       <RevealOnScroll />
+
+      <ArticleJsonLd
+        headline={article.title}
+        description={article.seoDescription ?? article.excerpt}
+        imageUrl={article.heroUrl}
+        path={`/journal/${article.slug}`}
+        publishedAt={article.publishedAt || undefined}
+      />
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Beranda", path: "/" },
+          { name: "Journal", path: "/journal" },
+          { name: article.title, path: `/journal/${article.slug}` },
+        ]}
+      />
 
       {/* Hero */}
       <article className="pt-28 md:pt-36 pb-16 md:pb-20">
