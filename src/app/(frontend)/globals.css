@@ -11,16 +11,17 @@
 
 @layer base {
   :root {
-    --color-bg-base: 250 248 244;        /* #FAF8F4 */
-    --color-bg-warm: 242 237 227;        /* #F2EDE3 */
-    --color-bg-cream: 236 229 215;       /* #ECE5D7 */
-    --color-ink-primary: 31 31 31;       /* #1F1F1F */
-    --color-ink-secondary: 107 104 98;   /* #6B6862 */
-    --color-ink-tertiary: 160 155 145;   /* #A09B91 */
-    --color-accent: 160 82 45;           /* #A0522D */
-    --color-accent-light: 212 168 138;   /* #D4A88A */
-    --color-border-light: 232 226 214;   /* #E8E2D6 */
-    --color-border-mid: 212 206 192;     /* #D4CEC0 */
+    --color-bg-base: 255 255 255;        /* #FFFFFF */
+    --color-bg-warm: 247 248 250;        /* #F7F8FA */
+    --color-bg-cream: 238 241 246;       /* #EEF1F6 */
+    --color-ink-primary: 26 35 64;       /* #1A2340 */
+    --color-ink-secondary: 86 94 114;    /* #565E72 */
+    --color-ink-tertiary: 148 154 171;   /* #949AAB */
+    --color-accent: 241 90 36;           /* #F15A24 orange */
+    --color-accent-light: 249 137 80;    /* #F98950 */
+    --color-navy: 27 42 99;              /* #1B2A63 */
+    --color-border-light: 232 234 240;   /* #E8EAF0 */
+    --color-border-mid: 211 215 225;     /* #D3D7E1 */
   }
 
   * {
@@ -46,7 +47,7 @@
 @layer components {
   /* Eyebrow text — small uppercase label di atas headline */
   .eyebrow {
-    @apply text-[11px] uppercase tracking-widest text-ink-tertiary font-medium;
+    @apply text-[11px] uppercase tracking-widest text-accent font-medium;
   }
 
   /* Container dengan padding konsisten */

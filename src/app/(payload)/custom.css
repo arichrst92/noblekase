@@ -1,27 +1,40 @@
 /**
- * custom.css — Noblekase admin persona (editorial-minimalist).
+ * custom.css — Noblekase admin persona (mengikuti packaging: oranye + navy + putih).
  * Dibuat oleh: PT Solusi Inovasi Bangsa (https://ide.asia)
  *
- * Menghangatkan tema light Payload ke palet cream + aksen burnt sienna,
- * mengikuti brand website. Tema dark dibiarkan default agar tetap nyaman.
+ * Memakai !important agar mengalahkan CSS bawaan Payload. Tema light dibuat
+ * putih bersih dengan aksen oranye brand; tema dark dibiarkan default.
  */
 
-/* Warm cream — hanya tema light supaya tema dark tidak rusak */
-html[data-theme="light"] {
-  --color-base-0: #faf8f4; /* background utama */
-  --color-base-50: #f3efe7; /* elevation halus (kartu, input) */
-  --color-base-100: #ece6da;
+/* Background putih bersih (light) — base-0 default sudah putih, dipertegas */
+:root {
+  --color-base-0: #ffffff !important;
+  --color-base-50: #f6f7f9 !important;
+  --color-base-100: #eef1f6 !important;
 }
 
-/* Aksen brand: burnt sienna untuk tombol utama (Create/Save/Login) */
-.btn--style-primary {
-  background-color: #a0522d;
-  border-color: #a0522d;
+/* Tombol utama (Create / Save / Login) = oranye brand */
+.btn--style-primary,
+button.btn--style-primary {
+  background-color: #f15a24 !important;
+  border-color: #f15a24 !important;
+  color: #ffffff !important;
 }
 .btn--style-primary:hover,
 .btn--style-primary:focus-visible {
-  background-color: #8f4926;
-  border-color: #8f4926;
+  background-color: #d64d1b !important;
+  border-color: #d64d1b !important;
+}
+
+/* Link & elemen aktif ikut aksen oranye */
+a:not(.btn):not(.nav__link) {
+  color: #f15a24;
+}
+
+/* Item navigasi aktif diberi aksen navy (secondary) */
+.nav__link--active,
+.nav-group__toggle:hover {
+  color: #1b2a63 !important;
 }
 
 /* Logo login diberi ruang napas */

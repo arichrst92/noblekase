@@ -8,25 +8,31 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Noblekase brand palette
+        // Noblekase brand palette — oranye + navy + putih (mengikuti packaging)
         bg: {
-          base: "#FAF8F4",
-          warm: "#F2EDE3",
-          cream: "#ECE5D7",
+          base: "#FFFFFF", // putih bersih
+          warm: "#F7F8FA", // section halus (neutral)
+          cream: "#EEF1F6", // section pembeda (neutral lebih dalam)
         },
         ink: {
-          primary: "#1F1F1F",
-          secondary: "#6B6862",
-          tertiary: "#A09B91",
+          primary: "#1A2340", // dark navy — teks, footer, tombol
+          secondary: "#565E72",
+          tertiary: "#949AAB",
         },
         accent: {
-          DEFAULT: "#A0522D",
-          light: "#D4A88A",
-          soft: "#FAEEDA",
+          // Oranye brand (vivid orange dari kemasan)
+          DEFAULT: "#F15A24",
+          light: "#F98950",
+          soft: "#FEEDE4",
+        },
+        navy: {
+          // Navy sekunder (badge "Safe & Reliable", dll)
+          DEFAULT: "#1B2A63",
+          light: "#35468C",
         },
         border: {
-          light: "#E8E2D6",
-          mid: "#D4CEC0",
+          light: "#E8EAF0",
+          mid: "#D3D7E1",
         },
       },
       fontFamily: {

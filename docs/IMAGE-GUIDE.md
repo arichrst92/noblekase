@@ -16,7 +16,7 @@ Upload gambar **sebesar/setinggi mungkin** dari rekomendasi (varian kecil di-gen
 
 ## Mood brand (sertakan di setiap prompt)
 
-> editorial-minimalist, warm natural lighting, banyak ruang negatif, palet cream (#FAF8F4) + charcoal (#1F1F1F) + aksen burnt sienna (#A0522D), gaya majalah, premium namun accessible — mood Bellroy / Muji / Native Union.
+> Bersih & bold mengikuti packaging Noblekase: background putih, aksen oranye (#F15A24) + navy (#1B2A63), high-contrast, gaya consumer-electronics retail modern, product focus tajam, energetik namun premium.
 
 Teks di bawah sudah otomatis ditambahkan mood ini di CMS. Di dokumen ini, prompt ditulis ringkas — tambahkan kalimat mood di atas saat generate.
 

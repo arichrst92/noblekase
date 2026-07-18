@@ -75,7 +75,7 @@ export function Footer({
   const legal = legalLinks && legalLinks.length ? legalLinks : defaultLegal;
 
   return (
-    <footer className="bg-ink-primary text-bg-base mt-auto">
+    <footer className="bg-navy text-bg-base mt-auto">
       <div className="container-prose py-16 md:py-20">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-10 md:gap-12">
           {/* Brand column */}

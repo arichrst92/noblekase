@@ -7,15 +7,15 @@
  *  - Ukuran variant yang di-generate otomatis
  *  - Prompt siap-tempel untuk ChatGPT / DALL·E image generator
  *
- * Mood brand (selalu sertakan di prompt): editorial-minimalist, warm natural
- * lighting, banyak ruang negatif, palet cream (#FAF8F4) + charcoal (#1F1F1F)
- * + aksen burnt sienna (#A0522D), gaya majalah, referensi Bellroy/Muji/Native Union.
+ * Mood brand (selalu sertakan di prompt): mengikuti packaging Noblekase —
+ * bersih & bold, background putih, aksen oranye (#F15A24) + navy (#1B2A63),
+ * gaya consumer-electronics retail modern, high-contrast, premium namun accessible.
  */
 
 const BRAND_MOOD =
-  "editorial-minimalist, warm natural lighting, lots of negative space, " +
-  "cream (#FAF8F4) and soft charcoal palette with subtle burnt-sienna accents, " +
-  "magazine-style, clean, premium yet accessible, in the mood of Bellroy / Muji / Native Union";
+  "clean and bold, crisp white background, vivid orange (#F15A24) and deep navy (#1B2A63) brand accents, " +
+  "high-contrast, modern consumer-electronics retail photography, sharp product focus, " +
+  "energetic yet premium, bright even lighting";
 
 export function imgHint(opts: {
   slot: string; // deskripsi slot, mis. "Foto utama produk"
