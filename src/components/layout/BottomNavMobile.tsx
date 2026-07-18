@@ -71,7 +71,16 @@ export function BottomNavMobile({
   iconUrl?: string;
 }) {
   const tr = translator(locale);
-  const navItems = items && items.length ? items : buildDefaultItems(tr);
+  /*
+   * Sama seperti TopNav: baris berlabel kosong disaring supaya menu tidak
+   * tampil blank saat data CMS bermasalah. Baris logo tengah dikecualikan —
+   * label kosong di sana memang disengaja.
+   */
+  const cmsItems = (items ?? []).filter(
+    (item) => item.isCenterLogo || item.label?.trim(),
+  );
+  const hasLabelled = cmsItems.some((item) => !item.isCenterLogo);
+  const navItems = hasLabelled ? cmsItems : buildDefaultItems(tr);
   const pathname = usePathname();
   const currentPath = stripLocale(pathname ?? "/").path;
 

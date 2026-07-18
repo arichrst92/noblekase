@@ -45,7 +45,17 @@ export function TopNav({
     { label: tr("nav.journal"), url: "/journal" },
     { label: tr("nav.support"), url: "/dukungan" },
   ];
-  const items = navItems && navItems.length ? navItems : defaultNavItems;
+  /*
+   * Menu dari CMS dipakai hanya bila labelnya benar-benar terisi.
+   *
+   * Label kosong menghasilkan <li> tanpa teks — navbar terlihat blank padahal
+   * datanya "ada". Ini pernah terjadi ketika terjemahan menimpa label bahasa
+   * Indonesia. Menyaring di sini membuat tampilan tidak pernah bergantung pada
+   * kondisi data CMS: kalau semua label kosong, menu bawaan (dari kamus i18n)
+   * yang dipakai, dan pengunjung tetap punya navigasi.
+   */
+  const cmsItems = (navItems ?? []).filter((item) => item.label?.trim());
+  const items = cmsItems.length ? cmsItems : defaultNavItems;
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -61,7 +71,7 @@ export function TopNav({
         className={cn(
           "floating-nav flex items-center gap-3 md:gap-5 px-4 md:px-6 py-2.5 md:py-3",
           "transition-all duration-300",
-          scrolled && "shadow-lift backdrop-blur-md bg-bg-base/95"
+          scrolled && "shadow-lift backdrop-blur-md bg-bg-base/95",
         )}
       >
         {/* Mobile: hamburger + brand + search */}
@@ -69,7 +79,11 @@ export function TopNav({
           <Menu className="w-4 h-4 text-ink-primary" />
         </button>
 
-        <Link href={localePath(locale, "/")} className="flex items-center" aria-label={brand}>
+        <Link
+          href={localePath(locale, "/")}
+          className="flex items-center"
+          aria-label={brand}
+        >
           {logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -116,7 +130,11 @@ export function TopNav({
         </div>
       </nav>
 
-      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} locale={locale} />
+      <SearchOverlay
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        locale={locale}
+      />
     </header>
   );
 }
