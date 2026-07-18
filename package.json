@@ -18,7 +18,8 @@
     "migrate:fresh": "payload migrate:fresh",
     "seed": "cross-env NODE_OPTIONS=--no-deprecation payload run src/scripts/seed.ts",
     "seed:content": "cross-env NODE_OPTIONS=--no-deprecation payload run src/scripts/seedContent.ts",
-    "create:admin": "cross-env NODE_OPTIONS=--no-deprecation payload run src/scripts/createAdmin.ts"
+    "create:admin": "cross-env NODE_OPTIONS=--no-deprecation payload run src/scripts/createAdmin.ts",
+    "reset:content": "cross-env NODE_OPTIONS=--no-deprecation payload run src/scripts/resetContent.ts"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "^3.0.0",
