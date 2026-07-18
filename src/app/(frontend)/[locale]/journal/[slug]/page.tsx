@@ -17,6 +17,7 @@ import {
 } from "@/lib/queries";
 import { buildMetadata } from "@/lib/seo";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import { ShareButtons } from "@/components/share/ShareButtons";
 import {
   defaultLocale,
   htmlLang,
@@ -26,6 +27,8 @@ import {
   translator,
   type Locale,
 } from "@/lib/i18n";
+
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 interface ArticlePageProps {
   params: Promise<{ locale: string; slug: string }>;
@@ -162,9 +165,14 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             >
               {t?.backLabel ?? tr("article.backToJournal")}
             </Link>
-            <span className="text-[11px] uppercase tracking-widest text-ink-tertiary">
-              {t?.shareLabel ?? tr("article.shareLabel")} WA · Tw · IG
-            </span>
+            {/* URL absolut dibangun di server: tombol share butuh alamat penuh,
+                dan window.location belum tersedia saat render pertama. */}
+            <ShareButtons
+              url={`${SITE.replace(/\/$/, "")}${localePath(locale, `/journal/${slug}`)}`}
+              title={article.title}
+              label={t?.shareLabel ?? undefined}
+              locale={locale}
+            />
           </div>
         </div>
       </article>

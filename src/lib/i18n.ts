@@ -197,6 +197,12 @@ const id = {
   "article.backToJournal": "← Kembali ke Journal",
   "article.shareLabel": "Bagikan:",
   "article.relatedEyebrow": "Artikel terkait",
+  "share.whatsapp": "Bagikan ke WhatsApp",
+  "share.x": "Bagikan ke X",
+  "share.facebook": "Bagikan ke Facebook",
+  "share.telegram": "Bagikan ke Telegram",
+  "share.copy": "Salin tautan",
+  "share.copied": "Tautan tersalin",
 
   // Listing produk
   "products.metaTitle": "Produk",
@@ -412,6 +418,12 @@ const en: Record<TranslationKey, string> = {
   "article.backToJournal": "← Back to Journal",
   "article.shareLabel": "Share:",
   "article.relatedEyebrow": "Related articles",
+  "share.whatsapp": "Share on WhatsApp",
+  "share.x": "Share on X",
+  "share.facebook": "Share on Facebook",
+  "share.telegram": "Share on Telegram",
+  "share.copy": "Copy link",
+  "share.copied": "Link copied",
 
   "products.metaTitle": "Products",
   "products.metaDescription":
