@@ -41,7 +41,14 @@ function rt(text: string) {
 const seed = async () => {
   const payload = await getPayload({ config });
 
-  /** Upload gambar ke Media; pakai ulang bila filename sudah ada (anti-duplikat). */
+  const uploadDir = path.resolve(process.cwd(), process.env.UPLOAD_DIR || "uploads");
+
+  /**
+   * Upload gambar ke Media; pakai ulang bila filename sudah ada (anti-duplikat).
+   * Penting: dokumen lama hanya dipakai ulang bila filenya BENAR-BENAR ada di
+   * disk. Dokumen basi (file hilang) dihapus lalu diupload ulang — jika tidak,
+   * frontend akan 500 "file is missing on the disk".
+   */
   async function findOrUpload(relPath: string, alt: string): Promise<number | string | undefined> {
     const filename = path.basename(relPath);
     const existing = await payload.find({
@@ -49,7 +56,18 @@ const seed = async () => {
       where: { filename: { equals: filename } },
       limit: 1,
     });
-    if (existing.totalDocs > 0) return existing.docs[0].id;
+    if (existing.totalDocs > 0) {
+      const doc = existing.docs[0] as any;
+      if (doc.filename && fs.existsSync(path.join(uploadDir, doc.filename))) {
+        return doc.id;
+      }
+      try {
+        await payload.delete({ collection: "media", id: doc.id });
+        payload.logger.warn(`Media basi dihapus (file hilang di disk): ${doc.filename}`);
+      } catch (e) {
+        payload.logger.warn(`Gagal hapus media basi ${doc.filename}: ${(e as Error).message}`);
+      }
+    }
     const filePath = path.resolve(process.cwd(), "public", relPath.replace(/^\//, ""));
     if (!fs.existsSync(filePath)) {
       payload.logger.warn(`Gambar tidak ditemukan, dilewati: ${relPath}`);
