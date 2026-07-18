@@ -44,6 +44,37 @@ a:not(.btn):not(.nav__link) {
 }
 
 /* ------------------------------------------------------------------
+   Kredit "powered by IDEA" di dasar sidebar admin.
+   margin-top:auto mendorongnya ke bawah dalam kolom flex sidebar.
+   ------------------------------------------------------------------ */
+.nk-powered-by {
+  margin-top: auto;
+  padding: 1.25rem 0 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  opacity: 0.6;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+.nk-powered-by:hover {
+  opacity: 1;
+}
+.nk-powered-by__label {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--theme-elevation-600);
+  white-space: nowrap;
+}
+.nk-powered-by__logo {
+  height: 18px;
+  width: auto;
+  max-width: none;
+  object-fit: contain;
+  display: block;
+}
+
+/* ------------------------------------------------------------------
    Logo brand di admin.
    Wordmark Noblekase rasio ~6:1, sedangkan container ikon bawaan Payload
    sempit/persegi sehingga logo mengecil. Paksa tinggi + lebar otomatis,

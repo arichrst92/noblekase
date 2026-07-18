@@ -76,6 +76,8 @@ export default buildConfig({
         Logo: "@/components/admin/Logo#Logo",
         Icon: "@/components/admin/Icon#Icon",
       },
+      // Kredit pembuat, menempel di bagian bawah sidebar.
+      afterNavLinks: ["@/components/admin/PoweredBy#PoweredBy"],
     },
     livePreview: {
       breakpoints: [
