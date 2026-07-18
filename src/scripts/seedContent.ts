@@ -231,8 +231,68 @@ const seed = async () => {
   });
   payload.logger.info("Updated: channel + hero Dukungan (PageSupport)");
 
+  // --- 3b. Slide carousel Beranda ---
+  const existingSlides = await payload.count({ collection: "slides" });
+  if (existingSlides.totalDocs === 0) {
+    const slides = [
+      {
+        label: "Slide 01 — Charger",
+        eyebrow: "EDISI · MEI 2026",
+        headline: "Aksesoris yang menemani hari-hari.",
+        subheadline: "Kualitas konsisten, harga masuk akal. Tersedia di marketplace pilihan.",
+        img: "images/hero/hero-edisi-01-desktop.svg",
+        ctaLabel: "Jelajahi produk",
+        ctaUrl: "/produk",
+      },
+      {
+        label: "Slide 02 — Power",
+        eyebrow: "CHARGER & POWER",
+        headline: "Daya yang tidak bikin menunggu.",
+        subheadline: "GaN ringkas, powerbank yang cukup untuk seharian.",
+        img: "images/hero/hero-edisi-02-alt.svg",
+        ctaLabel: "Lihat Charger & Power",
+        ctaUrl: "/produk/charger-power",
+      },
+      {
+        label: "Slide 03 — Audio",
+        eyebrow: "AUDIO & CASING",
+        headline: "Teman perjalanan yang tenang.",
+        subheadline: "Earbuds, speaker, dan casing dengan finishing rapi.",
+        img: "images/kategori/kategori-audio-casing.svg",
+        ctaLabel: "Lihat Audio & Casing",
+        ctaUrl: "/produk/audio-casing",
+      },
+    ];
+    let ord = 0;
+    for (const s of slides) {
+      const image = await findOrUpload(s.img, s.headline);
+      if (!image) continue;
+      await payload.create({
+        collection: "slides",
+        data: {
+          label: s.label,
+          eyebrow: s.eyebrow,
+          headline: s.headline,
+          subheadline: s.subheadline,
+          image,
+          ctaLabel: s.ctaLabel,
+          ctaUrl: s.ctaUrl,
+          order: ord++,
+          status: "published",
+        },
+      });
+    }
+    payload.logger.info(`Seeded: ${ord} slide carousel`);
+  } else {
+    payload.logger.info("Lewati: slide carousel sudah ada");
+  }
+
   // --- 4. Gambar global lain: Beranda, Listing Produk, Site Settings ---
-  await payload.updateGlobal({ slug: "page-home", data: { brandImage: imgBrand } });
+  const imgPromo = await findOrUpload("images/hero/marketplace-cta-banner.svg", "Promo Noblekase");
+  await payload.updateGlobal({
+    slug: "page-home",
+    data: { brandImage: imgBrand, ...(imgPromo ? { promoImage: imgPromo } : {}) },
+  });
   await payload.updateGlobal({ slug: "page-products", data: { bannerImage: imgBanner } });
   await payload.updateGlobal({
     slug: "site-settings",

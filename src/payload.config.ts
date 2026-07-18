@@ -23,6 +23,7 @@ import { Articles } from "@/collections/Articles";
 import { ArticleCategories } from "@/collections/ArticleCategories";
 import { Pages } from "@/collections/Pages";
 import { HeroEditions } from "@/collections/HeroEditions";
+import { Slides } from "@/collections/Slides";
 import { FeaturedCollections } from "@/collections/FeaturedCollections";
 import { FAQItems } from "@/collections/FAQItems";
 import { FAQCategories } from "@/collections/FAQCategories";
@@ -100,6 +101,7 @@ export default buildConfig({
     ArticleCategories,
     Pages,
     HeroEditions,
+    Slides,
     FeaturedCollections,
     FAQCategories,
     FAQItems,

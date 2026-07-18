@@ -279,6 +279,42 @@ export async function getActiveFeatured(): Promise<FeaturedData | null> {
 }
 
 // ------------------------------------------------------------------
+// Slides (carousel Beranda)
+// ------------------------------------------------------------------
+
+export interface SlideData {
+  id: string;
+  eyebrow: string;
+  headline: string;
+  subheadline: string;
+  imageUrl: string;
+  imageAlt: string;
+  ctaLabel: string;
+  ctaUrl: string;
+}
+
+export async function getSlides(): Promise<SlideData[]> {
+  const payload = await getPayloadClient();
+  const res = await payload.find({
+    collection: "slides",
+    where: { status: { equals: "published" } },
+    depth: 1,
+    limit: 20,
+    sort: "order",
+  });
+  return res.docs.map((s: any) => ({
+    id: String(s.id),
+    eyebrow: s.eyebrow ?? "",
+    headline: s.headline,
+    subheadline: s.subheadline ?? "",
+    imageUrl: mediaUrl(s.image, "wide"),
+    imageAlt: (typeof s.image === "object" ? s.image?.alt : "") || s.headline,
+    ctaLabel: s.ctaLabel ?? "Lihat produk",
+    ctaUrl: s.ctaUrl ?? "/produk",
+  }));
+}
+
+// ------------------------------------------------------------------
 // Journal (Articles)
 // ------------------------------------------------------------------
 

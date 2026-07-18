@@ -59,6 +59,40 @@ export const PageHome: GlobalConfig = {
         },
       ],
     },
+    {
+      type: "collapsible",
+      label: "Section Produk (bertab)",
+      fields: [
+        { name: "productsEyebrow", type: "text", localized: true, defaultValue: "Koleksi" },
+        { name: "productsHeadline", type: "text", localized: true, defaultValue: "Pilihan untuk hari-hari Anda" },
+        { name: "tabNewLabel", type: "text", localized: true, defaultValue: "Terbaru" },
+        { name: "tabBestLabel", type: "text", localized: true, defaultValue: "Terlaris" },
+        { name: "tabAllLabel", type: "text", localized: true, defaultValue: "Semua" },
+      ],
+    },
+    {
+      type: "collapsible",
+      label: "Banner Promo",
+      fields: [
+        { name: "promoEyebrow", type: "text", localized: true, defaultValue: "Edisi Berjalan" },
+        { name: "promoHeadline", type: "text", localized: true, defaultValue: "Perlengkapan harian, satu paket" },
+        { name: "promoCtaLabel", type: "text", localized: true, defaultValue: "Jelajahi koleksi" },
+        { name: "promoCtaUrl", type: "text", defaultValue: "/produk" },
+        {
+          name: "promoImage",
+          type: "upload",
+          relationTo: "media",
+          admin: {
+            description: imgHint({
+              slot: "Banner promo lebar di Beranda",
+              size: "2100×900",
+              ratio: "21:9",
+              prompt: "a wide promotional banner featuring an assortment of phone accessories on a clean surface",
+            }),
+          },
+        },
+      ],
+    },
     { name: "seeAllLabel", type: "text", localized: true, defaultValue: "Lihat semua →", admin: { description: "Label link 'lihat semua' di section kategori & journal." } },
   ],
 };
