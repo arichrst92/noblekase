@@ -108,7 +108,14 @@ export default async function FrontendLayout({ children }: { children: React.Rea
 
         <BottomNavMobile items={header.mobileBottomNav} />
 
-        <ChatbotBubble />
+        <ChatbotBubble
+          enabled={settings?.chatbotEnabled !== false}
+          title={settings?.chatbotTitle ?? undefined}
+          statusText={settings?.chatbotStatusText ?? undefined}
+          placeholder={settings?.chatbotInputPlaceholder ?? undefined}
+          greeting={settings?.chatbotGreetingId ?? undefined}
+          autoTriggerSeconds={Number(settings?.chatbotAutoTriggerSeconds ?? 0)}
+        />
       </body>
     </html>
   );
