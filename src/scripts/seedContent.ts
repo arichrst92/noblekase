@@ -41,6 +41,37 @@ function rt(text: string) {
 const seed = async () => {
   const payload = await getPayload({ config });
 
+  /** Upload gambar ke Media; pakai ulang bila filename sudah ada (anti-duplikat). */
+  async function findOrUpload(relPath: string, alt: string): Promise<number | string | undefined> {
+    const filename = path.basename(relPath);
+    const existing = await payload.find({
+      collection: "media",
+      where: { filename: { equals: filename } },
+      limit: 1,
+    });
+    if (existing.totalDocs > 0) return existing.docs[0].id;
+    const filePath = path.resolve(process.cwd(), "public", relPath.replace(/^\//, ""));
+    if (!fs.existsSync(filePath)) {
+      payload.logger.warn(`Gambar tidak ditemukan, dilewati: ${relPath}`);
+      return undefined;
+    }
+    const doc = await payload.create({ collection: "media", data: { alt }, filePath });
+    return doc.id;
+  }
+
+  // --- 0. Upload gambar halaman statis & brand ---
+  payload.logger.info("Upload gambar halaman & brand...");
+  const imgTentangHero = await findOrUpload("images/tentang/tentang-hero.svg", "Tentang Noblekase");
+  const imgVisi = await findOrUpload("images/tentang/tentang-01-visi.svg", "Visi Noblekase");
+  const imgProses = await findOrUpload("images/tentang/tentang-02-proses.svg", "Proses Noblekase");
+  const imgValue = await findOrUpload("images/tentang/tentang-03-value.svg", "Value Noblekase");
+  const imgKontak = await findOrUpload("images/tentang/kontak-hero.svg", "Dukungan Noblekase");
+  const imgBrand = await findOrUpload("images/hero/brand-story-tentang-noblekase.svg", "Cerita brand Noblekase");
+  const imgBanner = await findOrUpload("images/hero/produk-listing-banner.svg", "Koleksi produk Noblekase");
+  const imgOg = await findOrUpload("images/brand/og-image-default.svg", "Noblekase");
+  const imgLogo = await findOrUpload("images/noblekase-logo.png", "Logo Noblekase");
+  const imgFavicon = await findOrUpload("images/brand/favicon-concept.svg", "Favicon Noblekase");
+
   // --- 1. Halaman Tentang (Pages, slug "tentang") ---
   const existingTentang = await payload.find({
     collection: "pages",
@@ -62,6 +93,7 @@ const seed = async () => {
             subheadline:
               "Noblekase lahir dari kebutuhan sederhana: kabel yang tidak mudah rusak, charger yang ringkas, dan casing yang awet dipakai. Kami percaya kualitas yang konsisten tidak harus mahal.",
             alignment: "left",
+            image: imgTentangHero,
           },
           {
             blockType: "story",
@@ -71,6 +103,7 @@ const seed = async () => {
               "Aksesoris harian yang berkualitas dan terdesain baik, tanpa harus mengeluarkan biaya berlebihan.",
             ),
             imagePosition: "left",
+            image: imgVisi,
           },
           {
             blockType: "story",
@@ -80,6 +113,7 @@ const seed = async () => {
               "Kami memilih supplier dengan standar pengujian ketat, mengaudit material secara berkala, dan memprioritaskan packaging yang minim plastik.",
             ),
             imagePosition: "right",
+            image: imgProses,
           },
           {
             blockType: "story",
@@ -89,6 +123,7 @@ const seed = async () => {
               "Bukan brand mewah, bukan juga produk asal-asalan. Noblekase berdiri di tengah — terjangkau, awet, dan didesain dengan rasa.",
             ),
             imagePosition: "left",
+            image: imgValue,
           },
           {
             blockType: "cta",
@@ -161,6 +196,7 @@ const seed = async () => {
   await payload.updateGlobal({
     slug: "page-support",
     data: {
+      heroImage: imgKontak,
       channels: [
         {
           icon: "message-circle",
@@ -193,7 +229,20 @@ const seed = async () => {
       ],
     },
   });
-  payload.logger.info("Updated: channel Dukungan (PageSupport)");
+  payload.logger.info("Updated: channel + hero Dukungan (PageSupport)");
+
+  // --- 4. Gambar global lain: Beranda, Listing Produk, Site Settings ---
+  await payload.updateGlobal({ slug: "page-home", data: { brandImage: imgBrand } });
+  await payload.updateGlobal({ slug: "page-products", data: { bannerImage: imgBanner } });
+  await payload.updateGlobal({
+    slug: "site-settings",
+    data: {
+      ...(imgLogo ? { logo: imgLogo } : {}),
+      ...(imgFavicon ? { favicon: imgFavicon } : {}),
+      ...(imgOg ? { defaultOgImage: imgOg } : {}),
+    },
+  });
+  payload.logger.info("Updated: gambar Beranda, Listing Produk & Site Settings (logo/favicon/OG)");
 
   payload.logger.info("✅ Seed konten selesai.");
   process.exit(0);

@@ -23,7 +23,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ProductListingPage() {
-  const [products, categories] = await Promise.all([getProducts(), getCategories()]);
+  const [products, categories, t] = await Promise.all([
+    getProducts(),
+    getCategories(),
+    getGlobalData("page-products"),
+  ]);
+  const bannerUrl =
+    resolveMediaUrl(t?.bannerImage, "landscape") || "/images/hero/produk-listing-banner.svg";
 
   return (
     <>
@@ -34,20 +40,19 @@ export default async function ProductListingPage() {
         <div className="container-prose">
           <div className="grid grid-cols-1 md:grid-cols-[1.3fr_1fr] gap-8 md:gap-12 items-center">
             <div className="reveal">
-              <div className="eyebrow mb-3">Koleksi</div>
+              <div className="eyebrow mb-3">{t?.eyebrow ?? "Koleksi"}</div>
               <h1 className="font-serif text-3xl md:text-5xl font-medium leading-tight mb-4 tracking-tight">
-                Semua produk Noblekase
+                {t?.headline ?? "Semua produk Noblekase"}
               </h1>
               <p className="text-base text-ink-secondary leading-relaxed max-w-md">
-                Empat kategori yang menemani hari-hari Anda. Harga ada di
-                marketplace pilihan — kami menjaga koleksi & konsistensi
-                kualitas.
+                {t?.intro ??
+                  "Empat kategori yang menemani hari-hari Anda. Harga ada di marketplace pilihan — kami menjaga koleksi & konsistensi kualitas."}
               </p>
             </div>
             <div className="reveal aspect-[4/3] bg-bg-base border border-border-mid rounded-md overflow-hidden relative">
               <Image
-                src="/images/hero/produk-listing-banner.svg"
-                alt="Noblekase produk"
+                src={bannerUrl}
+                alt={t?.headline ?? "Noblekase produk"}
                 fill
                 priority
                 sizes="(max-width: 768px) 100vw, 40vw"

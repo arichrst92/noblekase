@@ -23,7 +23,14 @@ import { MarketplaceCTA } from "@/components/sections/MarketplaceCTA";
 import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
 
 import type { Metadata } from "next";
-import { getActiveHero, getCategories, getActiveFeatured, getArticles } from "@/lib/queries";
+import {
+  getActiveHero,
+  getCategories,
+  getActiveFeatured,
+  getArticles,
+  getGlobalData,
+  resolveMediaUrl,
+} from "@/lib/queries";
 
 // Judul/deskripsi/OG diwarisi dari root layout (Site Settings). Di sini cukup canonical.
 export const metadata: Metadata = {
@@ -31,12 +38,16 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const [hero, categories, featured, articles] = await Promise.all([
+  const [hero, categories, featured, articles, home] = await Promise.all([
     getActiveHero(),
     getCategories(),
     getActiveFeatured(),
     getArticles(),
+    getGlobalData("page-home"),
   ]);
+  const brandImageUrl =
+    resolveMediaUrl(home?.brandImage, "landscape") ||
+    "/images/hero/brand-story-tentang-noblekase.svg";
 
   // Beranda journal: 3 artikel terbaru
   const teaserArticles = articles.slice(0, 3).map((a) => ({
@@ -80,7 +91,14 @@ export default async function HomePage() {
         />
       )}
 
-      <BrandSnippet imageUrl="/images/hero/brand-story-tentang-noblekase.svg" />
+      <BrandSnippet
+        imageUrl={brandImageUrl}
+        eyebrow={home?.brandEyebrow ?? undefined}
+        headline={home?.brandHeadline ?? undefined}
+        body={home?.brandBody ?? undefined}
+        ctaLabel={home?.brandCtaLabel ?? undefined}
+        ctaUrl={home?.brandCtaUrl ?? undefined}
+      />
 
       <JournalTeaser articles={teaserArticles} />
 
