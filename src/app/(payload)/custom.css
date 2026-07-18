@@ -49,12 +49,23 @@ a:not(.btn):not(.nav__link) {
    sempit/persegi sehingga logo mengecil. Paksa tinggi + lebar otomatis,
    dan lepas batasan lebar pada container pembungkusnya.
    ------------------------------------------------------------------ */
-/* Ikon navigator/header = mark persegi, jangan diregangkan */
+/* ------------------------------------------------------------------
+   Ikon brand di header admin.
+   Payload mengunci kontainernya (.step-nav__home) ke 18px (16px di layar
+   kecil) dengan konten terpotong. Kontainernya yang harus diperbesar —
+   mengubah ukuran <img> saja tidak cukup.
+   ------------------------------------------------------------------ */
+.step-nav__home {
+  width: 26px !important;
+  height: 26px !important;
+  flex-shrink: 0;
+}
 .nk-admin-icon {
-  width: 28px !important;
-  height: 28px !important;
+  width: 100% !important;
+  height: 100% !important;
   max-width: none !important;
   object-fit: contain !important;
+  display: block;
 }
 .nk-admin-logo {
   height: 56px !important;

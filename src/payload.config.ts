@@ -64,6 +64,12 @@ export default buildConfig({
     meta: {
       title: "Noblekase CMS",
       titleSuffix: " · Noblekase",
+      // Favicon panel admin (Payload mengelola <head>-nya sendiri, jadi
+      // berkas ikon di src/app tidak otomatis terpakai di sini).
+      icons: [
+        { rel: "icon", type: "image/png", url: "/images/brand/favicon-noblekase.png" },
+        { rel: "apple-touch-icon", url: "/images/brand/favicon-noblekase.png" },
+      ],
     },
     components: {
       graphics: {
