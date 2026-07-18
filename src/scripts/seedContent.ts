@@ -158,6 +158,80 @@ const seed = async () => {
     payload.logger.info("Lewati: halaman Tentang sudah ada");
   }
 
+  // --- 1b. Halaman legal (Privacy & Terms) — kerangka, isi wajib ditulis klien ---
+  const legalPages = [
+    {
+      slug: "privacy",
+      title: "Kebijakan Privasi",
+      eyebrow: "Legal",
+      intro:
+        "Halaman ini menjelaskan bagaimana Noblekase mengumpulkan, memakai, dan melindungi data Anda.",
+      sections: [
+        "Data yang kami kumpulkan",
+        "Bagaimana data digunakan",
+        "Cookie & analitik",
+        "Pihak ketiga (marketplace & layanan analitik)",
+        "Hak Anda atas data",
+        "Kontak",
+      ],
+    },
+    {
+      slug: "terms",
+      title: "Syarat & Ketentuan",
+      eyebrow: "Legal",
+      intro:
+        "Ketentuan penggunaan situs Noblekase. Pembelian produk tunduk pada ketentuan masing-masing marketplace.",
+      sections: [
+        "Penggunaan situs",
+        "Informasi produk & ketersediaan",
+        "Pembelian melalui marketplace",
+        "Garansi",
+        "Hak kekayaan intelektual",
+        "Perubahan ketentuan",
+      ],
+    },
+  ];
+
+  for (const lp of legalPages) {
+    const exists = await payload.find({
+      collection: "pages",
+      where: { slug: { equals: lp.slug } },
+      limit: 1,
+    });
+    if (exists.totalDocs > 0) {
+      payload.logger.info(`Lewati: halaman ${lp.slug} sudah ada`);
+      continue;
+    }
+    await payload.create({
+      collection: "pages",
+      data: {
+        title: lp.title,
+        slug: lp.slug,
+        status: "published",
+        blocks: [
+          {
+            blockType: "hero",
+            eyebrow: lp.eyebrow,
+            headline: lp.title,
+            subheadline: lp.intro,
+            alignment: "center",
+          },
+          {
+            blockType: "numberedList",
+            eyebrow: "Isi Halaman",
+            headline: "Bagian yang perlu dilengkapi",
+            items: lp.sections.map((s) => ({
+              title: s,
+              description:
+                "Kerangka otomatis — ganti dengan teks final Anda di Admin → Editorial → Pages.",
+            })),
+          },
+        ],
+      },
+    });
+    payload.logger.info(`Seeded: halaman ${lp.slug} (kerangka)`);
+  }
+
   // --- 2. FAQ (kategori + item) ---
   const existingFaq = await payload.find({ collection: "faq-items", limit: 1 });
   if (existingFaq.totalDocs === 0) {
