@@ -1,12 +1,30 @@
 /**
- * Footer — 4 columns + legal links. Konten dari global Footer (via props).
+ * Footer — logo brand + kolom link (dengan ikon) + legal links.
+ * Konten dari global Footer (via props).
+ *
+ * Ikon: dipilih editor lewat field `icon`, atau ditebak otomatis dari label
+ * bila kosong. Untuk marketplace dipakai ikon toko generik — logo resmi
+ * Tokopedia/Shopee/dll adalah merek pihak ketiga, jadi jika ingin logo asli
+ * silakan unggah berkas resminya (koleksi Marketplaces punya field `icon`).
  */
 
 import Link from "next/link";
+import {
+  Instagram,
+  Facebook,
+  Youtube,
+  Twitter,
+  MessageCircle,
+  Music2,
+  Store,
+  ExternalLink,
+  type LucideIcon,
+} from "lucide-react";
 
 interface FooterLink {
   label: string;
   url: string;
+  icon?: string;
 }
 interface FooterColumn {
   title: string;
@@ -15,10 +33,36 @@ interface FooterColumn {
 
 interface FooterProps {
   brand?: string;
+  logoUrl?: string;
   tagline?: string;
   columns?: FooterColumn[];
   copyrightText?: string;
   legalLinks?: FooterLink[];
+}
+
+const ICONS: Record<string, LucideIcon> = {
+  instagram: Instagram,
+  facebook: Facebook,
+  youtube: Youtube,
+  twitter: Twitter,
+  whatsapp: MessageCircle,
+  tiktok: Music2,
+  store: Store,
+  external: ExternalLink,
+};
+
+/** Tebak ikon dari label bila editor belum memilih. */
+function inferIcon(label: string): LucideIcon | null {
+  const l = label.toLowerCase();
+  if (l.includes("instagram")) return Instagram;
+  if (l.includes("facebook")) return Facebook;
+  if (l.includes("youtube")) return Youtube;
+  if (l.includes("twitter") || l === "x") return Twitter;
+  if (l.includes("whatsapp") || l.includes("wa")) return MessageCircle;
+  if (l.includes("tiktok")) return Music2;
+  if (["tokopedia", "shopee", "lazada", "blibli", "bukalapak"].some((m) => l.includes(m)))
+    return Store;
+  return null;
 }
 
 const defaultColumns: FooterColumn[] = [
@@ -42,18 +86,18 @@ const defaultColumns: FooterColumn[] = [
   {
     title: "Marketplace",
     links: [
-      { label: "Tokopedia", url: "https://tokopedia.com/noblekaseid" },
-      { label: "Shopee", url: "https://shopee.co.id/noblekaseid" },
-      { label: "TikTok Shop", url: "https://tiktok.com/@noblekase" },
-      { label: "Lazada", url: "https://lazada.co.id/shop/noblekase" },
+      { label: "Tokopedia", url: "https://tokopedia.com/noblekaseid", icon: "store" },
+      { label: "Shopee", url: "https://shopee.co.id/noblekaseid", icon: "store" },
+      { label: "TikTok Shop", url: "https://tiktok.com/@noblekase", icon: "store" },
+      { label: "Lazada", url: "https://lazada.co.id/shop/noblekase", icon: "store" },
     ],
   },
   {
     title: "Sosial",
     links: [
-      { label: "Instagram", url: "https://instagram.com/noblekase" },
-      { label: "TikTok", url: "https://tiktok.com/@noblekase" },
-      { label: "Facebook", url: "https://facebook.com/noblekase.id" },
+      { label: "Instagram", url: "https://instagram.com/noblekase", icon: "instagram" },
+      { label: "TikTok", url: "https://tiktok.com/@noblekase", icon: "tiktok" },
+      { label: "Facebook", url: "https://facebook.com/noblekase.id", icon: "facebook" },
     ],
   },
 ];
@@ -66,6 +110,7 @@ const defaultLegal: FooterLink[] = [
 
 export function Footer({
   brand = "NOBLEKASE",
+  logoUrl,
   tagline = "Aksesoris yang menemani hari-hari setiap orang. Kualitas konsisten, desain editorial untuk semua.",
   columns,
   copyrightText = "© 2026 Noblekase. All rights reserved.",
@@ -80,7 +125,16 @@ export function Footer({
         <div className="grid grid-cols-1 md:grid-cols-5 gap-10 md:gap-12">
           {/* Brand column */}
           <div className="md:col-span-2">
-            <div className="font-serif text-2xl tracking-[0.15em] mb-4">{brand}</div>
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={logoUrl}
+                alt={brand}
+                className="h-9 md:h-10 w-auto object-contain mb-5 brightness-0 invert"
+              />
+            ) : (
+              <div className="font-serif text-2xl tracking-[0.15em] mb-4">{brand}</div>
+            )}
             <p className="text-sm text-bg-base/75 max-w-xs leading-relaxed">{tagline}</p>
           </div>
 
@@ -91,13 +145,22 @@ export function Footer({
                 {col.title}
               </h4>
               <ul className="space-y-2.5 text-sm text-bg-base/85">
-                {col.links.map((link) => (
-                  <li key={link.url + link.label}>
-                    <Link href={link.url} className="hover:text-accent-light transition-colors">
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
+                {col.links.map((link) => {
+                  const Icon = link.icon ? ICONS[link.icon] : inferIcon(link.label);
+                  const external = link.url.startsWith("http");
+                  return (
+                    <li key={link.url + link.label}>
+                      <Link
+                        href={link.url}
+                        {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                        className="inline-flex items-center gap-2 hover:text-accent-light transition-colors"
+                      >
+                        {Icon && <Icon className="w-4 h-4 shrink-0 opacity-80" aria-hidden />}
+                        <span>{link.label}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}

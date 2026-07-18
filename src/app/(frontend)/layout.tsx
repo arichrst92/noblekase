@@ -90,6 +90,7 @@ export default async function FrontendLayout({ children }: { children: React.Rea
 
         <Footer
           brand={settings?.siteName}
+          logoUrl={logoUrl}
           tagline={footer.tagline}
           columns={footer.columns}
           copyrightText={footer.copyrightText}

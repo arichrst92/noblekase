@@ -407,6 +407,7 @@ export async function getGlobalData(slug: string): Promise<any> {
 export interface NavItem {
   label: string;
   url: string;
+  icon?: string;
 }
 export interface MobileNavItem extends NavItem {
   icon?: string;
@@ -439,7 +440,11 @@ export async function getFooterData(): Promise<FooterData> {
     tagline: g?.tagline ?? "",
     columns: (g?.columns ?? []).map((c: any) => ({
       title: c.title,
-      links: (c.links ?? []).map((l: any) => ({ label: l.label, url: l.url })),
+      links: (c.links ?? []).map((l: any) => ({
+        label: l.label,
+        url: l.url,
+        icon: l.icon || undefined,
+      })),
     })),
     copyrightText: g?.copyrightText ?? "© 2026 Noblekase",
     legalLinks: (g?.legalLinks ?? []).map((l: any) => ({ label: l.label, url: l.url })),
