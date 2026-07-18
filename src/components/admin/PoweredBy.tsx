@@ -2,8 +2,9 @@
  * PoweredBy — kredit pembuat di bagian bawah sidebar admin.
  * Dibuat oleh: PT Solusi Inovasi Bangsa (https://ide.asia)
  *
- * Dipasang lewat slot `admin.components.afterNavLinks` milik Payload.
- * Posisi menempel ke bawah diatur di custom.css (margin-top: auto).
+ * Dipasang lewat slot `admin.components.afterNavLinks` milik Payload,
+ * lalu digeser ke bawah tombol logout lewat `order` di custom.css
+ * (lihat blok .nk-powered-by / .nav__controls di sana).
  */
 
 import React from "react";

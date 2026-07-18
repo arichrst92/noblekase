@@ -44,15 +44,24 @@ a:not(.btn):not(.nav__link) {
 }
 
 /* ------------------------------------------------------------------
-   Kredit "powered by IDEA" di dasar sidebar admin.
-   margin-top:auto mendorongnya ke bawah dalam kolom flex sidebar.
+   Kredit "powered by IDEA" — baris paling bawah sidebar admin,
+   DI BAWAH tombol logout.
+
+   Payload merender slot `afterNavLinks` tepat SEBELUM `.nav__controls`
+   (berisi Settings + Logout) di dalam `nav.nav__wrap`. Keduanya
+   bersaudara di kolom flex yang sama, jadi urutan visual cukup ditukar
+   pakai `order` — tanpa perlu meng-override komponen Nav bawaan Payload.
+
+   `.nav__controls` mempertahankan `margin-top:auto` miliknya sehingga
+   ia tetap menyerap ruang kosong dan mendorong dirinya + kredit ke dasar
+   sidebar. Kredit sendiri tidak boleh punya margin auto, kalau tidak
+   keduanya saling dorong dan menyisakan celah.
    ------------------------------------------------------------------ */
-/* Kredit tampil sebagai footer sidebar: menempel bawah, dipisah garis,
-   dan rapat dengan tombol logout agar tidak terlihat menggantung. */
 .nk-powered-by {
-  margin-top: auto;
+  order: 2;
+  margin-top: 0.875rem;
   margin-bottom: 0;
-  padding: 0.875rem 0 0;
+  padding-top: 0.875rem;
   border-top: 1px solid var(--theme-elevation-100);
   display: flex;
   align-items: center;
@@ -78,8 +87,9 @@ a:not(.btn):not(.nav__link) {
   display: block;
 }
 
-/* Rapatkan area logout agar menyatu dengan footer kredit di atasnya. */
+/* Blok logout naik satu posisi agar kredit IDEA berada di bawahnya. */
 .nav__controls {
+  order: 1;
   padding-top: 0.75rem !important;
 }
 
