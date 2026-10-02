@@ -28,6 +28,7 @@ import {
 } from "@/lib/queries";
 import { Analytics } from "@/components/analytics/Analytics";
 import { SiteJsonLd } from "@/components/seo/JsonLd";
+import { CartProvider } from "@/lib/cart/CartContext";
 import {
   htmlLang,
   isLocale,
@@ -144,30 +145,34 @@ export default async function FrontendLayout({
             .filter(Boolean)}
         />
 
-        <TopNav
-          navItems={header.navItems}
-          brand={settings?.siteName}
-          logoUrl={logoUrl}
-          locale={locale}
-        />
+        {/* CartProvider membungkus navbar DAN isi halaman supaya ikon keranjang
+            dan tombol "tambah ke keranjang" berbagi satu state yang sama. */}
+        <CartProvider>
+          <TopNav
+            navItems={header.navItems}
+            brand={settings?.siteName}
+            logoUrl={logoUrl}
+            locale={locale}
+          />
 
-        <main className="flex-1 pb-24 md:pb-0">{children}</main>
+          <main className="flex-1 pb-24 md:pb-0">{children}</main>
 
-        <Footer
-          brand={settings?.siteName}
-          logoUrl={logoUrl}
-          tagline={footer.tagline}
-          columns={footer.columns}
-          copyrightText={footer.copyrightText}
-          legalLinks={footer.legalLinks}
-          locale={locale}
-        />
+          <Footer
+            brand={settings?.siteName}
+            logoUrl={logoUrl}
+            tagline={footer.tagline}
+            columns={footer.columns}
+            copyrightText={footer.copyrightText}
+            legalLinks={footer.legalLinks}
+            locale={locale}
+          />
 
-        <BottomNavMobile
-          items={header.mobileBottomNav}
-          locale={locale}
-          iconUrl={iconUrl}
-        />
+          <BottomNavMobile
+            items={header.mobileBottomNav}
+            locale={locale}
+            iconUrl={iconUrl}
+          />
+        </CartProvider>
 
         <ChatbotBubble
           enabled={settings?.chatbotEnabled !== false}

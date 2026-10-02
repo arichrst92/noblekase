@@ -17,6 +17,7 @@ import { Search, Menu } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { SearchOverlay } from "@/components/search/SearchOverlay";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
+import { CartButton } from "@/components/cart/CartButton";
 import { defaultLocale, localePath, translator, type Locale } from "@/lib/i18n";
 
 interface NavItem {
@@ -127,6 +128,7 @@ export function TopNav({
           >
             <Search className="w-3.5 h-3.5" />
           </button>
+          <CartButton locale={locale} />
         </div>
       </nav>
 

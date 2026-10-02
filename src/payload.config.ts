@@ -27,6 +27,9 @@ import { Slides } from "@/collections/Slides";
 import { FeaturedCollections } from "@/collections/FeaturedCollections";
 import { FAQItems } from "@/collections/FAQItems";
 import { FAQCategories } from "@/collections/FAQCategories";
+// E-commerce (Sprint 9)
+import { Orders } from "@/collections/Orders";
+import { Customers } from "@/collections/Customers";
 
 // Globals
 import { SiteSettings } from "@/globals/SiteSettings";
@@ -116,6 +119,9 @@ export default buildConfig({
     FeaturedCollections,
     FAQCategories,
     FAQItems,
+    // E-commerce (Sprint 9)
+    Orders,
+    Customers,
   ],
 
   globals: [

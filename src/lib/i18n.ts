@@ -237,6 +237,22 @@ const id = {
   "product.relatedHeading": "Produk lain yang sering dipasangkan",
   "product.buyCta": "Beli {name}",
 
+  // Keranjang (Sprint 9)
+  "cart.add": "Tambah ke keranjang",
+  "cart.added": "Ditambahkan ✓",
+  "cart.outOfStock": "Stok habis",
+  "cart.priceUnavailable": "Harga segera hadir",
+  "cart.open": "Buka keranjang",
+  "cart.close": "Tutup keranjang",
+  "cart.title": "Keranjang",
+  "cart.empty": "Keranjang masih kosong",
+  "cart.continueShopping": "Mulai belanja",
+  "cart.qty": "Jumlah",
+  "cart.remove": "Hapus",
+  "cart.subtotal": "Subtotal",
+  "cart.shippingNote": "Ongkir dihitung saat checkout.",
+  "cart.checkout": "Lanjut ke checkout",
+
   // Tentang
   "about.metaTitle": "Tentang Noblekase",
   "about.metaDescription":
@@ -455,6 +471,22 @@ const en: Record<TranslationKey, string> = {
   "product.relatedEyebrow": "You might also like",
   "product.relatedHeading": "Products often paired together",
   "product.buyCta": "Buy {name}",
+
+  // Keranjang (Sprint 9)
+  "cart.add": "Add to cart",
+  "cart.added": "Added ✓",
+  "cart.outOfStock": "Out of stock",
+  "cart.priceUnavailable": "Price coming soon",
+  "cart.open": "Open cart",
+  "cart.close": "Close cart",
+  "cart.title": "Cart",
+  "cart.empty": "Your cart is empty",
+  "cart.continueShopping": "Start shopping",
+  "cart.qty": "Qty",
+  "cart.remove": "Remove",
+  "cart.subtotal": "Subtotal",
+  "cart.shippingNote": "Shipping is calculated at checkout.",
+  "cart.checkout": "Proceed to checkout",
 
   "about.metaTitle": "About Noblekase",
   "about.metaDescription":

@@ -2,8 +2,8 @@
  * ProductTabs — grid produk dengan tab (Terbaru / Terlaris / Semua).
  * Dibuat oleh: PT Solusi Inovasi Bangsa (https://ide.asia)
  *
- * Catatan: Noblekase katalog (tanpa keranjang), jadi kartu produk mengarah ke
- * halaman detail; konversi terjadi lewat tombol marketplace di detail.
+ * Sprint 9: kartu produk kini punya harga + tombol tambah ke keranjang
+ * (lihat ProductCard). Grid ini hanya menata; logika beli ada di kartunya.
  */
 
 "use client";
@@ -21,7 +21,10 @@ export interface TabProduct {
   category: string;
   imageUrl: string;
   badge?: "NEW" | "BEST" | "PRO";
-  marketplaceKeys: string[];
+  price?: number;
+  compareAtPrice?: number;
+  stock?: number;
+  weightGrams?: number;
 }
 
 interface ProductTabsProps {
@@ -55,8 +58,16 @@ export function ProductTabs({
   const seeAllLabel = seeAllLabelProp ?? tr("common.viewAll");
 
   const tabs = [
-    { key: "new", label: labels.new, items: products.filter((p) => p.badge === "NEW") },
-    { key: "best", label: labels.best, items: products.filter((p) => p.badge === "BEST") },
+    {
+      key: "new",
+      label: labels.new,
+      items: products.filter((p) => p.badge === "NEW"),
+    },
+    {
+      key: "best",
+      label: labels.best,
+      items: products.filter((p) => p.badge === "BEST"),
+    },
     { key: "all", label: labels.all, items: products },
   ].filter((t) => t.items.length > 0);
 
@@ -71,7 +82,9 @@ export function ProductTabs({
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6 md:mb-8">
           <div className="reveal">
             <div className="eyebrow mb-2">{eyebrow}</div>
-            <h2 className="font-serif text-2xl md:text-3xl font-medium">{headline}</h2>
+            <h2 className="font-serif text-2xl md:text-3xl font-medium">
+              {headline}
+            </h2>
           </div>
           <Link
             href={localePath(locale, "/produk")}
@@ -82,7 +95,10 @@ export function ProductTabs({
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1.5 mb-6 md:mb-8 overflow-x-auto pb-1" role="tablist">
+        <div
+          className="flex gap-1.5 mb-6 md:mb-8 overflow-x-auto pb-1"
+          role="tablist"
+        >
           {tabs.map((t) => (
             <button
               key={t.key}
@@ -97,7 +113,9 @@ export function ProductTabs({
               )}
             >
               {t.label}
-              <span className="ml-1.5 text-[11px] opacity-60">{t.items.length}</span>
+              <span className="ml-1.5 text-[11px] opacity-60">
+                {t.items.length}
+              </span>
             </button>
           ))}
         </div>
@@ -112,7 +130,10 @@ export function ProductTabs({
               category={p.category}
               imageUrl={p.imageUrl}
               badge={p.badge}
-              marketplaceKeys={p.marketplaceKeys}
+              price={p.price}
+              compareAtPrice={p.compareAtPrice}
+              stock={p.stock}
+              weightGrams={p.weightGrams}
               locale={locale}
             />
           ))}

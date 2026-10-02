@@ -10,6 +10,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
 import { ProductCard } from "@/components/cards/ProductCard";
+import { AddToCartButton } from "@/components/cart/AddToCartButton";
+import { formatRupiah } from "@/lib/format";
 import {
   getProducts,
   getProductBySlug,
@@ -109,11 +111,17 @@ export default async function ProductDetailPage({
         <div className="container-prose">
           {/* Breadcrumb */}
           <nav className="text-[12px] text-ink-tertiary mb-6 flex items-center gap-1.5">
-            <Link href={localePath(locale, "/")} className="hover:text-ink-primary">
+            <Link
+              href={localePath(locale, "/")}
+              className="hover:text-ink-primary"
+            >
               {tr("common.home")}
             </Link>
             <span>/</span>
-            <Link href={localePath(locale, "/produk")} className="hover:text-ink-primary">
+            <Link
+              href={localePath(locale, "/produk")}
+              className="hover:text-ink-primary"
+            >
               {tr("common.products")}
             </Link>
             <span>/</span>
@@ -177,6 +185,34 @@ export default async function ProductDetailPage({
               <p className="text-lg text-ink-secondary leading-relaxed mb-7">
                 {product.tagline}
               </p>
+
+              {/* Harga + beli langsung (Sprint 9) */}
+              {typeof product.price === "number" && product.price > 0 && (
+                <div className="mb-7">
+                  <div className="flex items-baseline gap-3 mb-4">
+                    <span className="font-serif text-3xl font-medium text-ink-primary">
+                      {formatRupiah(product.price)}
+                    </span>
+                    {typeof product.compareAtPrice === "number" &&
+                      product.compareAtPrice > product.price && (
+                        <span className="text-base text-ink-tertiary line-through">
+                          {formatRupiah(product.compareAtPrice)}
+                        </span>
+                      )}
+                  </div>
+                  <AddToCartButton
+                    slug={product.slug}
+                    name={product.name}
+                    price={product.price}
+                    imageUrl={product.imageUrl}
+                    weightGrams={product.weightGrams}
+                    stock={product.stock}
+                    locale={locale}
+                    variant="full"
+                    className="w-full sm:w-auto"
+                  />
+                </div>
+              )}
 
               {/* Marketplace cards */}
               <div className="border border-border-light rounded-lg p-4 md:p-5 mb-8">
@@ -253,7 +289,9 @@ export default async function ProductDetailPage({
       {product.lifestyle && product.lifestyle.length > 0 && (
         <section className="bg-bg-cream py-16 md:py-20 border-y border-border-light">
           <div className="container-prose">
-            <div className="reveal eyebrow mb-2">{tr("product.lifestyleEyebrow")}</div>
+            <div className="reveal eyebrow mb-2">
+              {tr("product.lifestyleEyebrow")}
+            </div>
             <h2 className="reveal font-serif text-2xl md:text-3xl font-medium mb-8">
               {tr("product.lifestyleHeadingTemplate", { name: product.name })}
             </h2>
@@ -282,7 +320,9 @@ export default async function ProductDetailPage({
       {related.length > 0 && (
         <section className="py-16 md:py-20">
           <div className="container-prose">
-            <div className="reveal eyebrow mb-2">{tr("product.relatedEyebrow")}</div>
+            <div className="reveal eyebrow mb-2">
+              {tr("product.relatedEyebrow")}
+            </div>
             <h2 className="reveal font-serif text-2xl md:text-3xl font-medium mb-8">
               {tr("product.relatedHeading")}
             </h2>
@@ -296,7 +336,13 @@ export default async function ProductDetailPage({
                   category={p.category}
                   imageUrl={p.imageUrl}
                   badge={p.badge}
-                  marketplaceKeys={p.marketplaces.map((m) => m.key)}
+                  price={p.price}
+
+                  compareAtPrice={p.compareAtPrice}
+
+                  stock={p.stock}
+
+                  weightGrams={p.weightGrams}
                   locale={locale}
                 />
               ))}

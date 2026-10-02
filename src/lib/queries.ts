@@ -70,6 +70,14 @@ export interface SeoFields {
   subCategoryName?: string;
   /** Tanggal publish (ISO) — dipakai untuk sorting "terbaru". */
   publishedAt?: string;
+  /** Harga jual (Rupiah, bilangan bulat). Sprint 9 — penjualan langsung. */
+  price?: number;
+  /** Harga coret opsional untuk menampilkan diskon. */
+  compareAtPrice?: number;
+  /** Stok tersedia; 0 = habis. */
+  stock?: number;
+  /** Berat kirim (gram) — dipakai hitung ongkir. */
+  weightGrams?: number;
 }
 
 export type ProductWithSeo = SampleProduct & SeoFields;
@@ -130,6 +138,11 @@ function mapProduct(p: any): ProductWithSeo {
     subCategorySlug: sub?.slug ?? undefined,
     subCategoryName: sub?.name ?? undefined,
     publishedAt: p.publishedAt ?? p.createdAt ?? undefined,
+    // Commerce (Sprint 9)
+    price: typeof p.price === "number" ? p.price : undefined,
+    compareAtPrice: typeof p.compareAtPrice === "number" ? p.compareAtPrice : undefined,
+    stock: typeof p.stock === "number" ? p.stock : undefined,
+    weightGrams: typeof p.weightGrams === "number" ? p.weightGrams : undefined,
   } as ProductWithSeo;
 }
 

@@ -150,7 +150,13 @@ export default async function ProductListingPage({
                     category={p.category}
                     imageUrl={p.imageUrl}
                     badge={p.badge}
-                    marketplaceKeys={p.marketplaces.map((m) => m.key)}
+                    price={p.price}
+
+                    compareAtPrice={p.compareAtPrice}
+
+                    stock={p.stock}
+
+                    weightGrams={p.weightGrams}
                     locale={locale}
                   />
                 ))}

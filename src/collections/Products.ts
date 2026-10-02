@@ -62,7 +62,8 @@ export const Products: CollectionConfig = {
       type: "textarea",
       localized: true,
       admin: {
-        description: "Tagline singkat, ditampilkan di kartu produk dan detail (1-2 baris).",
+        description:
+          "Tagline singkat, ditampilkan di kartu produk dan detail (1-2 baris).",
       },
     },
     {
@@ -81,6 +82,102 @@ export const Products: CollectionConfig = {
     {
       type: "tabs",
       tabs: [
+        // === HARGA & STOK (Sprint 9 — e-commerce) ===
+        {
+          label: "Harga & Stok",
+          description:
+            "Dipakai untuk penjualan langsung. Harga belum termasuk PPN (keputusan Sprint 9: tanpa PPN dulu).",
+          fields: [
+            {
+              name: "price",
+              type: "number",
+              min: 0,
+              admin: {
+                description:
+                  "Harga jual dalam Rupiah, tanpa desimal (mis. 149000). WAJIB untuk produk yang di-publish.",
+                step: 1000,
+              },
+              validate: (
+                value: number | null | undefined,
+                { siblingData }: { siblingData: Partial<{ status: string }> },
+              ) => {
+                // Harga baru diwajibkan saat produk published — supaya produk
+                // lama yang masih draft tidak gagal tersimpan saat field ini
+                // baru ditambahkan.
+                if (
+                  siblingData?.status === "published" &&
+                  (value == null || value <= 0)
+                ) {
+                  return "Produk published wajib punya harga lebih dari 0.";
+                }
+                if (value != null && !Number.isInteger(value)) {
+                  return "Harga Rupiah tidak memakai desimal.";
+                }
+                return true;
+              },
+            },
+            {
+              name: "compareAtPrice",
+              type: "number",
+              min: 0,
+              admin: {
+                description:
+                  "Harga coret (opsional) untuk menampilkan diskon. Harus lebih besar dari harga jual.",
+                step: 1000,
+              },
+              validate: (
+                value: number | null | undefined,
+                { siblingData }: { siblingData: Partial<{ price: number }> },
+              ) => {
+                if (value != null && value > 0) {
+                  if (!Number.isInteger(value))
+                    return "Harga coret tidak memakai desimal.";
+                  const price = siblingData?.price;
+                  if (price != null && value <= price) {
+                    return "Harga coret harus lebih besar dari harga jual.";
+                  }
+                }
+                return true;
+              },
+            },
+            {
+              name: "stock",
+              type: "number",
+              defaultValue: 0,
+              min: 0,
+              admin: {
+                description:
+                  "Jumlah stok tersedia. 0 = habis (tombol beli dinonaktifkan).",
+              },
+            },
+            {
+              name: "weightGrams",
+              type: "number",
+              min: 1,
+              admin: {
+                description:
+                  "Berat kirim dalam GRAM (mis. 250). WAJIB untuk hitung ongkir Biteship — tanpa ini ongkir tidak bisa dihitung.",
+                step: 10,
+              },
+              validate: (
+                value: number | null | undefined,
+                { siblingData }: { siblingData: Partial<{ status: string }> },
+              ) => {
+                if (
+                  siblingData?.status === "published" &&
+                  (value == null || value <= 0)
+                ) {
+                  return "Produk published wajib punya berat (gram) untuk ongkir.";
+                }
+                if (value != null && !Number.isInteger(value)) {
+                  return "Berat (gram) harus bilangan bulat.";
+                }
+                return true;
+              },
+            },
+          ],
+        },
+
         // === STORY ===
         {
           label: "Cerita Produk",
@@ -188,7 +285,10 @@ export const Products: CollectionConfig = {
                 {
                   name: "icon",
                   type: "text",
-                  admin: { description: "Lucide icon name, mis. 'zap', 'cable', 'thermometer'." },
+                  admin: {
+                    description:
+                      "Lucide icon name, mis. 'zap', 'cable', 'thermometer'.",
+                  },
                 },
                 {
                   name: "title",
@@ -220,14 +320,19 @@ export const Products: CollectionConfig = {
                   type: "text",
                   localized: true,
                   required: true,
-                  admin: { description: "Mis. 'Daya total', 'Port', 'Dimensi'." },
+                  admin: {
+                    description: "Mis. 'Daya total', 'Port', 'Dimensi'.",
+                  },
                 },
                 {
                   name: "value",
                   type: "text",
                   localized: true,
                   required: true,
-                  admin: { description: "Mis. '65W max', '2× USB-C PD', '52×47×30 mm'." },
+                  admin: {
+                    description:
+                      "Mis. '65W max', '2× USB-C PD', '52×47×30 mm'.",
+                  },
                 },
               ],
             },
@@ -235,13 +340,18 @@ export const Products: CollectionConfig = {
               name: "inBox",
               type: "textarea",
               localized: true,
-              admin: { description: "Daftar isi paket. Mis. '1× charger · 1× cable · 1× manual'." },
+              admin: {
+                description:
+                  "Daftar isi paket. Mis. '1× charger · 1× cable · 1× manual'.",
+              },
             },
             {
               name: "warranty",
               type: "textarea",
               localized: true,
-              admin: { description: "Info garansi. Mis. '12 bulan garansi resmi'." },
+              admin: {
+                description: "Info garansi. Mis. '12 bulan garansi resmi'.",
+              },
             },
           ],
         },
@@ -270,25 +380,35 @@ export const Products: CollectionConfig = {
                 {
                   name: "statusLabel",
                   type: "text",
-                  admin: { description: "Mis. 'Toko Resmi', 'Mall', 'LazMall'." },
+                  admin: {
+                    description: "Mis. 'Toko Resmi', 'Mall', 'LazMall'.",
+                  },
                 },
                 {
                   name: "benefitLabel",
                   type: "text",
-                  admin: { description: "Mis. 'Free Ongkir', 'Cashback 5%', 'Live Promo'." },
+                  admin: {
+                    description:
+                      "Mis. 'Free Ongkir', 'Cashback 5%', 'Live Promo'.",
+                  },
                 },
                 {
                   name: "isPrimary",
                   type: "checkbox",
                   defaultValue: false,
-                  admin: { description: "Tandai marketplace utama (CTA primary)." },
+                  admin: {
+                    description: "Tandai marketplace utama (CTA primary).",
+                  },
                 },
               ],
             },
             {
               name: "whatsappEnquiry",
               type: "text",
-              admin: { description: "URL WhatsApp untuk konsultasi. Mis. https://wa.me/628xxx?text=Tanya%20tentang%20{product}" },
+              admin: {
+                description:
+                  "URL WhatsApp untuk konsultasi. Mis. https://wa.me/628xxx?text=Tanya%20tentang%20{product}",
+              },
             },
           ],
         },
@@ -305,13 +425,18 @@ export const Products: CollectionConfig = {
                   name: "title",
                   type: "text",
                   localized: true,
-                  admin: { description: "Override meta title (kosongkan untuk auto)." },
+                  admin: {
+                    description: "Override meta title (kosongkan untuk auto).",
+                  },
                 },
                 {
                   name: "description",
                   type: "textarea",
                   localized: true,
-                  admin: { description: "Override meta description (kosongkan untuk auto)." },
+                  admin: {
+                    description:
+                      "Override meta description (kosongkan untuk auto).",
+                  },
                 },
                 {
                   name: "ogImage",
@@ -322,7 +447,8 @@ export const Products: CollectionConfig = {
                       slot: "Gambar share sosial (Open Graph) produk ini",
                       size: "1200×630",
                       ratio: "1.91:1",
-                      prompt: "this phone accessory as a wide social share banner with room for text",
+                      prompt:
+                        "this phone accessory as a wide social share banner with room for text",
                     }),
                   },
                 },
@@ -342,14 +468,18 @@ export const Products: CollectionConfig = {
       maxRows: 6,
       admin: {
         position: "sidebar",
-        description: "Produk terkait di halaman detail. Kosongkan = otomatis ambil dari kategori yang sama.",
+        description:
+          "Produk terkait di halaman detail. Kosongkan = otomatis ambil dari kategori yang sama.",
       },
     },
     {
       name: "order",
       type: "number",
       defaultValue: 0,
-      admin: { position: "sidebar", description: "Urutan tampilan di listing." },
+      admin: {
+        position: "sidebar",
+        description: "Urutan tampilan di listing.",
+      },
     },
     {
       name: "status",

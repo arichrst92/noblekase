@@ -94,7 +94,10 @@ export default async function HomePage({ params }: HomePageProps) {
     category: p.category,
     imageUrl: p.imageUrl,
     badge: p.badge,
-    marketplaceKeys: p.marketplaces.map((m) => m.key),
+    price: p.price,
+    compareAtPrice: p.compareAtPrice,
+    stock: p.stock,
+    weightGrams: p.weightGrams,
   }));
 
   // Beranda journal: 3 artikel terbaru
