@@ -192,6 +192,75 @@ Eksekusi (menunggu server):
 
 ---
 
+## Sprint 9 — E-commerce: Penjualan Langsung + Pengiriman
+**Goal:** Situs berubah dari katalog menjadi toko online penuh. **→ Milestone M6**
+**Depends on:** Sprint 8 (katalog sudah live lebih dulu)
+
+### Keputusan arsitektur (disepakati)
+
+| Hal | Pilihan | Catatan |
+|---|---|---|
+| Model bisnis | **Menggantikan marketplace** | Checkout langsung jadi jalur utama; tautan marketplace dihapus dari halaman produk (collection `Marketplaces` boleh tetap untuk "juga tersedia di"). |
+| Pembayaran | **Xendit** (Invoice API) | Halaman bayar di sisi Xendit — data kartu tidak pernah menyentuh server kita. |
+| Pengiriman | **Biteship** | Ongkir real-time multi-kurir, buat resi, tracking via webhook. |
+| Akun pelanggan | **Guest + akun opsional** | Boleh beli tanpa daftar; akun ditawarkan setelah checkout. |
+
+### Prasyarat dari klien (bukan tugas dev)
+- API key Xendit (test + produksi) & token webhook — diisi di `.env`/CMS, jangan di chat
+- API key Biteship
+- **Alamat gudang asal** (titik hitung ongkir)
+- Teks kebijakan: pengembalian/refund, pengiriman, syarat jual-beli (wajib untuk toko online — UU Perlindungan Konsumen)
+- Keputusan PPN & invoice resmi (konfirmasi ke akuntan — di luar ranah dev)
+
+### Fase 9.1 — Model data & keranjang
+- [ ] Field produk: `price`, `compareAtPrice?`, `stock`, **`weightGrams`** (wajib untuk ongkir Biteship)
+- [ ] Collection `Orders`: nomor order, pembeli, alamat, snapshot item (nama+harga disalin), subtotal, ongkir, total, status bayar & fulfillment, ID Xendit/Biteship, resi, status tracking
+- [ ] Collection `Customers` (ringan, dibuat hanya bila tamu memilih simpan akun)
+- [ ] Migrasi skema baru (`pnpm payload migrate:create`)
+- [ ] Keranjang (state browser untuk tamu) + ikon keranjang di navbar
+
+**DoD:** Produk punya harga/stok/berat; order bisa dibuat manual di CMS; keranjang menyimpan item lintas halaman.
+
+### Fase 9.2 — Pembayaran (Xendit)
+- [ ] Halaman checkout: ringkasan + form alamat
+- [ ] Buat Xendit Invoice → redirect ke halaman bayar
+- [ ] **Webhook Xendit + verifikasi `x-callback-token`** (cegah order dipalsukan lunas)
+- [ ] Pengurangan stok aman dari race condition saat order lunas
+- [ ] Email konfirmasi (Resend) ke pembeli & admin
+
+**DoD:** Transaksi test Xendit lunas → order jadi `dibayar`, stok turun, email terkirim.
+
+### Fase 9.3 — Pengiriman (Biteship)
+- [ ] Pemilih alamat yang memetakan ke area Biteship (provinsi/kota/kecamatan/kode pos)
+- [ ] Hitung ongkir real-time (`/rates`) di checkout, pelanggan pilih kurir
+- [ ] Buat order Biteship + terbitkan resi saat pembayaran lunas
+- [ ] Webhook tracking Biteship → perbarui status di `Orders`
+- [ ] Halaman lacak pesanan untuk pelanggan (via link/email)
+
+**DoD:** Checkout menampilkan ongkir benar per kurir; resi terbit otomatis; status kirim terupdate.
+
+### Fase 9.4 — Rombak positioning & halaman legal
+- [ ] Tampilkan harga di semua halaman produk & listing
+- [ ] Hapus tombol marketplace sebagai jalur beli utama; ganti dengan "Beli / Tambah ke keranjang"
+- [ ] Rombak aturan chatbot ("kami tidak jual langsung" → bantu belanja & status pesanan)
+- [ ] Tulis ulang copywriting beranda/produk/tentang — **dua bahasa**
+- [ ] Halaman kebijakan pengembalian, pengiriman, syarat jual-beli (ID & EN)
+
+**DoD:** Tidak ada sisa pesan "beli di marketplace"; harga tampil; halaman legal lengkap dua bahasa.
+
+### Fase 9.5 — UAT transaksi & go-live
+- [ ] Uji end-to-end: katalog → keranjang → checkout → bayar (test) → resi → tracking
+- [ ] Uji edge case: stok habis, pembayaran gagal/kedaluwarsa, webhook ganda (idempotensi)
+- [ ] Ganti key Xendit/Biteship ke mode produksi
+- [ ] Smoke test transaksi nyata nominal kecil, lalu refund
+- [ ] Go-live toko 🚀
+
+**DoD:** Transaksi produksi lengkap terverifikasi dari beli sampai resi; refund teruji.
+
+> **Catatan keamanan dev:** Claude tidak akan menulis kode yang memproses nomor kartu atau mengeksekusi transfer dana langsung — semua lewat Xendit. Verifikasi tanda tangan webhook dan idempotensi adalah syarat wajib, bukan opsional.
+
+---
+
 ## Catatan Teknis: Migrasi Storage ke Local Filesystem
 
 Kondisi aktual repo: penyimpanan file **sudah lokal**. Koleksi `Media` memakai `upload.staticDir` (`process.env.UPLOAD_DIR || "uploads"`) dan `payload.config.ts` **tidak** memasang plugin Vercel Blob. Jadi tidak ada migrasi adapter — hanya pembersihan & persistensi:
@@ -216,9 +285,12 @@ Kondisi aktual repo: penyimpanan file **sudah lokal**. Koleksi `Media` memakai `
 | 5 | Minggu 6 | — |
 | 6 | Minggu 7 | M4 — AI live |
 | 7 | Minggu 8 | — |
-| 8 | Minggu 9 | **M5 — Production launch** |
+| 8 | Minggu 9 | **M5 — Production launch (katalog)** |
+| 9 | Minggu 10–12 | **M6 — Toko online live (Xendit + Biteship)** |
 
 > **Opsi launch cepat:** Jika ingin go-live lebih awal, katalog sudah bisa tayang setelah **Sprint 4 (Minggu 5)**. Fitur AI (Sprint 5–6) bisa menyusul pasca-launch tanpa mengganggu katalog.
+
+> **Urutan e-commerce (disepakati):** Katalog launch dulu di Sprint 8. Penjualan langsung + pengiriman menyusul sebagai **Sprint 9** terpisah, supaya pengujian pembayaran–pengiriman tidak terburu-buru dan katalog yang sudah jadi tidak perlu menunggu.
 
 ---
 
