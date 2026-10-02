@@ -15,6 +15,8 @@ export interface ResolvedIntegrations {
   groqModelChatbot: string;
   groqModelBlog: string;
   groqModelMarketIntel: string;
+  xenditSecretKey?: string;
+  xenditWebhookToken?: string;
   resendApiKey?: string;
   emailFrom: string;
   emailReplyTo: string;
@@ -25,7 +27,8 @@ export interface ResolvedIntegrations {
 
 /** Ambil nilai dari CMS, fallback ke env. String kosong dianggap tidak diisi. */
 function pick(cmsVal: unknown, envVal: string | undefined): string | undefined {
-  const v = typeof cmsVal === "string" && cmsVal.trim() ? cmsVal.trim() : undefined;
+  const v =
+    typeof cmsVal === "string" && cmsVal.trim() ? cmsVal.trim() : undefined;
   return v ?? (envVal && envVal.trim() ? envVal.trim() : undefined);
 }
 
@@ -33,15 +36,34 @@ export async function resolveIntegrations(): Promise<ResolvedIntegrations> {
   const g = (await getIntegrations()) ?? {};
   return {
     groqApiKey: pick(g.groqApiKey, process.env.GROQ_API_KEY),
-    groqModelChatbot: pick(g.groqModelChatbot, process.env.GROQ_MODEL_CHATBOT) ?? "llama-3.1-8b-instant",
-    groqModelBlog: pick(g.groqModelBlog, process.env.GROQ_MODEL_BLOG) ?? "llama-3.3-70b-versatile",
+    groqModelChatbot:
+      pick(g.groqModelChatbot, process.env.GROQ_MODEL_CHATBOT) ??
+      "llama-3.1-8b-instant",
+    groqModelBlog:
+      pick(g.groqModelBlog, process.env.GROQ_MODEL_BLOG) ??
+      "llama-3.3-70b-versatile",
     groqModelMarketIntel:
-      pick(g.groqModelMarketIntel, process.env.GROQ_MODEL_MARKET_INTEL) ?? "llama-3.3-70b-versatile",
+      pick(g.groqModelMarketIntel, process.env.GROQ_MODEL_MARKET_INTEL) ??
+      "llama-3.3-70b-versatile",
+    xenditSecretKey: pick(g.xenditSecretKey, process.env.XENDIT_SECRET_KEY),
+    xenditWebhookToken: pick(
+      g.xenditWebhookToken,
+      process.env.XENDIT_WEBHOOK_TOKEN,
+    ),
     resendApiKey: pick(g.resendApiKey, process.env.RESEND_API_KEY),
-    emailFrom: pick(g.emailFrom, process.env.EMAIL_FROM) ?? "noreply@noblekase.co.id",
-    emailReplyTo: pick(g.emailReplyTo, process.env.EMAIL_REPLY_TO) ?? "halo@noblekase.co.id",
-    gaMeasurementId: pick(g.gaMeasurementId, process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID),
-    searchConsoleProperty: pick(g.searchConsoleProperty, process.env.GOOGLE_SEARCH_CONSOLE_PROPERTY),
+    emailFrom:
+      pick(g.emailFrom, process.env.EMAIL_FROM) ?? "noreply@noblekase.co.id",
+    emailReplyTo:
+      pick(g.emailReplyTo, process.env.EMAIL_REPLY_TO) ??
+      "halo@noblekase.co.id",
+    gaMeasurementId: pick(
+      g.gaMeasurementId,
+      process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
+    ),
+    searchConsoleProperty: pick(
+      g.searchConsoleProperty,
+      process.env.GOOGLE_SEARCH_CONSOLE_PROPERTY,
+    ),
     indexingServiceAccountJson: pick(g.indexingServiceAccountJson, undefined),
   };
 }

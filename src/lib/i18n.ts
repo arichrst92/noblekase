@@ -253,6 +253,38 @@ const id = {
   "cart.shippingNote": "Ongkir dihitung saat checkout.",
   "cart.checkout": "Lanjut ke checkout",
 
+  // Checkout (Sprint 9)
+  "checkout.title": "Checkout",
+  "checkout.empty": "Keranjang kosong — belum ada yang bisa di-checkout.",
+  "checkout.backToShop": "Mulai belanja",
+  "checkout.contactHeading": "Data pembeli",
+  "checkout.shippingHeading": "Alamat pengiriman",
+  "checkout.name": "Nama lengkap",
+  "checkout.email": "Email",
+  "checkout.phone": "Nomor WhatsApp/HP",
+  "checkout.recipientName": "Nama penerima",
+  "checkout.recipientPhone": "Telepon penerima",
+  "checkout.addressLine": "Alamat lengkap",
+  "checkout.addressLineHint": "Nama jalan, nomor, RT/RW, patokan.",
+  "checkout.province": "Provinsi",
+  "checkout.city": "Kota/Kabupaten",
+  "checkout.district": "Kecamatan",
+  "checkout.postalCode": "Kode pos",
+  "checkout.notes": "Catatan (opsional)",
+  "checkout.summaryHeading": "Ringkasan pesanan",
+  "checkout.shipping": "Ongkir",
+  "checkout.shippingTbd": "Dihitung di langkah pengiriman",
+  "checkout.total": "Total",
+  "checkout.pay": "Bayar sekarang",
+  "checkout.processing": "Memproses…",
+  "checkout.errorGeneric": "Gagal memproses pesanan. Coba lagi.",
+  "checkout.successTitle": "Pembayaran diterima",
+  "checkout.successBody":
+    "Terima kasih! Pesanan {order} sedang kami proses. Konfirmasi sudah dikirim ke email kamu.",
+  "checkout.failTitle": "Pembayaran belum selesai",
+  "checkout.failBody":
+    "Pembayaran untuk {order} belum selesai atau dibatalkan. Isi keranjang masih tersimpan — kamu bisa mencoba lagi.",
+
   // Tentang
   "about.metaTitle": "Tentang Noblekase",
   "about.metaDescription":
@@ -487,6 +519,38 @@ const en: Record<TranslationKey, string> = {
   "cart.subtotal": "Subtotal",
   "cart.shippingNote": "Shipping is calculated at checkout.",
   "cart.checkout": "Proceed to checkout",
+
+  // Checkout (Sprint 9)
+  "checkout.title": "Checkout",
+  "checkout.empty": "Your cart is empty — nothing to check out.",
+  "checkout.backToShop": "Start shopping",
+  "checkout.contactHeading": "Contact details",
+  "checkout.shippingHeading": "Shipping address",
+  "checkout.name": "Full name",
+  "checkout.email": "Email",
+  "checkout.phone": "WhatsApp/phone number",
+  "checkout.recipientName": "Recipient name",
+  "checkout.recipientPhone": "Recipient phone",
+  "checkout.addressLine": "Full address",
+  "checkout.addressLineHint": "Street, number, neighborhood, landmark.",
+  "checkout.province": "Province",
+  "checkout.city": "City/Regency",
+  "checkout.district": "District",
+  "checkout.postalCode": "Postal code",
+  "checkout.notes": "Notes (optional)",
+  "checkout.summaryHeading": "Order summary",
+  "checkout.shipping": "Shipping",
+  "checkout.shippingTbd": "Calculated at the shipping step",
+  "checkout.total": "Total",
+  "checkout.pay": "Pay now",
+  "checkout.processing": "Processing…",
+  "checkout.errorGeneric": "Could not process the order. Please try again.",
+  "checkout.successTitle": "Payment received",
+  "checkout.successBody":
+    "Thank you! Order {order} is being processed. A confirmation has been sent to your email.",
+  "checkout.failTitle": "Payment not completed",
+  "checkout.failBody":
+    "Payment for {order} was not completed or was cancelled. Your cart is still saved — you can try again.",
 
   "about.metaTitle": "About Noblekase",
   "about.metaDescription":

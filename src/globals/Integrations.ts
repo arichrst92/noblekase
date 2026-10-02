@@ -35,11 +35,47 @@ export const Integrations: GlobalConfig = {
             {
               name: "groqApiKey",
               type: "text",
-              admin: { description: "API key Groq (console.groq.com/keys). Untuk chatbot & fitur AI. RAHASIA." },
+              admin: {
+                description:
+                  "API key Groq (console.groq.com/keys). Untuk chatbot & fitur AI. RAHASIA.",
+              },
             },
-            { name: "groqModelChatbot", type: "text", defaultValue: "llama-3.1-8b-instant" },
-            { name: "groqModelBlog", type: "text", defaultValue: "llama-3.3-70b-versatile" },
-            { name: "groqModelMarketIntel", type: "text", defaultValue: "llama-3.3-70b-versatile" },
+            {
+              name: "groqModelChatbot",
+              type: "text",
+              defaultValue: "llama-3.1-8b-instant",
+            },
+            {
+              name: "groqModelBlog",
+              type: "text",
+              defaultValue: "llama-3.3-70b-versatile",
+            },
+            {
+              name: "groqModelMarketIntel",
+              type: "text",
+              defaultValue: "llama-3.3-70b-versatile",
+            },
+          ],
+        },
+        {
+          label: "Pembayaran (Xendit)",
+          fields: [
+            {
+              name: "xenditSecretKey",
+              type: "text",
+              admin: {
+                description:
+                  "Secret key Xendit (dashboard.xendit.co → Settings → API Keys). Pakai key TEST dulu saat uji, ganti ke LIVE saat go-live. RAHASIA.",
+              },
+            },
+            {
+              name: "xenditWebhookToken",
+              type: "text",
+              admin: {
+                description:
+                  "Webhook Verification Token Xendit (Settings → Webhooks). Dipakai memverifikasi callback 'x-callback-token' agar status lunas tidak bisa dipalsukan. RAHASIA.",
+              },
+            },
           ],
         },
         {
@@ -48,10 +84,21 @@ export const Integrations: GlobalConfig = {
             {
               name: "resendApiKey",
               type: "text",
-              admin: { description: "API key Resend (resend.com/api-keys) untuk email transaksional. RAHASIA." },
+              admin: {
+                description:
+                  "API key Resend (resend.com/api-keys) untuk email transaksional. RAHASIA.",
+              },
             },
-            { name: "emailFrom", type: "email", defaultValue: "noreply@noblekase.co.id" },
-            { name: "emailReplyTo", type: "email", defaultValue: "halo@noblekase.co.id" },
+            {
+              name: "emailFrom",
+              type: "email",
+              defaultValue: "noreply@noblekase.co.id",
+            },
+            {
+              name: "emailReplyTo",
+              type: "email",
+              defaultValue: "halo@noblekase.co.id",
+            },
           ],
         },
         {
@@ -60,18 +107,25 @@ export const Integrations: GlobalConfig = {
             {
               name: "gaMeasurementId",
               type: "text",
-              admin: { description: "Google Analytics 4 Measurement ID, mis. G-XXXXXXXXXX. Bukan rahasia (tampil di frontend)." },
+              admin: {
+                description:
+                  "Google Analytics 4 Measurement ID, mis. G-XXXXXXXXXX. Bukan rahasia (tampil di frontend).",
+              },
             },
             {
               name: "searchConsoleProperty",
               type: "text",
-              admin: { description: "URL properti Search Console, mis. https://noblekase.co.id/" },
+              admin: {
+                description:
+                  "URL properti Search Console, mis. https://noblekase.co.id/",
+              },
             },
             {
               name: "indexingServiceAccountJson",
               type: "textarea",
               admin: {
-                description: "Isi JSON service account Google Indexing API (paste seluruh file). RAHASIA.",
+                description:
+                  "Isi JSON service account Google Indexing API (paste seluruh file). RAHASIA.",
                 rows: 6,
               },
             },
