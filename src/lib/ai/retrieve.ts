@@ -12,9 +12,41 @@ import { getProducts, getCategories, type ProductWithSeo } from "@/lib/queries";
 import { defaultLocale, localePath, type Locale } from "@/lib/i18n";
 
 const STOPWORDS = new Set([
-  "yang","untuk","dari","dan","atau","apa","apakah","ada","bisa","saya","aku","kamu",
-  "ini","itu","dengan","di","ke","pada","buat","gimana","bagaimana","berapa","harga",
-  "mau","ingin","cari","carikan","tolong","punya","kah","nya","the","for","a","is",
+  "yang",
+  "untuk",
+  "dari",
+  "dan",
+  "atau",
+  "apa",
+  "apakah",
+  "ada",
+  "bisa",
+  "saya",
+  "aku",
+  "kamu",
+  "ini",
+  "itu",
+  "dengan",
+  "di",
+  "ke",
+  "pada",
+  "buat",
+  "gimana",
+  "bagaimana",
+  "berapa",
+  "harga",
+  "mau",
+  "ingin",
+  "cari",
+  "carikan",
+  "tolong",
+  "punya",
+  "kah",
+  "nya",
+  "the",
+  "for",
+  "a",
+  "is",
 ]);
 
 function tokenize(text: string): string[] {
@@ -41,7 +73,10 @@ function scoreProduct(p: ProductWithSeo, tokens: string[]): number {
   let score = 0;
   for (const t of tokens) {
     if (p.name.toLowerCase().includes(t)) score += 5;
-    else if ((p.category + " " + (p.subCategoryName ?? "")).toLowerCase().includes(t)) score += 3;
+    else if (
+      (p.category + " " + (p.subCategoryName ?? "")).toLowerCase().includes(t)
+    )
+      score += 3;
     else if (haystack.includes(t)) score += 1;
   }
   return score;
@@ -49,14 +84,29 @@ function scoreProduct(p: ProductWithSeo, tokens: string[]): number {
 
 /** Ringkas satu produk jadi teks padat untuk konteks LLM. */
 function productToText(p: ProductWithSeo): string {
-  const specs = p.specs.slice(0, 6).map((s) => `${s.label}: ${s.value}`).join("; ");
-  const shops = p.marketplaces.map((m) => m.name).filter(Boolean).join(", ");
+  const specs = p.specs
+    .slice(0, 6)
+    .map((s) => `${s.label}: ${s.value}`)
+    .join("; ");
+  // Harga & stok diikutkan agar asisten bisa menjawab langsung (Sprint 9.4 —
+  // jual langsung). Format Rupiah sederhana tanpa import agar ringan.
+  const price =
+    typeof p.price === "number" && p.price > 0
+      ? `Harga: Rp${p.price.toLocaleString("id-ID")}`
+      : "";
+  const stockLine =
+    typeof p.stock === "number"
+      ? p.stock > 0
+        ? `Stok: tersedia`
+        : `Stok: habis`
+      : "";
   return [
     `PRODUK: ${p.name}`,
     `Kategori: ${p.category}${p.subCategoryName ? ` / ${p.subCategoryName}` : ""}`,
     p.tagline && `Ringkasan: ${p.tagline}`,
+    price,
+    stockLine,
     specs && `Spesifikasi: ${specs}`,
-    shops && `Tersedia di: ${shops}`,
     `Tautan: /produk/detail/${p.slug}`,
   ]
     .filter(Boolean)
@@ -78,7 +128,10 @@ export async function retrieveContext(
   locale: Locale = defaultLocale,
   maxProducts = 5,
 ): Promise<RetrievedContext> {
-  const [products, categories] = await Promise.all([getProducts(locale), getCategories(locale)]);
+  const [products, categories] = await Promise.all([
+    getProducts(locale),
+    getCategories(locale),
+  ]);
   const tokens = tokenize(question);
 
   const ranked = products
@@ -92,7 +145,10 @@ export async function retrieveContext(
   // Tautan di konteks sudah diberi prefix bahasa, supaya jawaban bot tidak
   // melempar pembaca versi Inggris kembali ke halaman Indonesia.
   const categoryLine = `KATEGORI TERSEDIA: ${categories
-    .map((c) => `${c.name} (${c.productCount}, ${localePath(locale, `/produk/${c.slug}`)})`)
+    .map(
+      (c) =>
+        `${c.name} (${c.productCount}, ${localePath(locale, `/produk/${c.slug}`)})`,
+    )
     .join(" | ")}`;
 
   return {

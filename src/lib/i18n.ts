@@ -31,7 +31,9 @@ export const ogLocale: Record<Locale, string> = { id: "id_ID", en: "en_US" };
 export const localeLabel: Record<Locale, string> = { id: "ID", en: "EN" };
 
 export function isLocale(value: unknown): value is Locale {
-  return typeof value === "string" && (locales as readonly string[]).includes(value);
+  return (
+    typeof value === "string" && (locales as readonly string[]).includes(value)
+  );
 }
 
 /**
@@ -67,7 +69,10 @@ export function localeHref(locale: Locale, url: string): string {
  * "/en/produk" → { locale: "en", path: "/produk" }
  * "/produk"    → { locale: "id", path: "/produk" }
  */
-export function stripLocale(pathname: string): { locale: Locale; path: string } {
+export function stripLocale(pathname: string): {
+  locale: Locale;
+  path: string;
+} {
   const segments = pathname.split("/").filter(Boolean);
   if (segments.length && isLocale(segments[0])) {
     const locale = segments[0] as Locale;
@@ -146,9 +151,11 @@ const id = {
   "search.countFound": "{count} hasil ditemukan",
   "search.noMatch": "Tidak ada hasil yang cocok",
   "search.minChars": "Ketik minimal 2 huruf untuk mulai mencari.",
-  "search.hintExamples": "Coba kata seperti charger, kabel, earbuds, atau casing.",
+  "search.hintExamples":
+    "Coba kata seperti charger, kabel, earbuds, atau casing.",
   "search.emptyHeading": "Belum ada yang cocok",
-  "search.emptyBody": "Coba kata kunci lain, atau jelajahi koleksi lengkap kami.",
+  "search.emptyBody":
+    "Coba kata kunci lain, atau jelajahi koleksi lengkap kami.",
   "search.productCount": "{count} produk",
   "search.articleCount": "{count} artikel",
   "search.placeholder": "Cari produk, kategori, atau artikel…",
@@ -211,18 +218,20 @@ const id = {
   "products.eyebrow": "Koleksi",
   "products.heading": "Semua produk Noblekase",
   "products.intro":
-    "Empat kategori yang menemani hari-hari Anda. Harga ada di marketplace pilihan — kami menjaga koleksi & konsistensi kualitas.",
+    "Empat kategori yang menemani hari-hari Anda. Beli langsung, bayar aman, dan kami kirim ke seluruh Indonesia.",
   "products.bannerAlt": "Produk Noblekase",
   "products.showingCount": "Menampilkan {shown} dari {total} produk",
   "products.noMatchFilter": "Tidak ada produk yang cocok dengan filter ini.",
   "category.notFoundTitle": "Kategori tidak ditemukan",
   "category.eyebrow": "Kategori",
-  "category.showingCount": "Menampilkan {shown} dari {total} produk di {category}",
+  "category.showingCount":
+    "Menampilkan {shown} dari {total} produk di {category}",
 
   // Detail produk
   "product.notFoundTitle": "Produk tidak ditemukan",
   "product.galleryViewAlt": "{name} tampak {index}",
   "product.marketplaceHeading": "Beli di marketplace pilihan",
+  "product.alsoAvailable": "Juga tersedia di",
   "product.badge.bestPrice": "Harga terbaik",
   "product.badge.fastShip": "Pengiriman cepat",
   "product.badge.newRelease": "Baru rilis",
@@ -306,7 +315,8 @@ const id = {
   "track.email": "Email",
   "track.submit": "Lacak",
   "track.loading": "Memuat…",
-  "track.notFound": "Pesanan tidak ditemukan. Periksa lagi nomor dan email-nya.",
+  "track.notFound":
+    "Pesanan tidak ditemukan. Periksa lagi nomor dan email-nya.",
   "track.paymentStatus": "Status pembayaran",
   "track.fulfillmentStatus": "Status pengiriman",
   "track.courier": "Kurir",
@@ -331,7 +341,8 @@ const id = {
   // Beranda — bagian
   "hero.eyebrow": "Edisi Berjalan",
   "hero.headline": "Aksesoris yang menemani hari-hari setiap orang.",
-  "hero.subheadline": "Kualitas konsisten. Desain yang tidak biasa. Tersedia untuk semua.",
+  "hero.subheadline":
+    "Kualitas konsisten. Desain yang tidak biasa. Tersedia untuk semua.",
   "hero.imageAlt": "Noblekase",
   "hero.cta": "Jelajahi produk",
   "hero.imagePlaceholder": "Gambar hero",
@@ -366,7 +377,7 @@ const id = {
 
   // Filter & urutan
   "filter.marketplaceNote":
-    "Harga ditampilkan di setiap marketplace. Kami menyatukan koleksi — marketplace yang memutuskan promo & ongkos kirim.",
+    "Harga sudah final. Ongkir dihitung otomatis saat checkout sesuai alamat kamu.",
   "filter.categoryHeading": "Kategori",
   "filter.allProducts": "Semua produk",
   "filter.typeHeading": "Tipe",
@@ -386,8 +397,10 @@ const id = {
   "chatbot.title": "AI Assistant Noblekase",
   "chatbot.status": "Online · 24/7",
   "chatbot.placeholder": "Ketik pertanyaan...",
-  "chatbot.greeting": "Halo! Ada yang bisa saya bantu seputar produk Noblekase?",
-  "chatbot.connectionError": "Maaf, koneksi bermasalah. Coba lagi sebentar lagi.",
+  "chatbot.greeting":
+    "Halo! Ada yang bisa saya bantu seputar produk Noblekase?",
+  "chatbot.connectionError":
+    "Maaf, koneksi bermasalah. Coba lagi sebentar lagi.",
   "chatbot.inputAriaLabel": "Pesan untuk asisten",
   "chatbot.send": "Kirim",
   "chatbot.openChat": "Buka chat dengan asisten",
@@ -449,7 +462,8 @@ const en: Record<TranslationKey, string> = {
 
   "search.metaTitle": "Search",
   "search.metaTitleWithQuery": "Search: {query}",
-  "search.metaDescription": "Search Noblekase products, articles, and categories.",
+  "search.metaDescription":
+    "Search Noblekase products, articles, and categories.",
   "search.eyebrow": "Search",
   "search.resultsFor": "Results for “{query}”",
   "search.headingEmpty": "Search products & stories",
@@ -517,7 +531,7 @@ const en: Record<TranslationKey, string> = {
   "products.eyebrow": "Collection",
   "products.heading": "All Noblekase products",
   "products.intro":
-    "Four categories for your everyday. Pricing lives on your preferred marketplace — we look after the collection and quality consistency.",
+    "Four categories for your everyday. Buy directly, pay securely, and we ship across Indonesia.",
   "products.bannerAlt": "Noblekase products",
   "products.showingCount": "Showing {shown} of {total} products",
   "products.noMatchFilter": "No products match this filter.",
@@ -528,6 +542,7 @@ const en: Record<TranslationKey, string> = {
   "product.notFoundTitle": "Product not found",
   "product.galleryViewAlt": "{name} view {index}",
   "product.marketplaceHeading": "Buy on your preferred marketplace",
+  "product.alsoAvailable": "Also available at",
   "product.badge.bestPrice": "Best price",
   "product.badge.fastShip": "Fast shipping",
   "product.badge.newRelease": "Just released",
@@ -634,7 +649,8 @@ const en: Record<TranslationKey, string> = {
 
   "hero.eyebrow": "Current Edition",
   "hero.headline": "Accessories that keep up with everyday life.",
-  "hero.subheadline": "Consistent quality. Design that stands out. Available to everyone.",
+  "hero.subheadline":
+    "Consistent quality. Design that stands out. Available to everyone.",
   "hero.imageAlt": "Noblekase",
   "hero.cta": "Explore products",
   "hero.imagePlaceholder": "Hero image",
@@ -668,7 +684,7 @@ const en: Record<TranslationKey, string> = {
   "promo.cta": "Explore the collection",
 
   "filter.marketplaceNote":
-    "Prices are shown on each marketplace. We curate the collection — the marketplace decides promos and shipping.",
+    "Prices are final. Shipping is calculated automatically at checkout based on your address.",
   "filter.categoryHeading": "Category",
   "filter.allProducts": "All products",
   "filter.typeHeading": "Type",
@@ -688,7 +704,8 @@ const en: Record<TranslationKey, string> = {
   "chatbot.status": "Online · 24/7",
   "chatbot.placeholder": "Type your question...",
   "chatbot.greeting": "Hi! How can I help you with Noblekase products?",
-  "chatbot.connectionError": "Sorry, the connection dropped. Please try again shortly.",
+  "chatbot.connectionError":
+    "Sorry, the connection dropped. Please try again shortly.",
   "chatbot.inputAriaLabel": "Message to assistant",
   "chatbot.send": "Send",
   "chatbot.openChat": "Open chat with assistant",
@@ -708,7 +725,8 @@ export function t(
   key: TranslationKey,
   vars?: Record<string, string | number>,
 ): string {
-  const template = dictionaries[locale]?.[key] ?? dictionaries[defaultLocale][key] ?? key;
+  const template =
+    dictionaries[locale]?.[key] ?? dictionaries[defaultLocale][key] ?? key;
   if (!vars) return template;
   return template.replace(/\{(\w+)\}/g, (match, name: string) =>
     name in vars ? String(vars[name]) : match,
@@ -720,7 +738,8 @@ export function t(
  * `locale` di setiap pemanggilan: `const tr = translator(locale)`.
  */
 export function translator(locale: Locale) {
-  return (key: TranslationKey, vars?: Record<string, string | number>) => t(locale, key, vars);
+  return (key: TranslationKey, vars?: Record<string, string | number>) =>
+    t(locale, key, vars);
 }
 
 export type Translator = ReturnType<typeof translator>;

@@ -214,44 +214,30 @@ export default async function ProductDetailPage({
                 </div>
               )}
 
-              {/* Marketplace cards */}
-              <div className="border border-border-light rounded-lg p-4 md:p-5 mb-8">
-                <div className="text-[10px] tracking-widest uppercase text-ink-tertiary mb-3">
-                  {tr("product.marketplaceHeading")}
+              {/* "Juga tersedia di" — SEKUNDER.
+                  Sejak Sprint 9.4, jalur beli utama adalah keranjang + checkout
+                  langsung di atas. Marketplace hanya ditampilkan sebagai tautan
+                  tambahan bila editor masih mengisinya, bukan tombol beli utama. */}
+              {product.marketplaces.length > 0 && (
+                <div className="mb-8">
+                  <div className="text-[10px] tracking-widest uppercase text-ink-tertiary mb-2">
+                    {tr("product.alsoAvailable")}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {product.marketplaces.map((m) => (
+                      <Link
+                        key={m.key}
+                        href={m.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs border border-border-mid rounded-full px-3 py-1.5 text-ink-secondary hover:border-ink-primary hover:text-ink-primary transition-colors"
+                      >
+                        {m.name}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {product.marketplaces.map((m) => (
-                    <Link
-                      key={m.key}
-                      href={m.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="border border-border-light rounded-md p-3 hover:border-ink-primary hover:bg-bg-warm transition-colors"
-                    >
-                      <div className="text-sm font-medium">{m.name}</div>
-                      {m.badge && (
-                        <div className="text-[10px] text-ink-tertiary mt-1">
-                          {m.badge === "best-price"
-                            ? tr("product.badge.bestPrice")
-                            : m.badge === "fast-ship"
-                              ? tr("product.badge.fastShip")
-                              : tr("product.badge.newRelease")}
-                        </div>
-                      )}
-                    </Link>
-                  ))}
-                </div>
-                <a
-                  href={`https://wa.me/6281234567890?text=${encodeURIComponent(
-                    tr("product.whatsAppPrefill"),
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 flex items-center justify-center gap-2 bg-ink-primary text-bg-base py-2.5 rounded-md text-sm font-medium hover:bg-accent transition-colors"
-                >
-                  {tr("product.askWhatsApp")}
-                </a>
-              </div>
+              )}
 
               {/* Story */}
               <div className="mb-8">
@@ -351,22 +337,28 @@ export default async function ProductDetailPage({
         </section>
       )}
 
-      {/* Mobile sticky bottom CTA */}
-      <div className="md:hidden fixed bottom-20 left-3 right-3 z-40">
-        <a
-          href={product.marketplaces[0]?.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="floating-nav flex items-center justify-between px-4 py-3"
-        >
-          <span className="text-sm font-medium text-ink-primary">
-            {tr("product.buyCta", { name: product.name })}
-          </span>
-          <span className="text-xs px-2.5 py-1 bg-ink-primary text-bg-base rounded-full">
-            →
-          </span>
-        </a>
-      </div>
+      {/* Mobile sticky bottom CTA — tambah ke keranjang (Sprint 9.4).
+          Hanya muncul bila produk punya harga. */}
+      {typeof product.price === "number" && product.price > 0 && (
+        <div className="md:hidden fixed bottom-20 left-3 right-3 z-40">
+          <div className="floating-nav flex items-center gap-3 px-3 py-2.5">
+            <span className="font-serif text-base font-medium text-ink-primary whitespace-nowrap">
+              {formatRupiah(product.price)}
+            </span>
+            <AddToCartButton
+              slug={product.slug}
+              name={product.name}
+              price={product.price}
+              imageUrl={product.imageUrl}
+              weightGrams={product.weightGrams}
+              stock={product.stock}
+              locale={locale}
+              variant="compact"
+              className="flex-1"
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 }

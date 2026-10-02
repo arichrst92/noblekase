@@ -37,10 +37,12 @@ type ChatMessage = { role: "user" | "assistant"; content: string };
  */
 const GUARD: Record<Locale, Record<string, string>> = {
   id: {
-    rateLimited: "Maaf, terlalu banyak permintaan. Coba lagi dalam {seconds} detik ya.",
+    rateLimited:
+      "Maaf, terlalu banyak permintaan. Coba lagi dalam {seconds} detik ya.",
     invalid: "Permintaan tidak valid.",
     emptyQuestion: "Silakan tulis pertanyaan Anda.",
-    disabled: "Asisten sedang dinonaktifkan. Silakan hubungi kami lewat halaman Dukungan.",
+    disabled:
+      "Asisten sedang dinonaktifkan. Silakan hubungi kami lewat halaman Dukungan.",
     notConfigured:
       "Asisten belum dikonfigurasi. Silakan hubungi kami lewat halaman Dukungan ({support}).",
     budgetSpent:
@@ -50,7 +52,8 @@ const GUARD: Record<Locale, Record<string, string>> = {
     rateLimited: "Too many requests. Please try again in {seconds} seconds.",
     invalid: "Invalid request.",
     emptyQuestion: "Please type your question.",
-    disabled: "The assistant is currently disabled. Please reach us through the Support page.",
+    disabled:
+      "The assistant is currently disabled. Please reach us through the Support page.",
     notConfigured:
       "The assistant is not configured yet. Please reach us through the Support page ({support}).",
     budgetSpent:
@@ -58,7 +61,11 @@ const GUARD: Record<Locale, Record<string, string>> = {
   },
 };
 
-function guard(locale: Locale, key: string, vars: Record<string, string | number> = {}) {
+function guard(
+  locale: Locale,
+  key: string,
+  vars: Record<string, string | number> = {},
+) {
   const template = GUARD[locale][key] ?? GUARD[defaultLocale][key] ?? key;
   return template.replace(/\{(\w+)\}/g, (m, name: string) =>
     name in vars ? String(vars[name]) : m,
@@ -76,18 +83,19 @@ function systemPrompt(siteName: string, context: string, locale: Locale) {
   const supportPath = localePath(locale, "/dukungan");
   const detailPath = localePath(locale, "/produk/detail/slug");
   const language =
-    locale === "en"
-      ? "Answer in English."
-      : "Jawab dalam Bahasa Indonesia.";
+    locale === "en" ? "Answer in English." : "Jawab dalam Bahasa Indonesia.";
 
+  const trackPath = localePath(locale, "/lacak");
   return [
     `Kamu adalah asisten belanja ${siteName}, brand aksesoris HP asal Indonesia.`,
     "",
     "ATURAN PENTING:",
     `- Jawab HANYA berdasarkan DATA KATALOG di bawah. Jangan mengarang produk, spesifikasi, atau harga.`,
-    `- Bila informasi tidak ada di data, katakan terus terang dan arahkan ke halaman Dukungan (${supportPath}) atau WhatsApp.`,
-    `- ${siteName} TIDAK menjual langsung di website. Pembelian lewat marketplace (Tokopedia, Shopee, TikTok Shop, Lazada).`,
-    "- Kamu TIDAK tahu harga. Bila ditanya harga, jelaskan bahwa harga ada di masing-masing marketplace dan arahkan ke halaman produknya.",
+    `- Bila informasi tidak ada di data, katakan terus terang dan arahkan ke halaman Dukungan (${supportPath}).`,
+    `- ${siteName} MENJUAL LANGSUNG di website ini. Pembeli menambahkan produk ke keranjang lalu checkout; pembayaran dan pengiriman diproses di situs.`,
+    "- Bila ditanya harga dan harga ada di DATA KATALOG, sebutkan. Bila tidak ada, arahkan ke halaman produknya.",
+    "- Bila ditanya cara beli: arahkan untuk menambah ke keranjang lalu checkout. Ongkir dihitung saat checkout.",
+    `- Bila ditanya status/lacak pesanan, arahkan ke halaman Lacak Pesanan (${trackPath}) dengan nomor pesanan + email.`,
     `- Jawab ringkas (maksimal 3-4 kalimat) dan ramah. ${language}`,
     `- Bila menyebut produk, sertakan tautannya seperti ${detailPath}.`,
     "",
@@ -100,7 +108,10 @@ export async function POST(request: Request) {
   let messages: ChatMessage[] = [];
   let locale: Locale = defaultLocale;
   try {
-    const body = (await request.json()) as { messages?: ChatMessage[]; locale?: string };
+    const body = (await request.json()) as {
+      messages?: ChatMessage[];
+      locale?: string;
+    };
     messages = (body.messages ?? []).slice(-8); // batasi riwayat
     if (isLocale(body.locale)) locale = body.locale;
   } catch {
@@ -112,10 +123,16 @@ export async function POST(request: Request) {
   // 1. Rate limit
   const rl = await rateLimit(clientKey(request, "ai-chat"), RATE_LIMIT);
   if (!rl.allowed) {
-    return plain(guard(locale, "rateLimited", { seconds: rl.retryAfterSeconds }), 429);
+    return plain(
+      guard(locale, "rateLimited", { seconds: rl.retryAfterSeconds }),
+      429,
+    );
   }
 
-  const question = [...messages].reverse().find((m) => m.role === "user")?.content?.trim();
+  const question = [...messages]
+    .reverse()
+    .find((m) => m.role === "user")
+    ?.content?.trim();
   if (!question) return plain(guard(locale, "emptyQuestion"), 400);
 
   // 2. Feature flag + 3. API key + 4. anggaran
@@ -169,7 +186,9 @@ export async function POST(request: Request) {
             }
           }
         } catch {
-          controller.enqueue(encoder.encode("\n\n(Maaf, koneksi ke asisten terputus.)"));
+          controller.enqueue(
+            encoder.encode("\n\n(Maaf, koneksi ke asisten terputus.)"),
+          );
         } finally {
           controller.close();
           // Catat perkiraan biaya (≈4 karakter per token).
@@ -185,21 +204,31 @@ export async function POST(request: Request) {
       },
     });
   } catch {
-    return plain("Maaf, asisten sedang tidak dapat dihubungi. Coba lagi sebentar lagi.", 502);
+    return plain(
+      "Maaf, asisten sedang tidak dapat dihubungi. Coba lagi sebentar lagi.",
+      502,
+    );
   }
 }
 
 /** Tambahkan perkiraan biaya ke Site Settings (gagal-aman). */
-async function recordUsage(inputChars: number, outputChars: number, previousUsed: number) {
+async function recordUsage(
+  inputChars: number,
+  outputChars: number,
+  previousUsed: number,
+) {
   try {
     const inTokens = inputChars / 4;
     const outTokens = outputChars / 4;
     const cost =
-      (inTokens / 1_000_000) * PRICE_IN_PER_M + (outTokens / 1_000_000) * PRICE_OUT_PER_M;
+      (inTokens / 1_000_000) * PRICE_IN_PER_M +
+      (outTokens / 1_000_000) * PRICE_OUT_PER_M;
     const payload = await getPayloadClient();
     await payload.updateGlobal({
       slug: "site-settings" as never,
-      data: { aiBudgetUsedThisMonth: Number((previousUsed + cost).toFixed(6)) } as never,
+      data: {
+        aiBudgetUsedThisMonth: Number((previousUsed + cost).toFixed(6)),
+      } as never,
     });
   } catch {
     /* pencatatan biaya tidak boleh mengganggu jawaban */

@@ -22,7 +22,6 @@ import { CategoryGrid } from "@/components/sections/CategoryGrid";
 import { FeaturedCollection } from "@/components/sections/FeaturedCollection";
 import { BrandSnippet } from "@/components/sections/BrandSnippet";
 import { JournalTeaser } from "@/components/sections/JournalTeaser";
-import { MarketplaceCTA } from "@/components/sections/MarketplaceCTA";
 import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
 
 import type { Metadata } from "next";
@@ -186,9 +185,8 @@ export default async function HomePage({ params }: HomePageProps) {
         locale={locale}
       />
 
-      {/* 6. Marketplace CTA (jalur konversi) lalu 7. teaser Journal */}
-      <MarketplaceCTA locale={locale} />
-
+      {/* Teaser Journal. Section marketplace dihapus di Sprint 9.4 —
+          konversi kini lewat keranjang & checkout langsung, bukan marketplace. */}
       <JournalTeaser
         articles={teaserArticles}
         eyebrow={home?.journalEyebrow ?? undefined}
