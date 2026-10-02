@@ -79,6 +79,27 @@ export const Integrations: GlobalConfig = {
           ],
         },
         {
+          label: "Pengiriman (Biteship)",
+          fields: [
+            {
+              name: "biteshipApiKey",
+              type: "text",
+              admin: {
+                description:
+                  "API key Biteship (dashboard Biteship → Settings → API). Pakai key TEST dulu saat uji. RAHASIA.",
+              },
+            },
+            {
+              name: "biteshipWebhookSecret",
+              type: "text",
+              admin: {
+                description:
+                  "Kata sandi acak buatan sendiri. Dipasang di URL webhook Biteship (?key=...) dan diverifikasi server — agar callback tracking tidak bisa dipalsukan. RAHASIA.",
+              },
+            },
+          ],
+        },
+        {
           label: "Email (Resend)",
           fields: [
             {

@@ -18,6 +18,8 @@ import { NextResponse } from "next/server";
 import { getPayloadClient } from "@/lib/payload";
 import { resolveIntegrations } from "@/lib/integrations";
 import { createInvoice } from "@/lib/xendit";
+import { getRates } from "@/lib/biteship";
+import { getShippingConfig, loadRateItems } from "@/lib/shipping";
 import { defaultLocale, isLocale, localePath } from "@/lib/i18n";
 import { clientKey, rateLimit } from "@/lib/ai/rateLimit";
 
@@ -38,8 +40,11 @@ interface CheckoutBody {
     city?: string;
     district?: string;
     postalCode?: string;
+    biteshipAreaId?: string;
     notes?: string;
   };
+  /** Kurir yang dipilih pembeli; ongkirnya DIHITUNG ULANG di server. */
+  courier?: { company?: string; type?: string };
   locale?: string;
 }
 
@@ -86,6 +91,9 @@ export async function POST(request: Request) {
     [a.province, "Provinsi"],
     [a.city, "Kota"],
     [a.postalCode, "Kode pos"],
+    [a.biteshipAreaId, "Area pengiriman (pilih dari daftar)"],
+    [body.courier?.company, "Kurir"],
+    [body.courier?.type, "Layanan kurir"],
   ];
   const missing = required
     .filter(([v]) => !v || !String(v).trim())
@@ -164,7 +172,64 @@ export async function POST(request: Request) {
     (s, i) => s + i.weightGrams * i.quantity,
     0,
   );
-  const shippingCost = 0; // Fase 9.3 (Biteship)
+
+  // === Ongkir: DIHITUNG ULANG dari Biteship, tidak percaya harga dari klien ===
+  const shipConfig = await getShippingConfig(
+    payload,
+    integrations.biteshipApiKey,
+  );
+  if (!shipConfig.ready) {
+    return bad(
+      "Pengiriman belum dikonfigurasi. Hubungi kami lewat halaman Dukungan.",
+      503,
+    );
+  }
+
+  const { rateItems, problems: shipProblems } = await loadRateItems(
+    payload,
+    items,
+    locale,
+  );
+  if (shipProblems.length)
+    return bad("Sebagian item tidak bisa dikirim.", 409, {
+      problems: shipProblems,
+    });
+
+  let shippingCost = 0;
+  let courierName = "";
+  let etaText = "";
+  try {
+    const rates = await getRates(integrations.biteshipApiKey!, {
+      originAreaId: shipConfig.origin.areaId,
+      destinationAreaId: a.biteshipAreaId!,
+      couriers: shipConfig.couriers,
+      items: rateItems,
+    });
+    const chosen = rates.find(
+      (r) =>
+        r.courierCompany === body.courier!.company &&
+        r.courierType === body.courier!.type,
+    );
+    if (!chosen) {
+      // Tarif berubah / kurir tak lagi tersedia — minta pembeli memilih ulang
+      // daripada diam-diam memakai harga lama.
+      return bad(
+        "Ongkir untuk kurir ini sudah berubah. Pilih ulang kurirnya.",
+        409,
+        {
+          rates,
+        },
+      );
+    }
+    shippingCost = chosen.price;
+    courierName =
+      chosen.courierName + (chosen.serviceName ? ` ${chosen.serviceName}` : "");
+    etaText = chosen.etaText;
+  } catch (err) {
+    console.error("Gagal hitung ongkir saat checkout:", err);
+    return bad("Gagal menghitung ongkir. Coba lagi.", 502);
+  }
+
   const total = subtotal + shippingCost;
 
   // 1. Buat order (pending). overrideAccess: endpoint publik, bukan user admin.
@@ -189,11 +254,19 @@ export async function POST(request: Request) {
           city: a.city!,
           district: a.district,
           postalCode: a.postalCode!,
+          biteshipAreaId: a.biteshipAreaId,
           notes: a.notes,
         },
         items: orderItems,
         subtotal,
-        shipping: { cost: shippingCost, totalWeightGrams: totalWeight },
+        shipping: {
+          courierCompany: body.courier!.company,
+          courierType: body.courier!.type,
+          courierName,
+          cost: shippingCost,
+          etaText,
+          totalWeightGrams: totalWeight,
+        },
         total,
       },
     });

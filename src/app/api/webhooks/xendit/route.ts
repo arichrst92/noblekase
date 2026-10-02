@@ -19,6 +19,7 @@ import { NextResponse } from "next/server";
 import { getPayloadClient } from "@/lib/payload";
 import { resolveIntegrations } from "@/lib/integrations";
 import { verifyCallbackToken } from "@/lib/xendit";
+import { createShipmentForOrder } from "@/lib/shipping";
 
 export const maxDuration = 30;
 
@@ -160,7 +161,43 @@ export async function POST(request: Request) {
         .catch(() => {});
     }
 
-    // 3. Email konfirmasi (gagal-aman).
+    // 3. Buat resi Biteship (gagal-aman — kegagalan dicatat, tidak membatalkan
+    //    pembayaran yang sudah masuk).
+    try {
+      const shipment = await createShipmentForOrder(
+        payload,
+        integrations.biteshipApiKey,
+        order,
+      );
+      await payload.update({
+        collection: "orders",
+        id: order.id,
+        overrideAccess: true,
+        data: {
+          fulfillmentStatus: "processing",
+          shipping: {
+            ...(order.shipping ?? {}),
+            biteshipOrderId: shipment.id,
+            waybillId: shipment.waybillId ?? order.shipping?.waybillId,
+            trackingStatus: shipment.status ?? undefined,
+          },
+        },
+      });
+    } catch (err) {
+      console.error("Gagal buat resi Biteship:", err);
+      await payload
+        .update({
+          collection: "orders",
+          id: order.id,
+          overrideAccess: true,
+          data: {
+            adminNotes: `${order.adminNotes ? order.adminNotes + "\n" : ""}⚠ Resi Biteship gagal dibuat otomatis: ${err instanceof Error ? err.message : "error"}. Buat manual.`,
+          },
+        })
+        .catch(() => {});
+    }
+
+    // 4. Email konfirmasi (gagal-aman).
     try {
       const html = orderConfirmationEmail(order);
       const adminTo = process.env.ADMIN_EMAIL || integrations.emailReplyTo;

@@ -17,6 +17,8 @@ export interface ResolvedIntegrations {
   groqModelMarketIntel: string;
   xenditSecretKey?: string;
   xenditWebhookToken?: string;
+  biteshipApiKey?: string;
+  biteshipWebhookSecret?: string;
   resendApiKey?: string;
   emailFrom: string;
   emailReplyTo: string;
@@ -49,6 +51,11 @@ export async function resolveIntegrations(): Promise<ResolvedIntegrations> {
     xenditWebhookToken: pick(
       g.xenditWebhookToken,
       process.env.XENDIT_WEBHOOK_TOKEN,
+    ),
+    biteshipApiKey: pick(g.biteshipApiKey, process.env.BITESHIP_API_KEY),
+    biteshipWebhookSecret: pick(
+      g.biteshipWebhookSecret,
+      process.env.BITESHIP_WEBHOOK_SECRET,
     ),
     resendApiKey: pick(g.resendApiKey, process.env.RESEND_API_KEY),
     emailFrom:

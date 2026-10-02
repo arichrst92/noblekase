@@ -36,6 +36,7 @@ import { SiteSettings } from "@/globals/SiteSettings";
 import { Header } from "@/globals/Header";
 import { Footer } from "@/globals/Footer";
 import { Integrations } from "@/globals/Integrations";
+import { ShippingSettings } from "@/globals/ShippingSettings";
 // Globals — konten per halaman
 import { PageHome } from "@/globals/pages/PageHome";
 import { PageProducts } from "@/globals/pages/PageProducts";
@@ -70,7 +71,11 @@ export default buildConfig({
       // Favicon panel admin (Payload mengelola <head>-nya sendiri, jadi
       // berkas ikon di src/app tidak otomatis terpakai di sini).
       icons: [
-        { rel: "icon", type: "image/png", url: "/images/brand/favicon-noblekase.png" },
+        {
+          rel: "icon",
+          type: "image/png",
+          url: "/images/brand/favicon-noblekase.png",
+        },
         { rel: "apple-touch-icon", url: "/images/brand/favicon-noblekase.png" },
       ],
     },
@@ -127,6 +132,7 @@ export default buildConfig({
   globals: [
     SiteSettings,
     Integrations,
+    ShippingSettings,
     Header,
     Footer,
     PageHome,
@@ -156,8 +162,12 @@ export default buildConfig({
   sharp,
 
   // CORS untuk development & production
-  cors: [process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"].filter(Boolean),
-  csrf: [process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"].filter(Boolean),
+  cors: [process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"].filter(
+    Boolean,
+  ),
+  csrf: [process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"].filter(
+    Boolean,
+  ),
 
   // Rate limiting: di Payload 3 tidak lagi di config—handle via Caddy
   // atau Next.js middleware (lihat src/middleware.ts jika ada).
