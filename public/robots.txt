@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin/
 Disallow: /api/
 
-Sitemap: https://noblekase.com/sitemap.xml
+Sitemap: https://noblekase.co.id/sitemap.xml

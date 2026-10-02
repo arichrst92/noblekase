@@ -20,8 +20,61 @@ import { getPayloadClient } from "@/lib/payload";
 import { resolveIntegrations } from "@/lib/integrations";
 import { verifyCallbackToken } from "@/lib/xendit";
 import { createShipmentForOrder } from "@/lib/shipping";
+import { sendEmail } from "@/lib/email";
 
 export const maxDuration = 30;
+
+/**
+ * Klaim order jadi "paid" secara ATOMIK. Mengembalikan true hanya bila
+ * callback INI yang berhasil mengubah status dari non-paid → paid; callback
+ * duplikat/berbarengan mendapat false dan harus berhenti.
+ *
+ * Nama kolom mengikuti Payload postgres (snake_case): orders.payment_status.
+ * Bila pool tidak tersedia, jatuh ke read-then-write (celah race kecil, hanya
+ * dipakai sebagai upaya terakhir).
+ */
+async function claimOrderPaid(
+  payload: Awaited<ReturnType<typeof getPayloadClient>>,
+  orderId: number | string,
+): Promise<boolean> {
+  const pool = (
+    payload.db as unknown as {
+      pool?: {
+        query: (q: string, v: unknown[]) => Promise<{ rowCount: number }>;
+      };
+    }
+  ).pool;
+
+  if (pool) {
+    try {
+      const r = await pool.query(
+        "UPDATE orders SET payment_status = 'paid' WHERE id = $1 AND payment_status <> 'paid'",
+        [orderId],
+      );
+      return r.rowCount === 1;
+    } catch {
+      /* jatuh ke jalur non-atomik */
+    }
+  }
+
+  try {
+    const cur: any = await payload.findByID({
+      collection: "orders",
+      id: orderId as any,
+      depth: 0,
+    });
+    if (cur?.paymentStatus === "paid") return false;
+    await payload.update({
+      collection: "orders",
+      id: orderId as any,
+      overrideAccess: true,
+      data: { paymentStatus: "paid" },
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Kurangi stok secara atomik. Mengembalikan daftar item yang stoknya kurang
@@ -29,7 +82,11 @@ export const maxDuration = 30;
  */
 async function decrementStock(
   payload: Awaited<ReturnType<typeof getPayloadClient>>,
-  items: { product: number | string; quantity: number; nameSnapshot: string }[],
+  items: {
+    product?: number | string | { id: number | string } | null;
+    quantity: number;
+    nameSnapshot: string;
+  }[],
 ): Promise<string[]> {
   const shortfalls: string[] = [];
   // pg Pool dari adapter postgres — update kondisional aman dari race.
@@ -43,11 +100,17 @@ async function decrementStock(
 
   for (const it of items) {
     if (it.product == null) continue;
+    // Pengaman ganda: bila relasi sempat terpopulasi jadi objek, ambil id-nya.
+    const productId =
+      typeof it.product === "object"
+        ? (it.product as { id: number | string }).id
+        : it.product;
+    if (productId == null) continue;
     if (pool) {
       try {
         const r = await pool.query(
           "UPDATE products SET stock = stock - $1 WHERE id = $2 AND stock >= $1",
-          [it.quantity, it.product],
+          [it.quantity, productId],
         );
         if (r.rowCount === 0) shortfalls.push(it.nameSnapshot);
         continue;
@@ -59,13 +122,13 @@ async function decrementStock(
     try {
       const p: any = await payload.findByID({
         collection: "products",
-        id: it.product as any,
+        id: productId as any,
         depth: 0,
       });
       const current = typeof p?.stock === "number" ? p.stock : 0;
       await payload.update({
         collection: "products",
-        id: it.product as any,
+        id: productId as any,
         overrideAccess: true,
         data: { stock: Math.max(0, current - it.quantity) },
       });
@@ -122,30 +185,62 @@ export async function POST(request: Request) {
     where: { orderNumber: { equals: externalId } },
     limit: 1,
     overrideAccess: true,
+    // depth 0 WAJIB: tanpa ini Payload mempopulasi items[].product menjadi objek
+    // Product, dan pengurangan stok (yang memakai product sebagai id di SQL)
+    // jadi gagal diam-diam — stok tidak pernah berkurang.
+    depth: 0,
   });
   const order: any = found.docs[0];
   if (!order) return NextResponse.json({ received: true }); // ack, jangan diulang
 
-  // 2. Idempoten: sudah final → tidak diproses lagi.
+  // 2. Short-circuit murah bila jelas sudah final.
   if (order.paymentStatus === "paid")
     return NextResponse.json({ received: true });
 
   if (status === "PAID" || status === "SETTLED") {
-    // Tandai lunas DULU, baru kurangi stok — supaya callback ganda yang datang
-    // berbarengan tidak dua kali mengurangi stok.
-    await payload.update({
-      collection: "orders",
-      id: order.id,
-      overrideAccess: true,
-      data: {
-        paymentStatus: "paid",
-        payment: {
-          ...(order.payment ?? {}),
-          method: event?.payment_method ?? event?.payment_channel ?? undefined,
-          paidAt: event?.paid_at ?? new Date().toISOString(),
+    // 2a. Pertahanan berlapis: nominal yang dibayar harus cocok dengan total
+    // order. Invoice dibuat server-side dengan amount tetap, jadi normalnya
+    // selalu cocok — tapi mencocokkan di sini menolak callback yang (lewat
+    // token bocor atau pembayaran sebagian) melunasi lebih kecil dari semestinya.
+    const paidAmount = Number(event?.paid_amount ?? event?.amount);
+    if (Number.isFinite(paidAmount) && paidAmount < Number(order.total)) {
+      await payload
+        .update({
+          collection: "orders",
+          id: order.id,
+          overrideAccess: true,
+          data: {
+            adminNotes: `${order.adminNotes ? order.adminNotes + "\n" : ""}⚠ Nominal bayar (${paidAmount}) < total (${order.total}). Perlu cek manual.`,
+          },
+        })
+        .catch(() => {});
+      return NextResponse.json({ received: true });
+    }
+
+    // 2b. KLAIM ATOMIK: ubah pending→paid dalam satu UPDATE kondisional.
+    // Inilah penjaga anti-duplikat yang sebenarnya — bukan sekadar cek baca
+    // di atas. Dua callback PAID yang datang bersamaan sama-sama lolos cek
+    // baca, tapi hanya SATU yang rowCount-nya 1 di sini; yang kalah berhenti,
+    // sehingga stok, resi, dan email tidak diproses dua kali.
+    const claimed = await claimOrderPaid(payload, order.id);
+    if (!claimed) return NextResponse.json({ received: true });
+
+    // Lengkapi metadata pembayaran (idempoten).
+    await payload
+      .update({
+        collection: "orders",
+        id: order.id,
+        overrideAccess: true,
+        data: {
+          payment: {
+            ...(order.payment ?? {}),
+            method:
+              event?.payment_method ?? event?.payment_channel ?? undefined,
+            paidAt: event?.paid_at ?? new Date().toISOString(),
+          },
         },
-      },
-    });
+      })
+      .catch(() => {});
 
     const shortfalls = await decrementStock(payload, order.items ?? []);
     if (shortfalls.length) {
@@ -197,26 +292,26 @@ export async function POST(request: Request) {
         .catch(() => {});
     }
 
-    // 4. Email konfirmasi (gagal-aman).
-    try {
-      const html = orderConfirmationEmail(order);
-      const adminTo = process.env.ADMIN_EMAIL || integrations.emailReplyTo;
-      await payload.sendEmail({
-        to: order.customerEmail,
+    // 4. Email konfirmasi (gagal-aman) — lewat Resend API pakai key hasil
+    //    resolveIntegrations, supaya key yang diisi di CMS ikut terpakai.
+    const html = orderConfirmationEmail(order);
+    const adminTo = process.env.ADMIN_EMAIL || integrations.emailReplyTo;
+    await sendEmail({
+      apiKey: integrations.resendApiKey,
+      from: integrations.emailFrom,
+      replyTo: integrations.emailReplyTo,
+      to: order.customerEmail,
+      subject: `Pesanan ${order.orderNumber} sudah dibayar`,
+      html,
+    });
+    if (adminTo) {
+      await sendEmail({
+        apiKey: integrations.resendApiKey,
         from: integrations.emailFrom,
-        subject: `Pesanan ${order.orderNumber} sudah dibayar`,
+        to: adminTo,
+        subject: `[Order baru] ${order.orderNumber} — Rp${Number(order.total).toLocaleString("id-ID")}`,
         html,
       });
-      if (adminTo) {
-        await payload.sendEmail({
-          to: adminTo,
-          from: integrations.emailFrom,
-          subject: `[Order baru] ${order.orderNumber} — Rp${Number(order.total).toLocaleString("id-ID")}`,
-          html,
-        });
-      }
-    } catch (err) {
-      console.error("Gagal kirim email konfirmasi:", err);
     }
 
     return NextResponse.json({ received: true });

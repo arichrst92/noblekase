@@ -180,8 +180,11 @@ export function CheckoutForm({ locale = defaultLocale }: { locale?: Locale }) {
             recipientName: form.recipientName,
             phone: form.recipientPhone,
             addressLine: form.addressLine,
-            province: area.province,
-            city: area.city,
+            // Beberapa area Biteship mengembalikan level provinsi/kota kosong;
+            // isi dari field yang tersedia agar validasi order (yang mewajibkan
+            // keduanya) tidak buntu — buyer tak bisa mengetiknya manual.
+            province: area.province || area.city || area.district || area.name,
+            city: area.city || area.district || area.name,
             district: area.district,
             postalCode: area.postalCode,
             biteshipAreaId: area.id,

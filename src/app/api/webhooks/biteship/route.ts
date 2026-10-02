@@ -14,6 +14,7 @@
 import { NextResponse } from "next/server";
 import { getPayloadClient } from "@/lib/payload";
 import { resolveIntegrations } from "@/lib/integrations";
+import { verifyCallbackToken } from "@/lib/xendit";
 
 export const maxDuration = 30;
 
@@ -44,10 +45,9 @@ export async function POST(request: Request) {
   const key = url.searchParams.get("key");
   const integrations = await resolveIntegrations();
 
-  if (
-    !integrations.biteshipWebhookSecret ||
-    key !== integrations.biteshipWebhookSecret
-  ) {
+  // Perbandingan waktu-konstan (via helper yang sama dengan Xendit) agar
+  // rahasia tidak bocor lewat timing.
+  if (!verifyCallbackToken(key, integrations.biteshipWebhookSecret)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

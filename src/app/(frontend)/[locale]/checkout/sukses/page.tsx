@@ -23,10 +23,12 @@ function SuccessInner() {
   const order = useSearchParams().get("order") ?? "";
   const { clear } = useCart();
 
-  // Pesanan sudah dibuat di server; keranjang tidak diperlukan lagi.
+  // Kosongkan keranjang HANYA bila halaman ini dibuka sebagai tujuan redirect
+  // Xendit (ada ?order=…). Tanpa syarat ini, membuka /checkout/sukses langsung
+  // tanpa menyelesaikan pembayaran akan menghapus keranjang yang masih valid.
   useEffect(() => {
-    clear();
-  }, [clear]);
+    if (order) clear();
+  }, [order, clear]);
 
   return (
     <section className="min-h-[70vh] flex items-center py-24">

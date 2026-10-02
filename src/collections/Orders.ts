@@ -24,7 +24,9 @@ function generateOrderNumber(): string {
   const ymd = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(
     d.getDate(),
   ).padStart(2, "0")}`;
-  const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+  // 6 karakter acak (~2 miliar kombinasi) agar tabrakan sangat kecil; constraint
+  // unique tetap menjaga, tapi tabrakan akan menggagalkan checkout satu pembeli.
+  const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
   return `NBK-${ymd}-${rand}`;
 }
 
@@ -323,6 +325,52 @@ export const Orders: CollectionConfig = {
           data.orderNumber = generateOrderNumber();
         }
         return data;
+      },
+    ],
+    afterChange: [
+      async ({ doc, previousDoc, req, operation }) => {
+        // Pulihkan stok saat order BERUBAH dari paid → refunded.
+        //
+        // Stok hanya pernah dikurangi ketika order menjadi "paid" (lihat webhook
+        // Xendit), jadi pengembalian hanya relevan untuk transisi ini. Dijaga
+        // ketat agar penyimpanan ulang order yang sudah refunded tidak menambah
+        // stok berkali-kali.
+        if (operation !== "update") return;
+        const was = (previousDoc as { paymentStatus?: string })?.paymentStatus;
+        const now = (doc as { paymentStatus?: string })?.paymentStatus;
+        if (was === "paid" && now === "refunded") {
+          const items =
+            (doc as { items?: { product?: unknown; quantity?: number }[] })
+              .items ?? [];
+          for (const it of items) {
+            const pid =
+              it.product && typeof it.product === "object"
+                ? (it.product as { id?: number | string }).id
+                : it.product;
+            if (pid == null || !it.quantity) continue;
+            try {
+              const p = await req.payload.findByID({
+                collection: "products",
+                id: pid as number,
+                depth: 0,
+                req,
+              });
+              const current =
+                typeof (p as { stock?: number })?.stock === "number"
+                  ? (p as { stock: number }).stock
+                  : 0;
+              await req.payload.update({
+                collection: "products",
+                id: pid as number,
+                data: { stock: current + it.quantity },
+                req,
+                overrideAccess: true,
+              });
+            } catch {
+              /* gagal-aman: jangan gagalkan penyimpanan order */
+            }
+          }
+        }
       },
     ],
   },

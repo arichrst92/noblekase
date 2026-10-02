@@ -20,7 +20,7 @@ import { resolveIntegrations } from "@/lib/integrations";
 import { createInvoice } from "@/lib/xendit";
 import { getRates } from "@/lib/biteship";
 import { getShippingConfig, loadRateItems } from "@/lib/shipping";
-import { defaultLocale, isLocale, localePath } from "@/lib/i18n";
+import { defaultLocale, isLocale, localePath, type Locale } from "@/lib/i18n";
 import { clientKey, rateLimit } from "@/lib/ai/rateLimit";
 
 export const maxDuration = 30;
@@ -56,17 +56,100 @@ function bad(
   return NextResponse.json({ error: message, ...extra }, { status });
 }
 
+/**
+ * Pesan error dua bahasa. Dipisah dari kamus UI karena hanya dipakai di
+ * endpoint ini dan sebagian menyisipkan nilai ({fields}/{name}/{stock}).
+ * Tanpa ini, pembeli berbahasa Inggris melihat pesan error Bahasa Indonesia.
+ */
+const MSG: Record<Locale, Record<string, string>> = {
+  id: {
+    tooMany: "Terlalu banyak permintaan. Coba lagi sebentar.",
+    invalid: "Permintaan tidak valid.",
+    emptyCart: "Keranjang kosong.",
+    missing: "Lengkapi dulu: {fields}.",
+    payNotConfigured:
+      "Pembayaran belum dikonfigurasi. Hubungi kami lewat halaman Dukungan.",
+    itemsProblem: "Sebagian item tidak bisa diproses.",
+    noItems: "Tidak ada item yang bisa diproses.",
+    shipNotConfigured:
+      "Pengiriman belum dikonfigurasi. Hubungi kami lewat halaman Dukungan.",
+    shipItemsProblem: "Sebagian item tidak bisa dikirim.",
+    rateChanged: "Ongkir untuk kurir ini sudah berubah. Pilih ulang kurirnya.",
+    rateFailed: "Gagal menghitung ongkir. Coba lagi.",
+    createFailed: "Gagal membuat pesanan. Coba lagi.",
+    invoiceFailed: "Gagal menyiapkan pembayaran. Coba lagi.",
+    unavailable: 'Produk "{slug}" tidak tersedia.',
+    noPrice: '"{name}" belum punya harga.',
+    insufficientStock: 'Stok "{name}" tidak cukup (tersisa {stock}).',
+    fName: "Nama pembeli",
+    fEmail: "Email",
+    fPhone: "Nomor telepon",
+    fRecipient: "Nama penerima",
+    fRecipientPhone: "Telepon penerima",
+    fAddress: "Alamat",
+    fProvince: "Provinsi",
+    fCity: "Kota",
+    fPostal: "Kode pos",
+    fArea: "Area pengiriman (pilih dari daftar)",
+    fCourier: "Kurir",
+    fCourierType: "Layanan kurir",
+  },
+  en: {
+    tooMany: "Too many requests. Please try again shortly.",
+    invalid: "Invalid request.",
+    emptyCart: "Your cart is empty.",
+    missing: "Please complete: {fields}.",
+    payNotConfigured:
+      "Payments are not configured yet. Please reach us via the Support page.",
+    itemsProblem: "Some items could not be processed.",
+    noItems: "No items could be processed.",
+    shipNotConfigured:
+      "Shipping is not configured yet. Please reach us via the Support page.",
+    shipItemsProblem: "Some items cannot be shipped.",
+    rateChanged:
+      "The rate for this courier changed. Please reselect a courier.",
+    rateFailed: "Failed to calculate shipping. Please try again.",
+    createFailed: "Failed to create the order. Please try again.",
+    invoiceFailed: "Failed to set up payment. Please try again.",
+    unavailable: 'Product "{slug}" is unavailable.',
+    noPrice: '"{name}" has no price yet.',
+    insufficientStock: 'Not enough stock for "{name}" ({stock} left).',
+    fName: "Buyer name",
+    fEmail: "Email",
+    fPhone: "Phone number",
+    fRecipient: "Recipient name",
+    fRecipientPhone: "Recipient phone",
+    fAddress: "Address",
+    fProvince: "Province",
+    fCity: "City",
+    fPostal: "Postal code",
+    fArea: "Shipping area (pick from the list)",
+    fCourier: "Courier",
+    fCourierType: "Courier service",
+  },
+};
+
+function m(
+  locale: Locale,
+  key: string,
+  vars: Record<string, string | number> = {},
+) {
+  const template = MSG[locale][key] ?? MSG[defaultLocale][key] ?? key;
+  return template.replace(/\{(\w+)\}/g, (match, name: string) =>
+    name in vars ? String(vars[name]) : match,
+  );
+}
+
 export async function POST(request: Request) {
   // Batasi agar endpoint tidak bisa dipakai membuat order massal.
   const rl = await rateLimit(clientKey(request, "checkout"), 20);
-  if (!rl.allowed)
-    return bad("Terlalu banyak permintaan. Coba lagi sebentar.", 429);
+  if (!rl.allowed) return bad(m(defaultLocale, "tooMany"), 429);
 
   let body: CheckoutBody;
   try {
     body = (await request.json()) as CheckoutBody;
   } catch {
-    return bad("Permintaan tidak valid.");
+    return bad(m(defaultLocale, "invalid"));
   }
 
   const locale = isLocale(body.locale) ? body.locale : defaultLocale;
@@ -77,37 +160,35 @@ export async function POST(request: Request) {
       Number.isInteger(i.quantity) &&
       i.quantity > 0,
   );
-  if (items.length === 0) return bad("Keranjang kosong.");
+  if (items.length === 0) return bad(m(locale, "emptyCart"));
 
   const c = body.customer ?? {};
   const a = body.shippingAddress ?? {};
   const required: [string | undefined, string][] = [
-    [c.name, "Nama pembeli"],
-    [c.email, "Email"],
-    [c.phone, "Nomor telepon"],
-    [a.recipientName, "Nama penerima"],
-    [a.phone, "Telepon penerima"],
-    [a.addressLine, "Alamat"],
-    [a.province, "Provinsi"],
-    [a.city, "Kota"],
-    [a.postalCode, "Kode pos"],
-    [a.biteshipAreaId, "Area pengiriman (pilih dari daftar)"],
-    [body.courier?.company, "Kurir"],
-    [body.courier?.type, "Layanan kurir"],
+    [c.name, m(locale, "fName")],
+    [c.email, m(locale, "fEmail")],
+    [c.phone, m(locale, "fPhone")],
+    [a.recipientName, m(locale, "fRecipient")],
+    [a.phone, m(locale, "fRecipientPhone")],
+    [a.addressLine, m(locale, "fAddress")],
+    [a.province, m(locale, "fProvince")],
+    [a.city, m(locale, "fCity")],
+    [a.postalCode, m(locale, "fPostal")],
+    [a.biteshipAreaId, m(locale, "fArea")],
+    [body.courier?.company, m(locale, "fCourier")],
+    [body.courier?.type, m(locale, "fCourierType")],
   ];
   const missing = required
     .filter(([v]) => !v || !String(v).trim())
     .map(([, label]) => label);
-  if (missing.length) return bad(`Lengkapi dulu: ${missing.join(", ")}.`);
+  if (missing.length)
+    return bad(m(locale, "missing", { fields: missing.join(", ") }));
 
   const payload = await getPayloadClient();
   const integrations = await resolveIntegrations();
 
   if (!integrations.xenditSecretKey) {
-    return bad(
-      "Pembayaran belum dikonfigurasi. Hubungi kami lewat halaman Dukungan.",
-      503,
-    );
+    return bad(m(locale, "payNotConfigured"), 503);
   }
 
   // Ambil produk dari DB — sumber kebenaran harga/stok/berat.
@@ -138,18 +219,18 @@ export async function POST(request: Request) {
   for (const it of items) {
     const p: any = bySlug.get(it.slug);
     if (!p) {
-      problems.push(`Produk "${it.slug}" tidak tersedia.`);
+      problems.push(m(locale, "unavailable", { slug: it.slug }));
       continue;
     }
     const price = typeof p.price === "number" ? p.price : 0;
     const stock = typeof p.stock === "number" ? p.stock : 0;
     const weight = typeof p.weightGrams === "number" ? p.weightGrams : 0;
     if (price <= 0) {
-      problems.push(`"${p.name}" belum punya harga.`);
+      problems.push(m(locale, "noPrice", { name: p.name }));
       continue;
     }
     if (stock < it.quantity) {
-      problems.push(`Stok "${p.name}" tidak cukup (tersisa ${stock}).`);
+      problems.push(m(locale, "insufficientStock", { name: p.name, stock }));
       continue;
     }
     orderItems.push({
@@ -163,9 +244,8 @@ export async function POST(request: Request) {
     });
   }
 
-  if (problems.length)
-    return bad("Sebagian item tidak bisa diproses.", 409, { problems });
-  if (orderItems.length === 0) return bad("Tidak ada item yang bisa diproses.");
+  if (problems.length) return bad(m(locale, "itemsProblem"), 409, { problems });
+  if (orderItems.length === 0) return bad(m(locale, "noItems"));
 
   const subtotal = orderItems.reduce((s, i) => s + i.lineTotal, 0);
   const totalWeight = orderItems.reduce(
@@ -179,10 +259,7 @@ export async function POST(request: Request) {
     integrations.biteshipApiKey,
   );
   if (!shipConfig.ready) {
-    return bad(
-      "Pengiriman belum dikonfigurasi. Hubungi kami lewat halaman Dukungan.",
-      503,
-    );
+    return bad(m(locale, "shipNotConfigured"), 503);
   }
 
   const { rateItems, problems: shipProblems } = await loadRateItems(
@@ -191,7 +268,7 @@ export async function POST(request: Request) {
     locale,
   );
   if (shipProblems.length)
-    return bad("Sebagian item tidak bisa dikirim.", 409, {
+    return bad(m(locale, "shipItemsProblem"), 409, {
       problems: shipProblems,
     });
 
@@ -213,13 +290,7 @@ export async function POST(request: Request) {
     if (!chosen) {
       // Tarif berubah / kurir tak lagi tersedia — minta pembeli memilih ulang
       // daripada diam-diam memakai harga lama.
-      return bad(
-        "Ongkir untuk kurir ini sudah berubah. Pilih ulang kurirnya.",
-        409,
-        {
-          rates,
-        },
-      );
+      return bad(m(locale, "rateChanged"), 409, { rates });
     }
     shippingCost = chosen.price;
     courierName =
@@ -227,7 +298,7 @@ export async function POST(request: Request) {
     etaText = chosen.etaText;
   } catch (err) {
     console.error("Gagal hitung ongkir saat checkout:", err);
-    return bad("Gagal menghitung ongkir. Coba lagi.", 502);
+    return bad(m(locale, "rateFailed"), 502);
   }
 
   const total = subtotal + shippingCost;

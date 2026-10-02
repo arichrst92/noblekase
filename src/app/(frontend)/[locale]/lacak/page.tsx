@@ -18,11 +18,13 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { locale: raw } = await params;
   const locale: Locale = isLocale(raw) ? raw : defaultLocale;
-  return buildMetadata({
+  const meta = await buildMetadata({
     title: t(locale, "track.title"),
     path: "/lacak",
     locale,
   });
+  // Halaman utilitas transaksional — jangan diindeks.
+  return { ...meta, robots: { index: false, follow: true } };
 }
 
 export default async function TrackPage({ params }: PageProps) {
