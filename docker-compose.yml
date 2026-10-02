@@ -86,6 +86,29 @@ services:
     networks:
       - noblekase
 
+  # Service sekali-jalan untuk migrasi & seed (profile "tools" → tidak ikut
+  # `docker compose up`). Dipanggil scripts/deploy.sh:
+  #   docker compose --profile tools run --rm tools pnpm payload migrate
+  tools:
+    profiles: ["tools"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: tools
+    image: noblekase-tools:latest
+    env_file: .env
+    environment:
+      DATABASE_URI: postgres://${POSTGRES_USER:-noblekase}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-noblekase}
+      REDIS_URL: redis://redis:6379
+    volumes:
+      # Seed menulis berkas media ke folder upload yang sama dengan app.
+      - ./uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - noblekase
+
   postgres:
     image: postgres:16-alpine
     container_name: noblekase-postgres

@@ -72,6 +72,24 @@ RUN pnpm generate:types
 RUN pnpm payload generate:importmap
 RUN pnpm build
 
+# === Stage: Tools (migrasi & seed) ===
+# Image ringan berisi SELURUH source + node_modules + CLI pnpm/payload, TANPA
+# menjalankan `pnpm build`. Image runner di bawah sengaja minimal (hanya
+# standalone server), jadi migrasi & seed dijalankan dari sini lewat service
+# `tools` ber-profil di docker-compose.yml. Lihat scripts/deploy.sh.
+FROM node:22-alpine AS tools
+RUN corepack enable && corepack prepare pnpm@9 --activate
+WORKDIR /app
+RUN apk add --no-cache libc6-compat
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+# payload-types di-generate (di-gitignore) agar skrip seed yang meng-import
+# @/payload-types bisa dijalankan. Tidak butuh koneksi DB saat generate.
+RUN pnpm generate:types
+CMD ["sh"]
+
 # === Stage 3: Runner (production) ===
 FROM node:22-alpine AS runner
 WORKDIR /app
