@@ -20,6 +20,7 @@ import { resolveIntegrations } from "@/lib/integrations";
 import { createInvoice } from "@/lib/xendit";
 import { getRates } from "@/lib/biteship";
 import { getShippingConfig, loadRateItems } from "@/lib/shipping";
+import { reserveStock, releaseStock, restoreItems } from "@/lib/stock";
 import { defaultLocale, isLocale, localePath, type Locale } from "@/lib/i18n";
 import { clientKey, rateLimit } from "@/lib/ai/rateLimit";
 
@@ -81,6 +82,8 @@ const MSG: Record<Locale, Record<string, string>> = {
     unavailable: 'Produk "{slug}" tidak tersedia.',
     noPrice: '"{name}" belum punya harga.',
     insufficientStock: 'Stok "{name}" tidak cukup (tersisa {stock}).',
+    reserveFailed:
+      'Stok "{name}" keburu habis. Kurangi jumlah atau pilih produk lain.',
     fName: "Nama pembeli",
     fEmail: "Email",
     fPhone: "Nomor telepon",
@@ -114,6 +117,8 @@ const MSG: Record<Locale, Record<string, string>> = {
     unavailable: 'Product "{slug}" is unavailable.',
     noPrice: '"{name}" has no price yet.',
     insufficientStock: 'Not enough stock for "{name}" ({stock} left).',
+    reserveFailed:
+      '"{name}" just went out of stock. Reduce the quantity or pick another product.',
     fName: "Buyer name",
     fEmail: "Email",
     fPhone: "Phone number",
@@ -189,6 +194,19 @@ export async function POST(request: Request) {
 
   if (!integrations.xenditSecretKey) {
     return bad(m(locale, "payNotConfigured"), 503);
+  }
+
+  // Bila pembeli login sebagai pelanggan, tautkan order ke akunnya (opsional —
+  // checkout tamu tetap jalan tanpa ini). Riwayat akun juga tetap cocok lewat
+  // email, jadi tautan ini sekadar bonus relasi.
+  let customerId: number | string | undefined;
+  try {
+    const { user } = await payload.auth({ headers: request.headers });
+    if (user && (user as { collection?: string }).collection === "customers") {
+      customerId = (user as { id: number | string }).id;
+    }
+  } catch {
+    /* tidak login — abaikan */
   }
 
   // Ambil produk dari DB — sumber kebenaran harga/stok/berat.
@@ -303,6 +321,19 @@ export async function POST(request: Request) {
 
   const total = subtotal + shippingCost;
 
+  // === RESERVE STOK (atomik) sebelum order & invoice dibuat ===
+  // Inilah penjaga anti-oversell: stok dikurangi sekarang, dan dikembalikan
+  // bila pembayaran kedaluwarsa/gagal/refund. Harus dilakukan SEBELUM membuat
+  // invoice supaya pembeli tidak pernah membayar barang yang stoknya keburu
+  // diambil orang lain.
+  const reservation = await reserveStock(payload, orderItems);
+  if (!reservation.ok) {
+    return bad(
+      m(locale, "reserveFailed", { name: reservation.insufficient ?? "" }),
+      409,
+    );
+  }
+
   // 1. Buat order (pending). overrideAccess: endpoint publik, bukan user admin.
   let order: any;
   try {
@@ -312,6 +343,7 @@ export async function POST(request: Request) {
       data: {
         paymentStatus: "pending",
         fulfillmentStatus: "pending",
+        ...(customerId ? { customer: Number(customerId) } : {}),
         // Semua field wajib sudah divalidasi di atas (array `required`), jadi
         // non-null assertion di sini aman dan memuaskan tipe generated Payload.
         customerName: c.name!,
@@ -343,7 +375,9 @@ export async function POST(request: Request) {
     });
   } catch (err) {
     console.error("Gagal membuat order:", err);
-    return bad("Gagal membuat pesanan. Coba lagi.", 500);
+    // Order gagal dibuat setelah stok di-reserve — kembalikan agar tidak hilang.
+    await restoreItems(payload, orderItems).catch(() => {});
+    return bad(m(locale, "createFailed"), 500);
   }
 
   // 2. URL redirect — asal dari request, fallback ke env.
@@ -390,7 +424,9 @@ export async function POST(request: Request) {
     });
   } catch (err) {
     console.error("Gagal membuat invoice Xendit:", err);
-    // Order terlanjur dibuat; tandai gagal supaya tidak menggantung "pending".
+    // Order terlanjur dibuat & stok sudah di-reserve. Lepas stok kembali dan
+    // tandai gagal supaya tidak menggantung "pending" sambil menahan stok.
+    await releaseStock(payload, order).catch(() => {});
     await payload
       .update({
         collection: "orders",
@@ -402,6 +438,6 @@ export async function POST(request: Request) {
         },
       })
       .catch(() => {});
-    return bad("Gagal menyiapkan pembayaran. Coba lagi.", 502);
+    return bad(m(locale, "invoiceFailed"), 502);
   }
 }

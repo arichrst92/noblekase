@@ -317,6 +317,17 @@ export const Orders: CollectionConfig = {
       type: "textarea",
       admin: { description: "Catatan internal, tidak tampil ke pembeli." },
     },
+    {
+      name: "stockReleased",
+      type: "checkbox",
+      defaultValue: false,
+      admin: {
+        position: "sidebar",
+        readOnly: true,
+        description:
+          "Penanda internal: true bila stok order ini sudah dikembalikan (expired/refund/cancel). Mencegah pengembalian ganda.",
+      },
+    },
   ],
   hooks: {
     beforeChange: [
@@ -329,47 +340,31 @@ export const Orders: CollectionConfig = {
     ],
     afterChange: [
       async ({ doc, previousDoc, req, operation }) => {
-        // Pulihkan stok saat order BERUBAH dari paid → refunded.
+        // Kembalikan stok saat order menjadi dibatalkan/refund dari sisi ADMIN.
         //
-        // Stok hanya pernah dikurangi ketika order menjadi "paid" (lihat webhook
-        // Xendit), jadi pengembalian hanya relevan untuk transisi ini. Dijaga
-        // ketat agar penyimpanan ulang order yang sudah refunded tidak menambah
-        // stok berkali-kali.
+        // Stok di-reserve saat checkout (lihat src/lib/stock.ts), jadi order
+        // apa pun yang berakhir refunded/cancelled harus melepas reservasinya.
+        // releaseStock() idempoten lewat flag stockReleased, jadi aman meski
+        // webhook juga memanggilnya atau order disimpan ulang berkali-kali.
         if (operation !== "update") return;
-        const was = (previousDoc as { paymentStatus?: string })?.paymentStatus;
-        const now = (doc as { paymentStatus?: string })?.paymentStatus;
-        if (was === "paid" && now === "refunded") {
-          const items =
-            (doc as { items?: { product?: unknown; quantity?: number }[] })
-              .items ?? [];
-          for (const it of items) {
-            const pid =
-              it.product && typeof it.product === "object"
-                ? (it.product as { id?: number | string }).id
-                : it.product;
-            if (pid == null || !it.quantity) continue;
-            try {
-              const p = await req.payload.findByID({
-                collection: "products",
-                id: pid as number,
-                depth: 0,
-                req,
-              });
-              const current =
-                typeof (p as { stock?: number })?.stock === "number"
-                  ? (p as { stock: number }).stock
-                  : 0;
-              await req.payload.update({
-                collection: "products",
-                id: pid as number,
-                data: { stock: current + it.quantity },
-                req,
-                overrideAccess: true,
-              });
-            } catch {
-              /* gagal-aman: jangan gagalkan penyimpanan order */
-            }
-          }
+        const wasPay = (previousDoc as { paymentStatus?: string })
+          ?.paymentStatus;
+        const nowPay = (doc as { paymentStatus?: string })?.paymentStatus;
+        const wasFul = (previousDoc as { fulfillmentStatus?: string })
+          ?.fulfillmentStatus;
+        const nowFul = (doc as { fulfillmentStatus?: string })
+          ?.fulfillmentStatus;
+
+        const becameRefunded = wasPay !== "refunded" && nowPay === "refunded";
+        const becameCancelled =
+          wasFul !== "cancelled" && nowFul === "cancelled";
+        if (!becameRefunded && !becameCancelled) return;
+
+        try {
+          const { releaseStock } = await import("@/lib/stock");
+          await releaseStock(req.payload, doc);
+        } catch {
+          /* gagal-aman: jangan gagalkan penyimpanan order */
         }
       },
     ],

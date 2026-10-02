@@ -49,6 +49,19 @@ function SuccessInner() {
         >
           {tr("checkout.backToShop")}
         </Link>
+
+        {/* Tawaran akun opsional pasca-checkout. */}
+        <div className="mt-10 pt-8 border-t border-border-light">
+          <p className="text-sm text-ink-secondary mb-3">
+            {tr("account.offerAfterCheckout")}
+          </p>
+          <Link
+            href={localePath(locale, "/akun/daftar")}
+            className="text-sm font-medium text-accent hover:text-ink-primary"
+          >
+            {tr("account.registerCta")} →
+          </Link>
+        </div>
       </div>
     </section>
   );

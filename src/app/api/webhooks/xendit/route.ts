@@ -20,6 +20,7 @@ import { getPayloadClient } from "@/lib/payload";
 import { resolveIntegrations } from "@/lib/integrations";
 import { verifyCallbackToken } from "@/lib/xendit";
 import { createShipmentForOrder } from "@/lib/shipping";
+import { releaseStock } from "@/lib/stock";
 import { sendEmail } from "@/lib/email";
 
 export const maxDuration = 30;
@@ -74,70 +75,6 @@ async function claimOrderPaid(
   } catch {
     return false;
   }
-}
-
-/**
- * Kurangi stok secara atomik. Mengembalikan daftar item yang stoknya kurang
- * (seharusnya kosong — stok sudah dicek saat checkout — tapi tetap dicatat).
- */
-async function decrementStock(
-  payload: Awaited<ReturnType<typeof getPayloadClient>>,
-  items: {
-    product?: number | string | { id: number | string } | null;
-    quantity: number;
-    nameSnapshot: string;
-  }[],
-): Promise<string[]> {
-  const shortfalls: string[] = [];
-  // pg Pool dari adapter postgres — update kondisional aman dari race.
-  const pool = (
-    payload.db as unknown as {
-      pool?: {
-        query: (q: string, v: unknown[]) => Promise<{ rowCount: number }>;
-      };
-    }
-  ).pool;
-
-  for (const it of items) {
-    if (it.product == null) continue;
-    // Pengaman ganda: bila relasi sempat terpopulasi jadi objek, ambil id-nya.
-    const productId =
-      typeof it.product === "object"
-        ? (it.product as { id: number | string }).id
-        : it.product;
-    if (productId == null) continue;
-    if (pool) {
-      try {
-        const r = await pool.query(
-          "UPDATE products SET stock = stock - $1 WHERE id = $2 AND stock >= $1",
-          [it.quantity, productId],
-        );
-        if (r.rowCount === 0) shortfalls.push(it.nameSnapshot);
-        continue;
-      } catch {
-        /* jatuh ke jalur non-atomik di bawah */
-      }
-    }
-    // Fallback (tanpa pool): read-modify-write, kurang aman tapi tetap jalan.
-    try {
-      const p: any = await payload.findByID({
-        collection: "products",
-        id: productId as any,
-        depth: 0,
-      });
-      const current = typeof p?.stock === "number" ? p.stock : 0;
-      await payload.update({
-        collection: "products",
-        id: productId as any,
-        overrideAccess: true,
-        data: { stock: Math.max(0, current - it.quantity) },
-      });
-      if (current < it.quantity) shortfalls.push(it.nameSnapshot);
-    } catch {
-      shortfalls.push(it.nameSnapshot);
-    }
-  }
-  return shortfalls;
 }
 
 function orderConfirmationEmail(order: any): string {
@@ -242,19 +179,9 @@ export async function POST(request: Request) {
       })
       .catch(() => {});
 
-    const shortfalls = await decrementStock(payload, order.items ?? []);
-    if (shortfalls.length) {
-      await payload
-        .update({
-          collection: "orders",
-          id: order.id,
-          overrideAccess: true,
-          data: {
-            adminNotes: `${order.adminNotes ? order.adminNotes + "\n" : ""}⚠ Stok kurang saat pembayaran: ${shortfalls.join(", ")}. Perlu cek manual.`,
-          },
-        })
-        .catch(() => {});
-    }
+    // Stok TIDAK dikurangi di sini — sudah di-reserve saat checkout
+    // (src/lib/stock.ts). Pembayaran hanya mengubah status; stok yang sudah
+    // dipegang order ini memang menjadi terjual.
 
     // 3. Buat resi Biteship (gagal-aman — kegagalan dicatat, tidak membatalkan
     //    pembayaran yang sudah masuk).
@@ -317,13 +244,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true });
   }
 
-  if (status === "EXPIRED") {
-    await payload.update({
-      collection: "orders",
-      id: order.id,
-      overrideAccess: true,
-      data: { paymentStatus: "expired" },
-    });
+  if (status === "EXPIRED" || status === "FAILED") {
+    await payload
+      .update({
+        collection: "orders",
+        id: order.id,
+        overrideAccess: true,
+        data: { paymentStatus: status === "EXPIRED" ? "expired" : "failed" },
+      })
+      .catch(() => {});
+    // Lepas stok yang di-reserve saat checkout — pembayaran tidak jadi.
+    // releaseStock idempoten (flag stockReleased), aman dari callback ganda.
+    await releaseStock(payload, order).catch(() => {});
     return NextResponse.json({ received: true });
   }
 

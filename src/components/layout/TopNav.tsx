@@ -13,7 +13,7 @@
 
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
-import { Search, Menu } from "lucide-react";
+import { Search, Menu, User } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { SearchOverlay } from "@/components/search/SearchOverlay";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
@@ -128,6 +128,13 @@ export function TopNav({
           >
             <Search className="w-3.5 h-3.5" />
           </button>
+          <Link
+            href={localePath(locale, "/akun")}
+            aria-label={tr("account.title")}
+            className="p-1.5 md:px-2.5 md:py-1 md:bg-bg-warm md:rounded-full text-ink-secondary hover:text-ink-primary transition-colors inline-flex"
+          >
+            <User className="w-3.5 h-3.5" />
+          </Link>
           <CartButton locale={locale} />
         </div>
       </nav>
